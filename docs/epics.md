@@ -20,12 +20,12 @@ This document outlines the major epics for the project and breaks them down into
 *Focus: Core functionality for creating, tracking, and managing recurring habits.*
 
 **Stories:**
-- **Story 2.1 (Create Habit):** As a user, I want to create a new habit with a name directly in "The Pile" so I can quickly add new activities to track.
+- **Story 2.1 (Create Habit):** As a user, I want to create a new habit with a name directly in "The Pile", with the option to also set a quantitative goal, so I can quickly add new activities to track. The habit should default to Public.
 - **Story 2.2 (Edit Habit):** As a user, I want to edit a habit's name and its public/private status so I can correct mistakes and control visibility.
-- **Story 2.3 (Delete Habit):** As a user, I want to delete a habit so I can remove activities I'm no longer tracking.
-- **Story 2.4 (Streak Counter):** As a user, I want to see a visible streak counter on each habit, which resets on a missed day but preserves a 'High Score', so I am motivated to maintain consistency.
-- **Story 2.5 (Quantitative Goals):** As a user, I want to set and modify a quantitative goal for a habit (e.g., "Read 10 pages") so I can track specific, measurable outcomes.
-- **Story 2.6 (Goal Change):** As a user, I want my streak to continue uninterrupted when I change a habit's goal so I can adjust the difficulty without being penalized.
+- **Story 2.3 (Delete Habit):** As a user, I want to delete a habit from "The Pile" so I can permanently remove activities I'm no longer tracking.
+- **Story 2.4 (Streak Counter):** As a user, I want to see a visible streak counter on each habit, which resets on a missed day but preserves the value of the most recently broken streak, so I am motivated to start again.
+- **Story 2.5 (Quantitative Goals):** As a user, I want to set and modify a quantitative goal for a habit by providing a number and selecting a unit from a list (e.g., "pages", "minutes") or entering my own custom unit, so I can track specific, measurable outcomes.
+- **Story 2.6 (Goal Change):** As a user, I want my streak to continue uninterrupted when I change a habit's `goal_value` so I can adjust the difficulty without being penalized.
 
 ---
 
@@ -45,13 +45,14 @@ This document outlines the major epics for the project and breaks them down into
 *Focus: The primary user interface and the fundamental rules governing habit progression.*
 
 **Stories:**
-- **Story 4.1 (Three-Column Layout):** As a user, I want to see my habits organized into "Today", "Yesterday", and "The Pile" columns so I have a clear overview of my daily status.
+- **Story 4.1 (Three-Column Layout):** As a user, I want to see my habits organized into "Today", "Yesterday", and "The Pile" columns, with "The Pile" sorted to show "Lively" habits first, so I have a clear and prioritized overview of my daily status.
 - **Story 4.2 (Daily State Change):** As a user, I expect the application to automatically move completed habits to the "Yesterday" column at midnight in my local timezone so the board is ready for a new day.
 - **Story 4.3 (Mark Complete):** As a user, I want to drag a habit from "Yesterday" to "Today" to mark it as complete and continue my streak.
-- **Story 4.4 (Two-Day Rule):** As a user, I understand that if I fail to complete a habit from the "Yesterday" column, it will be moved to "The Pile" and its streak will be reset, enforcing the "Two-Day Rule".
+- **Story 4.4 (True Two-Day Rule):** As a user, I understand that if I miss a habit for one day, it moves to "The Pile" in a recoverable "Lively" state. If I miss it for a second consecutive day, it becomes "Junked" and the streak is officially broken.
 - **Story 4.5 (Grace Period):** As a user, if I open the app for the first time on a new day with pending habits, I want to be shown a summary screen to complete them before the day officially ends, so I don't unfairly lose my streak.
-- **Story 4.6 (Restart Habit):** As a user, I want to drag a habit from "The Pile" to "Today" to restart its streak from 1.
-- **Story 4.7 (Undo Action):** As a user, I want to long-press a habit in the 'Today' column to undo the completion, moving it back and reverting the streak, in case I make a mistake.
+- **Story 4.6 (Continue or Restart Habit):** As a user, I want to drag a "Lively" habit from "The Pile" to "Today" to continue its streak, and drag a "Junked" habit to "Today" to restart its streak from 1.
+- **Story 4.7 (Junked Days Counter):** As a user, I want to see a counter on my "Junked" habits in The Pile that tells me how many days they have been neglected, so I can see how long it has been.
+- **Story 4.8 (Undo Action):** As a user, I want to long-press a habit in the 'Today' column to undo its completion. The habit should move back to "Yesterday" (if the streak was > 1) or "The Pile" (if the streak was 1) and its streak should be reverted, in case I make a mistake.
 
 ---
 
@@ -59,7 +60,7 @@ This document outlines the major epics for the project and breaks them down into
 *Focus: Capturing details upon completion and aggregating them into a journal.*
 
 **Stories:**
-- **Story 5.1 (Completion Modal):** As a user, when I complete an item, I want a modal to appear so I can log my effort on an intensity slider, the quantitative value achieved, duration, and any notes.
+- **Story 5.1 (Completion Modal):** As a user, when I complete an item, I want a modal to appear that shows my streak update, allows me to select my mood via a fuel meter, log my quantitative work against an editable `goal_value` (with an info button), enter structured duration, and provides options to either log or cancel, so I can quickly and accurately capture all relevant details about the completion.
 - **Story 5.2 (Bypass Modal):** As a user, I want to quickly bypass the completion modal by pressing `Enter` to log the item with default values.
 - **Story 5.3 (Dual Journal):** As a user, I want a journal with separate "Public" and "Private" tabs so I can keep some reflections to myself while sharing others.
 - **Story 5.4 (Auto-Journaling):** As a user, I want my notes from completed items to be automatically added to the correct journal (Public/Private) based on the item's privacy setting.

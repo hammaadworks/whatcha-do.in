@@ -169,17 +169,18 @@ For the MVP, entirely novel architectural patterns are not required. The unique 
 The data architecture will be built upon **Supabase PostgreSQL**, leveraging its relational capabilities to ensure data integrity and support complex queries. Data models will be designed to reflect the core entities of the application: users, habits, todos, and journal entries.
 
 *   **Users:** Will store user authentication details (managed by Supabase Auth) and profile information (e.g., `user_id`, `email`, `bio`, `timezone`, `grace_screen_shown_for_date`).
-*   **Habits:** Will store recurring habit details (e.g., `habit_id`, `user_id`, `name`, `is_public`, `current_streak`, `high_score`, `created_at`, `current_goal_value`, `goal_unit`, `goal_type`, `last_recorded_intensity`).
+*   **Habits:** Will store recurring habit details (e.g., `habit_id`, `user_id`, `name`, `is_public`, `current_streak`, `last_streak`, `created_at`, `goal_value`, `goal_unit`, `last_recorded_mood`, `last_recorded_work_value`, `last_recorded_work_unit`, `pile_state`, `junked_at`).
 *   **Habit Completions (NEW Table):** A new table `habit_completions` will store each instance of a habit being completed.
     *   `completion_id`: Unique identifier.
     *   `habit_id`: Foreign key to `habits`.
     *   `user_id`: Foreign key to `users`.
     *   `completed_at`: Timestamp of completion.
-    *   `intensity_score`: Value from the intensity slider (FR-5.1.1).
-    *   `actual_value_achieved`: Quantitative value achieved (FR-5.1.2).
-    *   `goal_at_completion`: The `current_goal_value` active at completion (FR-5.1.2).
-    *   `duration`: Duration recorded (FR-5.1.3).
-    *   `notes`: Free-form text notes for this completion (FR-5.1.3).
+    *   `mood_score`: Value from the mood selector (FR-5.1.1).
+    *   `work_value`: Quantitative value achieved (FR-5.1.2).
+    *   `goal_at_completion`: The `goal_value` active when the habit was completed.
+    *   `duration_value`: Duration value recorded (FR-5.1.5).
+    *   `duration_unit`: Duration unit recorded (FR-5.1.5).
+    *   `notes`: Free-form text notes for this completion (FR-5.1.5).
 *   **Todos:** Will store one-off task details (e.g., `todo_id`, `user_id`, `parent_todo_id` for sub-todos, `description`, `is_public`, `is_completed`, `created_at`).
 *   **Journal Entries:** Will store daily reflections and aggregated notes from completed items (e.g., `entry_id`, `user_id`, `entry_date`, `content`, `is_public`, `created_at`).
 *   **Relationships:** Foreign keys will establish relationships between users and their habits, todos, and journal entries. Sub-todos will have a self-referencing relationship.

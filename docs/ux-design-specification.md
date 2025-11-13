@@ -71,11 +71,19 @@ A prominent Light/Dark Mode switcher will be available for users to easily toggl
 
 ## 4. Design Direction
 
-### 4.1 Chosen Design Approach
-
+### 4.1 Chosen Design Aesthetic
 The overall design aesthetic will be "Professional, tech-savvy, out-of-the-box wow design," incorporating gradients, artsy looks, and fluid animations. Inspiration is drawn from platforms like Framer, Motion, and `supermemory.ai`.
 
-**Main Board Layout & Interaction:**
+### 4.2 Overall Page Structure
+The main interface is organized with the following top-to-bottom structure to provide a clear and logical user flow:
+1.  User Info/Bio
+2.  **"Actions" Section** (Todos)
+3.  **"Habits" Section** (The Identity Momentum Board: Today, Yesterday, The Pile)
+4.  **Journal Section** (Daily entry with date selector)
+5.  Motivational Quote
+6.  Footer (minimal)
+
+### 4.3 Main Board Layout & Interaction
 
 *   **Desktop Layout:**
     *   **Structure:** A two-row layout. The top row will feature `Today` and `Yesterday` columns side-by-side. The bottom row will be a full-width `The Pile` column.
@@ -85,7 +93,7 @@ The overall design aesthetic will be "Professional, tech-savvy, out-of-the-box w
     *   **Structure:** A single-column, stacked layout. Habits will appear in the order: `Today`, then `Yesterday`, then `The Pile`.
     *   **Interaction:** `Tap-to-Move` will be implemented, where users tap a habit chip and then tap the destination column to move it.
 
-**Interactive Mockups:**
+### 4.4 Interactive Mockups
 
 - Design Direction Showcase: [ux-design-directions.html](./ux-design-directions.html)
 
@@ -98,38 +106,43 @@ The overall design aesthetic will be "Professional, tech-savvy, out-of-the-box w
 The application's core functionality revolves around several critical user journeys:
 
 1.  **Habit Management (Identity Momentum Board):**
-    *   **Core Logic:** Habits are single entities that move between three columns: `Today`, `Yesterday`, and `The Pile`. Habits are not copied.
-    *   **State Change Cycle:** At 12 AM daily, habits transition from `Today` -> `Yesterday` -> `The Pile` (if not completed).
-    *   **Streak Logic:** Streaks are preserved as "ghost" streaks in `The Pile` if a day is missed.
-    *   **Undo:** A long-press on a `Today` chip allows users to revert to the previous state/streak.
-    *   **Sorting (`The Pile`):** Habits are sorted by Public first, then Streak Count (DESC), then Name (ASC).
+    *   **Habit Creation Flow:** To create a new habit, the user clicks an "add new" area in "The Pile", which reveals an inline input field for the habit's name. As the user types, a `+ Add Goal` button appears next to the input.
+        *   If the user simply presses Enter, the habit is created without a goal.
+        *   If the user clicks `+ Add Goal`, the area expands to show a `[number]` input and a `[unit]` dropdown. The dropdown contains a predefined list (`minutes`, `pages`, etc.) and a "Custom..." option, which converts the dropdown to a text field for a user-defined unit.
+    *   **Core Principle:** The "True Two-Day Rule". A streak is only broken after two consecutive missed days.
+    *   **State 1: Miss Day 1 → "Lively" State:** When a habit in "Yesterday" is missed, it moves to "The Pile" and becomes "Lively". It is visually distinct and prioritized at the top of The Pile.
+    *   **"Lively" Recovery:** Rescuing a "Lively" habit by moving it to "Today" **continues the original streak uninterrupted.**
+    *   **State 2: Miss Day 2 → "Junked" State:** If a "Lively" habit is ignored for another day, it transitions to a "Junked" state, appearing greyed out.
+    *   **"Junked" Recovery:** Rescuing a "Junked" habit **resets its streak to 1.** The previously broken streak's value is saved as the `last_streak`.
+    *   **"Junked" Counter:** A counter (e.g., "-7") appears on "Junked" habits to show how long they've been neglected.
+    *   **Sorting (`The Pile`):** Habits are sorted first by state ("Lively" on top), then by public status, then by `last_streak` (descending), and finally by name (ascending).
+    *   **Undo:** A long-press on a 'Today' chip allows users to undo the completion. This action reverts the streak count and moves the habit back based on its prior state: to "Yesterday" if the streak was > 1, or to "The Pile" if the streak was 1.
+    *   **Deletion:** Habits can only be deleted when they are in "The Pile".
     *   **Habit Chip:** Displays name, streak badge, and `🌐 Public` / `🔒 Private` icon.
     *   **Habit Goal Adjustment (Upgrade/Downgrade):**
         *   Users can set and modify a quantitative goal for a habit (e.g., "Read 5 pages", "Do 20 pushups").
-        *   When a habit's goal is upgraded or downgraded, the existing streak will **continue uninterrupted**. The new goal becomes the requirement for continuing the streak from the moment of change.
+        *   When a habit's goal is upgraded or downgraded, the existing streak will **continue uninterrupted**. The new `goal_value` becomes the requirement for continuing the streak from the moment of change.
         *   **UI:** Clear confirmation dialogs will inform the user of the change and its impact on future requirements. The streak counter remains unchanged, but the displayed goal on the habit card immediately updates.
     *   **Habit Granularity:**
         *   The system will support both **broad habits** (e.g., "Workout") and **atomic habits** (e.g., "10 Pushups").
         *   **UI:** For broad habits, the completion modal will allow for logging details (e.g., reps, duration, specific activities) within the completion flow without requiring separate habit definitions. Users will be guided to choose the appropriate granularity based on their "why."
 
 2.  **Habit Completion Flow & Data Entry:**
-    *   **Trigger:** When a habit or todo is marked complete, a modal appears.
-    *   **Goal & Actual Value Recording:** The system formally records the `current_goal_value` for a habit, the `actual_value_achieved` for each completion, and the `goal_at_completion` (the goal active when the habit was completed).
-    *   **Intensity Slider:**
-        *   **Purpose:** To capture the user's subjective feeling/quality of the habit completion, distinct from the quantitative goal.
-        *   **Values:** Discrete jumps (0, 20, 40, 60, 80, 100).
-        *   **Labels (Examples):**
-            *   0: "Didn't do it / Felt terrible"
-            *   20: "Barely managed / Not great"
-            *   40: "Okay / Could be better"
-            *   60: "Good / Satisfied"
-            *   80: "Great / Accomplished"
-            *   100: "Awesome! / Crushed it!"
-        *   **UI:** The slider will appear *after* the user marks completion or inputs a quantitative value. It will have clear, empathetic labels corresponding to the discrete values. It will be visually separate from the quantitative goal input.
-    *   **Additional Fields:** The modal will also include fields for duration and free-form text notes.
+    *   **Trigger:** When a habit is marked complete, a modal appears.
+    *   **Layout:** The modal features a streak update display, a "fuel meter" for `mood` selection, a central `work/goal` display with an "i" button for goal info, and structured inputs for `duration` and `notes`.
+    *   **Streak Display:** Shows current streak and the projected new streak (e.g., "Streak: 5 → 6").
+    *   **Mood Input:** The user taps one of six discrete segments on a semi-circular "fuel meter" to log their subjective `mood` (0-100).
+    *   **Work Input:** The user taps the `work` number (e.g., the "25" in "25/30 pages") to type their quantitative achievement.
+    *   **In-Modal Goal Editing:** The user can tap the `goal` number to update the habit's goal. An "i" button provides a pop-up explanation.
+    *   **Duration Input:** Consists of a number field for the value and a dropdown for the unit ("minutes", "hours").
+    *   **Data Recording:** The system records the `mood_score`, `work_value`, `duration_value`, `duration_unit`, `goal_value`, and `notes`.
     *   **Bypass:** Users can bypass detail entry by pressing `Enter` to log the item with default values.
+    *   **Cancel Option:** A "Cancel" button is available to dismiss the modal without logging.
+    *   **Pre-filling:** If a habit is re-recorded on the same day (e.g., after an undo), the modal will pre-fill with the last recorded `mood`, `work`, and `duration` values for that day.
+    *   **Reference:** An interactive mockup of this modal is available in `docs/ux-completion-modal.html`.
 
 3.  **Grace Period Feature:**
+    *   **Tone:** "Gentle Reminder" (empathetic, non-judgmental).
     *   **Purpose:** To provide an empathetic "gentle reminder" for missed habits.
     *   **Screen:** An "End of Day Summary" screen appears if the user opens the app after 12 AM with pending habits from the previous day.
     *   **Interaction:** Users can tap to mark pending habits complete, or use a "+ Add another habit you completed" button to add from `The Pile` or create new for the previous day.
@@ -143,7 +156,7 @@ The application's core functionality revolves around several critical user journ
 
 5.  **Journal System:**
     *   **Structure:** A "Two-Sided Journal" with distinct `[ 🌐 Public Journal ]` and `[ 🔒 Private Journal ]` tabs.
-    *   **Content:** Each daily entry includes user-typed notes (Markdown editor), Completed Todos, and Habit Notes.
+    *   **Content:** Each daily entry includes user-typed notes (Markdown editor). Completed Habits and Todos are automatically added as line items, displaying the habit's name, mood, work, and duration.
     *   **Privacy Logic:** The privacy of completed Habits/Todos notes is determined by their original status. Free-form notes' privacy is determined by the active tab. Absolute separation ensures public profiles only see `🌐 Public Journal` content.
 
 ---
@@ -173,7 +186,7 @@ To ensure a cohesive and efficient user experience, the following UX pattern dec
     *   This ensures speed and efficiency for power users and enhances accessibility.
 
 *   **Micro-interactions and Subtle Cues:**
-    *   The interface will be rich with micro-interactions and subtle visual cues. These small, contextual animations and feedback mechanisms are paramount for conveying a blend of empowerment, pride, focus, and positive urgency.
+    *   The interface will be rich with micro-interactions and subtle visual cues. These small, contextual animations and feedback mechanisms are paramount for conveying a blend of **empowerment, pride, focus, and positive urgency.**
     *   Examples include visual state changes when habits move between columns, and the "Teleport-to-Journal" animation for action completion.
     *   These elements provide clear feedback, make the experience feel alive, and contribute to the overall "wow" design aesthetic without being distracting.
 

@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UX Completion Modal - V4</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --font-sans: 'Manrope', sans-serif;
+            --radius: 0.75rem;
+            --bg: #161616;
+            --fg: #E5E7EB;
+            --muted-fg: #9CA3AF;
+            --card: #222222;
+            --card-border: #3A3A3A;
+            --primary: #00F5A0;
+            --primary-fg: #000000;
+            --primary-focus: rgba(0, 245, 160, 0.3);
+            --secondary-bg: #3A3A3A;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background-color: var(--bg);
+            color: var(--fg);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            gap: 1rem;
+        }
+
+        .modal-container {
+            width: 100%;
+            max-width: 400px;
+            background-color: var(--card);
+            border-radius: 1.5rem;
+            border: 1px solid var(--card-border);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 1.75rem;
+            font-weight: 800;
+            margin: 0 0 0.5rem 0;
+        }
+
+        .streak-display {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--muted-fg);
+            margin-bottom: 2rem;
+        }
+        .streak-display .arrow {
+            color: var(--primary);
+        }
+        .streak-display .new-streak {
+            color: var(--fg);
+            background: var(--primary-focus);
+            padding: 0.2rem 0.5rem;
+            border-radius: 0.5rem;
+        }
+
+        .fuel-meter {
+            position: relative;
+            width: 280px;
+            height: 140px; /* Half height for semi-circle */
+            margin: 0 auto 1.5rem auto;
+            overflow: hidden;
+        }
+        .fuel-meter-track {
+            width: 280px;
+            height: 280px;
+            border: 10px solid var(--card-border);
+            border-radius: 50%;
+            position: absolute;
+            top: 0;
+            box-sizing: border-box;
+            border-bottom-color: transparent;
+            border-left-color: transparent;
+            transform: rotate(135deg);
+        }
+
+        .mood-segment {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background-color: var(--bg);
+            transform-origin: center center;
+        }
+        .mood-segment:hover {
+            transform: scale(1.15);
+        }
+        .mood-segment.active {
+            background-color: var(--primary-focus);
+            border: 2px solid var(--primary);
+        }
+
+        .work-display {
+            margin-bottom: 2rem;
+        }
+        .work-display .value {
+            font-size: 2.5rem;
+            font-weight: 800;
+            line-height: 1;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .work-display .editable {
+            cursor: pointer;
+            padding: 0 0.5rem;
+            border-radius: var(--radius);
+            transition: background-color 0.2s ease;
+            border-bottom: 2px dashed var(--muted-fg);
+        }
+        .work-display .editable:hover {
+            background-color: rgba(255,255,255,0.1);
+            border-bottom-style: solid;
+        }
+        .work-display .unit {
+            font-size: 1rem;
+            color: var(--muted-fg);
+            font-weight: 700;
+        }
+
+        .info-button {
+            background: var(--secondary-bg);
+            color: var(--fg);
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: 800;
+            cursor: pointer;
+            margin-left: 0.5rem;
+            position: relative;
+        }
+        .info-popup {
+            position: absolute;
+            background-color: var(--primary);
+            color: var(--primary-fg);
+            padding: 8px 12px;
+            border-radius: var(--radius);
+            font-size: 0.9rem;
+            font-weight: 700;
+            white-space: nowrap;
+            z-index: 10;
+            bottom: 125%; /* Position above the button */
+            left: 50%;
+            transform: translateX(-50%);
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.2s ease, visibility 0.2s ease;
+        }
+        .info-popup.visible {
+            visibility: visible;
+            opacity: 1;
+        }
+
+
+        .details-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            text-align: left;
+        }
+        .details-form .form-row {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        .details-form label {
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: var(--muted-fg);
+            margin-bottom: 0.25rem;
+            display: block;
+        }
+        .details-form input, .details-form select {
+            font-family: var(--font-sans);
+            background-color: var(--bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius);
+            padding: 0.75rem 1rem;
+            color: var(--fg);
+            font-size: 1rem;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .details-form .duration-value { flex-grow: 1; }
+        .details-form .duration-unit { width: 120px; }
+
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        .btn {
+            font-family: var(--font-sans);
+            font-weight: 700;
+            padding: 1rem 1.5rem;
+            border-radius: var(--radius);
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 1.1rem;
+            width: 100%;
+        }
+        .btn-primary {
+            background: var(--primary);
+            color: var(--primary-fg);
+        }
+        .btn-secondary {
+            background: var(--secondary-bg);
+            color: var(--fg);
+        }
+
+    </style>
+</head>
+<body>
+    <div class="modal-container">
+        <h1>Workout</h1>
+        <div class="streak-display">Streak: 5 <span class="arrow">→</span> <span class="new-streak">6</span></div>
+
+        <div class="fuel-meter" id="fuel-meter">
+            <div class="fuel-meter-track"></div>
+            <!-- Mood segments will be placed here by JS -->
+        </div>
+
+        <div class="work-display">
+            <div class="value">
+                <span class="editable">25</span> 
+                / 
+                <span class="editable" id="goal-editable">30</span>
+                <div class="info-button" id="goal-info-button">
+                    i
+                    <span class="info-popup" id="goal-info-popup">Click to change goal number and unit</span>
+                </div>
+            </div>
+            <div class="unit">reps</div>
+        </div>
+
+        <div class="details-form">
+            <div class="form-row">
+                <div class="duration-value">
+                    <label for="duration-value">Duration</label>
+                    <input type="number" id="duration-value" value="15">
+                </div>
+                <div class="duration-unit">
+                    <label for="duration-unit">Unit</label>
+                    <select id="duration-unit">
+                        <option>minutes</option>
+                        <option>hours</option>
+                    </select>
+                </div>
+            </div>
+            <div>
+                <label for="notes">Notes</label>
+                <input type="text" id="notes" placeholder="Any thoughts or notes...">
+            </div>
+        </div>
+        
+        <div class="button-group">
+            <button class="btn btn-secondary">Cancel</button>
+            <button class="btn btn-primary">Log Completion</button>
+        </div>
+    </div>
+    <p>This is an interactive mockup. Click the 'i' button next to the goal.</p>
+
+    <script>
+        const fuelMeter = document.getElementById('fuel-meter');
+        const moods = [
+            { emoji: '😞', value: 0 },
+            { emoji: '😕', value: 20 },
+            { emoji: '😐', value: 40 },
+            { emoji: '🙂', value: 60 },
+            { emoji: '😄', value: 80 },
+            { emoji: '🤩', value: 100 }
+        ];
+
+        const numMoods = moods.length;
+        const angleStep = 180 / (numMoods - 1); // Angle between each step
+        const radius = 110; // Radius of the semi-circle
+
+        moods.forEach((mood, i) => {
+            const angle = (angleStep * i) - 180; // Start from -180 deg (left)
+            const rads = angle * (Math.PI / 180);
+            
+            const x = radius + radius * Math.cos(rads);
+            const y = radius + radius * Math.sin(rads);
+
+            const segment = document.createElement('div');
+            segment.classList.add('mood-segment');
+            segment.textContent = mood.emoji;
+            segment.style.left = `${x}px`;
+            segment.style.top = `${y}px`;
+            segment.dataset.value = mood.value;
+            
+            segment.addEventListener('click', () => {
+                document.querySelectorAll('.mood-segment').forEach(el => el.classList.remove('active'));
+                segment.classList.add('active');
+            });
+
+            fuelMeter.appendChild(segment);
+        });
+
+        // Info button for goal
+        const goalInfoButton = document.getElementById('goal-info-button');
+        const goalInfoPopup = document.getElementById('goal-info-popup');
+
+        goalInfoButton.addEventListener('click', (event) => {
+            event.stopPropagation(); // Prevent click from propagating to document
+            goalInfoPopup.classList.toggle('visible');
+        });
+
+        // Close popup if clicking anywhere else
+        document.addEventListener('click', (event) => {
+            if (goalInfoPopup.classList.contains('visible') && !goalInfoButton.contains(event.target)) {
+                goalInfoPopup.classList.remove('visible');
+            }
+        });
+    </script>
+
+</body>
+</html>
