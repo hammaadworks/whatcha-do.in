@@ -23,7 +23,7 @@
     </check>
 
     <critical>MUST read COMPLETE sprint-status.yaml file from start to end to preserve order</critical>
-    <action>Load the FULL file: {{output_folder}}/sprint-status.yaml</action>
+    <action>Load the FULL file: {{story_dir}}/sprint-status.yaml</action>
     <action>Read ALL lines from beginning to end - do not skip any content</action>
     <action>Parse the development_status section completely to understand story order</action>
 

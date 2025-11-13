@@ -1,6 +1,9 @@
-import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Toaster } from 'react-hot-toast';
 import "./globals.css";
+import dynamic from 'next/dynamic';
+
+const Auth = dynamic(() => import("@/components/auth/Auth"), { ssr: false });
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -27,6 +30,8 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <Toaster />
+        <Auth />
         {children}
       </body>
     </html>

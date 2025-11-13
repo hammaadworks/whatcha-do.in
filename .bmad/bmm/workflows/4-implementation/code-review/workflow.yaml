@@ -12,7 +12,7 @@ user_skill_level: "{config_source}:user_skill_level"
 document_output_language: "{config_source}:document_output_language"
 date: system-generated
 ephemeral_files: "{config_source}:dev_ephemeral_location"
-sprint_status: "{context_dir}/sprint-status.yaml || {output_folder}/sprint-status.yaml"
+sprint_status: "{ephemeral_files}/sprint-status.yaml"
 
 # Workflow components
 installed_path: "{project-root}/.bmad/bmm/workflows/4-implementation/code-review"

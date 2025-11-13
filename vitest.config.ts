@@ -7,8 +7,10 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: './vitest.setup.ts',
     exclude: ['**/node_modules/**', '**/dist/**', '**/tests/e2e/**'], // Exclude E2E tests
-    deps: {
-      inline: ['@supabase/supabase-js'], // Force Vitest to inline this dependency
+    server: { // Add server object
+      deps: {
+        inline: ['@supabase/supabase-js'], // Force Vitest to inline this dependency
+      },
     },
   },
   resolve: {

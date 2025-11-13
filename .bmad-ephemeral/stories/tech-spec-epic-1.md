@@ -187,3 +187,8 @@ The testing strategy for this epic will follow the lean MVP approach defined in 
 - **E2E Tests (Playwright):**
   - A single 'golden path' test will cover the full user journey: sign up, log in, edit bio, and log out.
 [Source: `docs/architecture.md#Testing-Strategy`]
+
+## Post-Review Follow-ups
+
+- Note: Consider enhancing E2E tests to cover the full magic link flow (email receipt, click, redirect) if a test email service or advanced mocking becomes available. This would provide more comprehensive coverage for AC 4 and AC 5. (Story 1.1)
+- Note: Ensure `tests/e2e/auth.spec.ts` is correctly configured to run within the Playwright setup, as it was failing due to server startup issues. This might involve ensuring `npm run build` completes before `npm run e2e` is executed, or configuring Playwright's `webServer` to wait for the server to be ready. (Story 1.1)

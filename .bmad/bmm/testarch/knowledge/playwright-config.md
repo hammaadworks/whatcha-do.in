@@ -21,9 +21,9 @@ Environment-specific configuration prevents hardcoded URLs, timeouts, and creden
 import { config as dotenvConfig } from 'dotenv';
 import path from 'path';
 
-// Load .env from project root
+// Load .env.local from project root
 dotenvConfig({
-  path: path.resolve(__dirname, '../../.env'),
+  path: path.resolve(__dirname, '../../.env.local'),
 });
 
 // Central environment config map
@@ -130,7 +130,7 @@ export default defineConfig({
 ```
 
 ```bash
-# .env.example - Template for developers
+# .env.local.example - Template for developers
 TEST_ENV=local
 API_KEY=your_api_key_here
 DATABASE_URL=postgresql://localhost:5432/test_db
