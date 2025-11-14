@@ -1,9 +1,6 @@
 import { vi, test, expect } from 'vitest';
 import { updateUserBio, getUserProfile, getPublicProfileData } from '@/lib/supabase/user';
 
-let mockSingle: any;
-let supabaseClient: any;
-
 vi.mock('@/lib/supabase/client', () => {
   const mockSingle = vi.fn();
 
@@ -29,12 +26,13 @@ vi.mock('@/lib/supabase/client', () => {
       signUp: vi.fn(),
     },
   };
-  supabaseClient = supabase;
   return {
     supabaseClient: supabase,
     mockSingle: mockSingle,
   };
 });
+
+import { supabaseClient, mockSingle } from '@/lib/supabase/client';
 
 test('updateUserBio updates the bio for a user', async () => {
   const testUser = { id: '123', email: 'test@example.com' };
