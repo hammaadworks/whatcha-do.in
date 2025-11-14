@@ -31,7 +31,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 "use client";
 
 import { useState } from "react";
-import { supabase } from "../../lib/supabase/client"; // Import supabase client
+import { supabaseClient } from "@/lib/supabase/client"; // Import supabase client
 
 export default function Login() {
   const [email, setEmail] = useState("");

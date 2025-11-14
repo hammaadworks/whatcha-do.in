@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { supabase } from "@/lib/supabase/client"; // Import supabase client
+import { supabaseClient } from "@/lib/supabase/client"; // Import supabase client
 
 const isValidEmail = (email: string) => {
   // Basic email regex for client-side validation
@@ -26,7 +26,7 @@ export default function Login() {
       return;
     }
 
-    const { error } = await supabase.auth.signInWithOtp({
+    const { error } = await supabaseClient.auth.signInWithOtp({
       email,
       options: {
         emailRedirectTo: `${window.location.origin}/dashboard`, // Redirect to dashboard after magic link click

@@ -1,39 +1,40 @@
 'use client';
 
-import { useState } from 'react';
-import { updateUserBio, type UserProfile } from '@/lib/supabase/user';
-import { createClient } from '@/lib/supabase/client';
+import React, {useState} from 'react';
+import {updateUserBio} from '@/lib/supabase/user';
+import {supabaseClient} from '@/lib/supabase/client';
 import toast from 'react-hot-toast';
 
-export function EditBioForm({ profile }: { profile: UserProfile | null }) {
-  const [bio, setBio] = useState(profile?.bio || '');
-  const supabase = createClient();
+function EditBioForm({bio}: { bio: string }) {
+    const [newBio, setNewBio] = useState(bio);
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        const {
+            data: {user},
+        } = await supabaseClient.auth.getUser();
 
-    const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+            const {error} = await updateUserBio(user.id, newBio);
+            if (error) {
+                toast.error('Failed to update bio.');
+            } else {
+                toast.success('Bio updated successfully!');
+            }
+        }
+    };
 
-    if (user) {
-      const { error } = await updateUserBio(user.id, bio);
-      if (error) {
-        toast.error(`Error: ${error.message}`);
-      } else {
-        toast.success('Bio updated successfully!');
-      }
-    }
-  };
-
-  return (
-    <form onSubmit={handleSubmit}>
+    return (
+        <form onSubmit={handleSubmit}>
       <textarea
-        value={bio}
-        onChange={(e) => setBio(e.target.value)}
-        rows={5}
-        cols={40}
+          value={newBio}
+          onChange={(e) => setNewBio(e.target.value)}
+          rows={4}
+          cols={50}
       />
-      <br />
-      <button type="submit">Save Bio</button>
-    </form>
-  );
+            <button type="submit">Save</button>
+        </form>
+    );
 }
+
+export default EditBioForm

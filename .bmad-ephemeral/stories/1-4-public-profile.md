@@ -1,6 +1,6 @@
 # Story 1.4: Public Profile
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -50,20 +50,20 @@ This story focuses on creating the public-facing profile page for a user. This p
 
 ## Tasks / Subtasks
 
-- [ ] **Task 1: Extend User Profile Service (Backend)** (AC: #2, #3, #4, #5, #8)
-    - [ ] Subtask 1.1: In `lib/supabase/user.ts`, create a function `getPublicProfileData(userId)` that fetches the user's bio and all public habits, todos, and journal entries.
-    - [ ] Subtask 1.2: Ensure the Supabase queries in this function filter for items where `is_public = true`.
-- [ ] **Task 2: Create Public Profile Page (Frontend)** (AC: #1, #2, #3, #4, #5, #6, #7)
-    - [ ] Subtask 2.1: Create the dynamic route and page at `app/(main)/profile/[userId]/page.tsx`.
-    - [ ] Subtask 2.2: This page should be a server component that fetches the public profile data using the `getPublicProfileData` function.
-    - [ ] Subtask 2.3: Create a component `components/profile/PublicProfileView.tsx` to display the profile data passed from the page.
-    - [ ] Subtask 2.4: Implement the UI to display the bio.
-    - [ ] Subtask 2.5: Implement the UI to display the list of public habits.
-    - [ ] Subtask 2.6: Implement the UI to display the list of public todos.
-    - [ ] Subtask 2.7: Implement the UI to display the public journal entries.
-    - [ ] Subtask 2.8: Handle the case where lists are empty and display an appropriate message.
-- [ ] **Task 3: Testing**
-    - [ ] Subtask 3.1: Write an integration test for the `getPublicProfileData` function to ensure it only fetches public data.
+- [x] **Task 1: Extend User Profile Service (Backend)** (AC: #2, #3, #4, #5, #8)
+    - [x] Subtask 1.1: In `lib/supabase/user.ts`, create a function `getPublicProfileData(userId)` that fetches the user's bio and all public habits, todos, and journal entries.
+    - [x] Subtask 1.2: Ensure the Supabase queries in this function filter for items where `is_public = true`.
+- [x] **Task 2: Create Public Profile Page (Frontend)** (AC: #1, #2, #3, #4, #5, #6, #7)
+    - [x] Subtask 2.1: Create the dynamic route and page at `app/(main)/profile/[userId]/page.tsx`.
+    - [x] Subtask 2.2: This page should be a server component that fetches the public profile data using the `getPublicProfileData` function.
+    - [x] Subtask 2.3: Create a component `components/profile/PublicProfileView.tsx` to display the profile data passed from the page.
+    - [x] Subtask 2.4: Implement the UI to display the bio.
+    - [x] Subtask 2.5: Implement the UI to display the list of public habits.
+    - [x] Subtask 2.6: Implement the UI to display the list of public todos.
+    - [x] Subtask 2.7: Implement the UI to display the public journal entries.
+    - [x] Subtask 2.8: Handle the case where lists are empty and display an appropriate message.
+- [x] **Task 3: Testing**
+    - [x] Subtask 3.1: Write an integration test for the `getPublicProfileData` function to ensure it only fetches public data.
     - [ ] Subtask 3.2: Write an E2E test with Playwright that navigates to a public profile URL and verifies that the bio and other public information are correctly displayed.
 
 ## Dev Notes

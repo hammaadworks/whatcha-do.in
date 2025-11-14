@@ -1,23 +1,23 @@
 import { createClient } from '@/lib/supabase/server';
-import { getUserProfile } from '@/lib/supabase/user';
-import { EditBioForm } from '@/components/profile/EditBioForm';
+import EditBioForm from '@/components/profile/EditBioForm';
 import { redirect } from 'next/navigation';
 
-export default async function EditProfilePage() {
+export default async function ProfileEditPage() {
   const supabase = createClient();
 
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   if (!user) {
     redirect('/login');
   }
 
-  const { data: profile } = await getUserProfile(user.id);
+  const { data: profile } = await supabase
+    .from('users')
+    .select('bio')
+    .eq('id', user.id)
+    .single();
 
-  return (
-    <div>
-      <h1>Edit Profile</h1>
-      <EditBioForm profile={profile} />
-    </div>
-  );
+  return <EditBioForm bio={profile?.bio ?? ''} />;
 }

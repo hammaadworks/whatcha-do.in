@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { supabase } from "@/lib/supabase/client";
+import { supabaseClient } from "@/lib/supabase/client";
 import { useAuthStore } from "@/lib/store/auth";
 import Login from "./Login";
 
@@ -9,13 +9,13 @@ export default function Auth() {
   const { session, setSession } = useAuthStore();
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabaseClient.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
     });
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabaseClient.auth.onAuthStateChange((_event, session) => {
       setSession(session);
     });
 
@@ -23,7 +23,14 @@ export default function Auth() {
   }, [setSession]);
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    try {
+      const { error } = await supabaseClient.auth.signOut();
+      if (error) {
+        console.error("Error logging out:", error);
+      }
+    } catch (error) {
+      console.error("Error logging out:", error);
+    }
   };
 
   if (!session) {

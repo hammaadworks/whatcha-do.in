@@ -18,8 +18,8 @@ async function setAuthenticatedSession(page: any) {
     },
   };
 
-  await page.evaluate((session) => {
-    localStorage.setItem('supabase.auth.token', JSON.stringify(session));
+  await page.evaluate((session: any) => {
+    localStorage.setItem('sb-your-supabase-url-auth-token', JSON.stringify(session));
   }, mockSession);
 }
 
