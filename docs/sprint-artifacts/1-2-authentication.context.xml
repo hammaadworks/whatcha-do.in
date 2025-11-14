@@ -1,0 +1,135 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>1</epicId>
+    <storyId>2</storyId>
+    <title>Authentication</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-13</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprint-artifacts/1-2-authentication.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>a user</asA>
+    <iWant>to log in and out of the application</iWant>
+    <soThat>I can securely access and protect my session</soThat>
+    <tasks>
+- [ ] Task 1: Implement Logout Functionality (AC: #2)
+  - [ ] Subtask 1.1: Create a `signOut` function that calls `supabase.auth.signOut()`.
+  - [ ] Subtask 1.2: Add a logout button to the UI that is only visible to authenticated users.
+- [ ] Task 2: Authentication State Management (AC: #3)
+  - [ ] Subtask 2.1: Create a mechanism to track the user's session state globally in the application.
+  - [ ] Subtask 2.2: Conditionally render UI elements (e.g., Login/Logout buttons) based on the authentication state.
+- [ ] Task 3: Protected Routes (AC: #4)
+  - [ ] Subtask 3.1: Implement a higher-order component or middleware to protect routes that require authentication.
+  - [ ] Subtask 3.2: Redirect unauthenticated users attempting to access protected routes to the login page.
+- [ ] Task 4: Testing
+  - [ ] Subtask 4.1: Write integration tests for login and logout flows.
+  - [ ] Subtask 4.2: Write E2E tests to verify route protection and UI changes based on authentication state.
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+1.  A user can log in using the existing Magic Link mechanism.
+2.  A user can explicitly log out of the application.
+3.  The application state should reflect the user's authentication status (e.g., showing a login button when logged out and a logout button when logged in).
+4.  Authenticated routes should be protected, redirecting unauthenticated users to a login page.
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Product Requirements Document</title>
+        <section>FR-1.2</section>
+        <snippet>The system must support user login and logout.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture</title>
+        <section>Authentication</section>
+        <snippet>Supabase Auth (Magic Link)</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epics &amp; Stories</title>
+        <section>Epic 1: User &amp; Profile Management</section>
+        <snippet>Story 1.2 (Authentication): As a user, I want to log in and out of the application to securely access and protect my session.</snippet>
+      </doc>
+      <doc>
+        <path>docs/sprint-artifacts/1-1-sign-up.md</path>
+        <title>Story 1.1: Sign-up</title>
+        <section>Dev Agent Record</section>
+        <snippet>The previous story established the sign-up flow using Supabase Auth and created the initial authentication components.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>lib/supabase/client.ts</path>
+        <kind>service</kind>
+        <symbol>supabase</symbol>
+        <lines>1-11</lines>
+        <reason>The Supabase client, which should be used for all authentication operations.</reason>
+      </artifact>
+      <artifact>
+        <path>components/auth/Login.tsx</path>
+        <kind>component</kind>
+        <symbol>Login</symbol>
+        <lines>1-73</lines>
+        <reason>The existing login component, which will be reused for the login flow.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <dependency>
+        <name>next</name>
+        <version>16.0.2</version>
+      </dependency>
+      <dependency>
+        <name>react</name>
+        <version>19.2.0</version>
+      </dependency>
+      <dependency>
+        <name>@supabase/supabase-js</name>
+        <version>^2.81.1</version>
+      </dependency>
+      <dependency>
+        <name>vitest</name>
+        <version>^4.0.8</version>
+      </dependency>
+      <dependency>
+        <name>@playwright/test</name>
+        <version>^1.56.1</version>
+      </dependency>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+- Use Supabase for all authentication operations.
+- Reuse the existing `Login` component.
+- Follow Next.js App Router conventions for route protection.
+- Manage session state globally.
+  </constraints>
+  <interfaces>
+      <interface>
+        <name>supabase.auth.signOut</name>
+        <kind>function</kind>
+        <signature>signOut(): Promise&lt;{ error: Error | null }&gt;</signature>
+        <path>lib/supabase/client.ts</path>
+      </interface>
+  </interfaces>
+  <tests>
+    <standards>
+      Unit tests with Vitest and React Testing Library. Integration tests with Vitest. E2E tests with Playwright.
+    </standards>
+    <locations>
+      - tests/unit/
+      - tests/integration/
+      - tests/e2e/
+    </locations>
+    <ideas>
+      - (AC: #2) Test that calling the `signOut` function successfully logs the user out.
+      - (AC: #3) Test that the UI correctly reflects the user's authentication state.
+      - (AC: #4) Test that unauthenticated users are redirected from protected routes.
+    </ideas>
+  </tests>
+</story-context>

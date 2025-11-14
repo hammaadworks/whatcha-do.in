@@ -1,0 +1,234 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>2</epicId>
+    <storyId>2.6</storyId>
+    <title>Goal Change</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-14</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprint-artifacts/2-6-goal-change.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>a user</asA>
+    <iWant>to change the quantitative goal of a habit, and ensure its current streak remains unchanged,</iWant>
+    <soThat>I can adjust my targets without losing my progress.</soThat>
+    <tasks>
+-   [ ] **Task 1: Modify Goal Editing UI** (AC: #1, #3)
+    -   [ ] Subtask 1.1: Ensure `components/habits/EditHabitModal.tsx` allows modification of `goal_value` and `goal_unit`.
+-   [ ] **Task 2: Implement Habit Update Service for Goal Change** (AC: #1, #2)
+    -   [ ] Subtask 2.1: Ensure `updateHabit` method in `lib/supabase/habit.ts` correctly handles updates to `goal_value` and `goal_unit` without affecting `current_streak`.
+-   [ ] **Task 3: Integrate Goal Change Logic with UI** (AC: #1, #3)
+    -   [ ] Subtask 3.1: Update `hooks/useHabits.ts` to call `HabitService.updateHabit` with new goal data.
+    -   [ ] Subtask 3.2: Implement optimistic UI updates for goal changes.
+    -   [ ] Subtask 3.3: Handle error states and display feedback using `react-hot-toast`.
+-   [ ] **Task 4: Testing** (AC: #1, #2, #3)
+    -   [ ] Subtask 4.1: Write unit tests for client-side goal change validation.
+    -   [ ] Subtask 4.2: Write integration tests for `HabitService.updateHabit` to verify `goal_value` and `goal_unit` updates and `current_streak` preservation.
+    -   [ ] Subtask 4.3: Write E2E tests using Playwright for the habit goal change flow, verifying UI display and streak continuity.
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+1.  Given a user is logged in and has a habit with a quantitative goal, when they modify the `goal_value` or `goal_unit` of that habit, then the habit's `current_streak` remains unchanged.
+2.  The updated `goal_value` and `goal_unit` are successfully persisted to the database.
+3.  The updated `goal_value` and `goal_unit` are correctly reflected in the UI.
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>whatcha-doin - Product Requirements Document</title>
+        <section>FR-2: Habit Management (Recurring Habits)</section>
+        <snippet>FR-2.7: When a habit's goal is upgraded or downgraded, the existing streak must continue uninterrupted. The new `goal_value` becomes the requirement for continuing the streak from the moment of change.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture</title>
+        <section>Data Architecture</section>
+        <snippet>Habits: Will store recurring habit details (e.g., `habit_id`, `user_id`, `name`, `is_public`, `current_streak`, `last_streak`, `created_at`, `goal_value`, `goal_unit`, `last_recorded_mood`, `last_recorded_work_value`, `last_recorded_work_unit`, `pile_state`, `junked_at`).</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture</title>
+        <section>API Contracts</section>
+        <snippet>The primary API will be provided by Supabase's auto-generated PostgREST API. For any custom Supabase Database Functions (PostgreSQL functions) or future Supabase Edge Functions that return data to the client, a consistent JSON response format will be adhered to.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture</title>
+        <section>Testing Strategy</section>
+        <snippet>Lean MVP strategy: Unit (Vitest + React Testing Library), Integration (Vitest), E2E (Playwright). All integrated with GitHub Actions.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture</title>
+        <section>Naming Conventions</section>
+        <snippet>Database tables: `snake_case_plural`; Columns: `snake_case`; Frontend components: `PascalCase` (files/names), `kebab-case` (folders); TS variables/functions: `camelCase`, types/interfaces: `PascalCase`.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epics &amp; Stories for whatcha-doin</title>
+        <section>Epic 2: Habit Management (Recurring Habits)</section>
+        <snippet>Story 2.6 (Goal Change): As a user, I want my streak to continue uninterrupted when I change a habit's `goal_value` so I can adjust the difficulty without being penalized.</snippet>
+      </doc>
+      <doc>
+        <path>docs/sprint-artifacts/tech-spec-epic-2.md</path>
+        <title>Epic Technical Specification: Habit Management (Recurring Habits)</title>
+        <section>Objectives and Scope</section>
+        <snippet>Ensuring streak continuity when a habit's goal is changed.</snippet>
+      </doc>
+      <doc>
+        <path>docs/sprint-artifacts/tech-spec-epic-2.md</path>
+        <title>Epic Technical Specification: Habit Management (Recurring Habits)</title>
+        <section>Data Models and Contracts</section>
+        <snippet>CREATE TABLE habits (
+  id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+  user_id UUID REFERENCES auth.users(id) NOT NULL,
+  name TEXT NOT NULL,
+  is_public BOOLEAN DEFAULT TRUE NOT NULL,
+  current_streak INT DEFAULT 0 NOT NULL,
+  last_streak INT DEFAULT 0 NOT NULL,
+  goal_value INT,
+  goal_unit TEXT,
+  pile_state TEXT DEFAULT 'junked' NOT NULL, -- 'lively', 'junked'
+  junked_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+  updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
+);</snippet>
+      </doc>
+      <doc>
+        <path>docs/sprint-artifacts/tech-spec-epic-2.md</path>
+        <title>Epic Technical Specification: Habit Management (Recurring Habits)</title>
+        <section>APIs and Interfaces</section>
+        <snippet>Update Habit: `PATCH /rest/v1/habits?id=eq.{habit_id}`
+  - Body: `{ name, is_public, goal_value, goal_unit, current_streak, pile_state, etc. }`</snippet>
+      </doc>
+      <doc>
+        <path>docs/sprint-artifacts/tech-spec-epic-2.md</path>
+        <title>Epic Technical Specification: Habit Management (Recurring Habits)</title>
+        <section>Acceptance Criteria (Authoritative)</section>
+        <snippet>AC-2.7: A user can change the `goal_value` of a habit, and its `current_streak` remains unchanged.
+AC-2.8: The unit for a quantitative goal can be selected from a predefined list or a custom string can be entered.</snippet>
+      </doc>
+      <doc>
+        <path>docs/sprint-artifacts/tech-spec-epic-2.md</path>
+        <title>Epic Technical Specification: Habit Management (Recurring Habits)</title>
+        <section>Test Strategy Summary</section>
+        <snippet>Integration Tests (Vitest):
+  - Test the streak continuity logic when goals are changed.</snippet>
+      </doc>
+      <doc>
+        <path>docs/ux-design-specification.md</path>
+        <title>whatcha-doin UX Design Specification</title>
+        <section>Habit Management (Identity Momentum Board)</section>
+        <snippet>Habit Goal Adjustment (Upgrade/Downgrade):
+        *   Users can set and modify a quantitative goal for a habit (e.g., "Read 5 pages", "Do 20 pushups").
+        *   When a habit's goal is upgraded or downgraded, the existing streak will **continue uninterrupted**. The new `goal_value` becomes the requirement for continuing the streak from the moment of change.
+        *   **UI:** Clear confirmation dialogs will inform the user of the change and its impact on future requirements. The streak counter remains unchanged, but the displayed goal on the habit card immediately updates.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>components/habits/EditHabitModal.tsx</path>
+        <kind>React Component</kind>
+        <symbol>EditHabitModal</symbol>
+        <reason>UI component to be modified for goal modification.</reason>
+      </artifact>
+      <artifact>
+        <path>lib/supabase/habit.ts</path>
+        <kind>Supabase Service</kind>
+        <symbol>updateHabit</symbol>
+        <reason>Service to update habit data, including goal_value and goal_unit.</reason>
+      </artifact>
+      <artifact>
+        <path>hooks/useHabits.ts</path>
+        <kind>React Hook</kind>
+        <symbol>useHabits</symbol>
+        <reason>Hook to integrate update logic and manage state.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <ecosystem name="npm">
+        <package name="@radix-ui/react-dialog" version="^1.1.15" />
+        <package name="@radix-ui/react-label" version="^2.1.8" />
+        <package name="@radix-ui/react-select" version="^2.2.6" />
+        <package name="@radix-ui/react-slot" version="^1.2.4" />
+        <package name="@radix-ui/react-switch" version="^1.2.6" />
+        <package name="@supabase/ssr" version="^0.7.0" />
+        <package name="@supabase/supabase-js" version="^2.81.1" />
+        <package name="@testing-library/jest-dom" version="^6.9.1" />
+        <package name="@testing-library/react" version="^16.3.0" />
+        <package name="class-variance-authority" version="^0.7.1" />
+        <package name="clsx" version="^2.1.1" />
+        <package name="lucide-react" version="^0.553.0" />
+        <package name="next" version="16.0.2" />
+        <package name="react" version="19.2.0" />
+        <package name="react-dom" version="19.2.0" />
+        <package name="react-hot-toast" version="^2.6.0" />
+        <package name="tailwind-merge" version="^3.4.0" />
+        <package name="zustand" version="^5.0.8" />
+        <package name="@playwright/test" version="^1.56.1" />
+        <package name="@tailwindcss/postcss" version="^4" />
+        <package name="@types/node" version="^20" />
+        <package name="@types/react" version="^19" />
+        <package name="@types/react-dom" version="^19" />
+        <package name="eslint" version="^9" />
+        <package name="eslint-config-next" version="16.0.2" />
+        <package name="jsdom" version="^27.2.0" />
+        <package name="tailwindcss" version="^4" />
+        <package name="tw-animate-css" version="^1.4.0" />
+        <package name="typescript" version="^5" />
+        <package name="vitest" version="^4.0.8" />
+      </ecosystem>
+    </dependencies>
+  </artifacts>
+  <constraints>
+    <constraint>
+      <type>Data Model</type>
+      <description>The `habits` table in Supabase (PostgreSQL) already supports `goal_value` (numeric), `goal_unit` (text), and `current_streak` (integer) columns.</description>
+    </constraint>
+    <constraint>
+      <type>Security</type>
+      <description>Row Level Security (RLS) policies on the `habits` table must ensure only the owner can modify goal data.</description>
+    </constraint>
+    <constraint>
+      <type>Naming Conventions</type>
+      <description>Adhere to `PascalCase` for React components, `camelCase` for TypeScript variables/functions, `snake_case_plural` for database tables, and `snake_case` for database columns.</description>
+    </constraint>
+    <constraint>
+      <type>Testing</type>
+      <description>Follow the lean MVP testing strategy (Unit, Integration, E2E) as defined in `docs/architecture.md#Testing-Strategy`.</description>
+    </constraint>
+  </constraints>
+  <interfaces>
+    <interface>
+      <name>Supabase PostgREST API</name>
+      <kind>REST endpoint</kind>
+      <signature>PATCH /rest/v1/habits?id=eq.{habit_id}</signature>
+      <path>lib/supabase/habit.ts</path>
+    </interface>
+    <interface>
+      <name>updateHabit</name>
+      <kind>function</kind>
+      <signature>updateHabit(habitId: string, updates: Partial&lt;Habit&gt;): Promise&lt;{ data: Habit | null, error: Error | null }&gt;</signature>
+      <path>lib/supabase/habit.ts</path>
+    </interface>
+  </interfaces>
+  <tests>
+    <standards>
+      Unit tests with Vitest and React Testing Library. Integration tests with Vitest. E2E tests with Playwright. All integrated with GitHub Actions.
+    </standards>
+    <locations>
+      <location>tests/unit/</location>
+      <location>tests/integration/</location>
+      <location>tests/e2e/</location>
+    </locations>
+    <ideas>
+      <idea ac_id="1,2,3">Write unit tests for client-side goal change validation.</idea>
+      <idea ac_id="1,2,3">Write integration tests for `HabitService.updateHabit` to verify `goal_value` and `goal_unit` updates and `current_streak` preservation.</idea>
+      <idea ac_id="1,2,3">Write E2E tests using Playwright for the habit goal change flow, verifying UI display and streak continuity.</idea>
+    </ideas>
+  </tests>
+</story-context>

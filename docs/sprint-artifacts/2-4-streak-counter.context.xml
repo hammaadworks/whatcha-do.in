@@ -1,0 +1,181 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>2</epicId>
+    <storyId>4</storyId>
+    <title>Streak Counter</title>
+    <status>ready-for-dev</status>
+    <generatedAt>2025-11-14</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprint-artifacts/2-4-streak-counter.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>a user</asA>
+    <iWant>to see a visible streak counter on each habit, which resets on a missed day but preserves the value of the most recently broken streak</iWant>
+    <soThat>I am motivated to start again.</soThat>
+    <tasks>
+-   [ ] **Task 1: Update Database Schema (if necessary)** (AC: #3, #4)
+    -   [ ] Subtask 1.1: Verify `habits` table has `current_streak` (integer) and `last_streak` (integer) columns. If not, create a migration. (Note: These columns are already present from Story 0.1)
+-   [ ] **Task 2: Implement Streak Logic in Habit Service** (AC: #3, #4)
+    -   [ ] Subtask 2.1: In `lib/supabase/habit.ts`, create a function `updateStreak(habitId, newCurrentStreak, newLastStreak)` to update streak values.
+    -   [ ] Subtask 2.2: Implement logic to calculate `newCurrentStreak` and `newLastStreak` based on habit completion status and "Two-Day Rule" (this might involve a Supabase function or client-side logic, to be decided).
+-   [ ] **Task 3: Update Habit Card UI** (AC: #1, #2, #5)
+    -   [ ] Subtask 3.1: Modify `components/habits/HabitCard.tsx` to display the `current_streak` as a visible badge.
+    -   [ ] Subtask 3.2: (Optional) If `last_streak` is to be displayed, implement UI to show it (e.g., a tooltip or secondary text).
+-   [ ] **Task 4: Integrate Streak Updates with Habit Completion** (AC: #3)
+    -   [ ] Subtask 4.1: Modify the habit completion flow (wherever a habit is marked complete) to call the `updateStreak` function.
+-   [ ] **Task 5: Testing** (AC: #1, #2, #3, #4, #5)
+    -   [ ] Subtask 5.1: Write unit tests for the streak calculation logic in `lib/supabase/habit.ts`.
+    -   [ ] Subtask 5.2: Write integration tests to verify `current_streak` and `last_streak` updates in the database via `updateStreak` function.
+    -   [ ] Subtask 5.3: Write E2E tests (Playwright) to verify the visible streak counter on habit cards and its behavior when a habit is missed and restarted.
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+1.  Each habit chip must display a visible streak counter badge.
+2.  The streak counter should start at 0 for new habits.
+3.  When a habit is missed for one day, its `current_streak` resets to 0, and the previous `current_streak` value is saved as `last_streak`.
+4.  The `last_streak` value should be preserved when the `current_streak` resets.
+5.  The UI should clearly distinguish between `current_streak` and `last_streak` (if `last_streak` is displayed).
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <artifact>
+        <path>docs/PRD.md</path>
+        <title>whatcha-doin - Product Requirements Document</title>
+        <section>FR-2: Habit Management (Recurring Habits)</section>
+        <snippet>- **FR-2.5:** Each habit chip must display a visible streak counter badge.
+- **FR-2.1:** Users must be able to create a new "habit" with a name via an inline input field within "The Pile" column. As the user types, a "+ Add Goal" button will appear, allowing them to optionally set a quantitative goal (number and unit) before creation. New habits default to 'Public' and start with a streak count of 0.
+- **FR-4.7.1:** When a habit becomes "Junked", its `current_streak` is reset to zero, and that value is saved as the `last_streak`.</snippet>
+      </artifact>
+      <artifact>
+        <path>docs/epics.md</path>
+        <title>Epics &amp; Stories for whatcha-doin</title>
+        <section>Epic 2: Habit Management (Recurring Habits)</section>
+        <snippet>Story 2.4 (Streak Counter): As a user, I want to see a visible streak counter on each habit, which resets on a missed day but preserves the value of the most recently broken streak, so I am motivated to start again.</snippet>
+      </artifact>
+      <artifact>
+        <path>docs/architecture.md</path>
+        <title>Architecture</title>
+        <section>Data Modeling (Habits &amp; Completions)</section>
+        <snippet>*   **Habits:** Will store recurring habit details (e.g., `habit_id`, `user_id`, `name`, `is_public`, `current_streak`, `last_streak`, `created_at`, `goal_value`, `goal_unit`, `last_recorded_mood`, `last_recorded_work_value`, `last_recorded_work_unit`, `pile_state`, `junked_at`).</snippet>
+      </artifact>
+      <artifact>
+        <path>docs/architecture.md</path>
+        <title>Architecture</title>
+        <section>Testing Strategy</section>
+        <snippet>Lean MVP strategy: Unit (Vitest + React Testing Library), Integration (Vitest), E2E (Playwright). All integrated with GitHub Actions.</snippet>
+      </artifact>
+      <artifact>
+        <path>docs/ux-design-specification.md</path>
+        <title>whatcha-doin UX Design Specification</title>
+        <section>Habit Management (Identity Momentum Board)</section>
+        <snippet>Habit Chip: Displays name, streak badge, and 🌐 Public / 🔒 Private icon.
+*   **State 2: Miss Day 2 → "Junked" State:** If a "Lively" habit is ignored for another day, it transitions to a "Junked" state, appearing greyed out.
+    - **FR-4.7.1:** When a habit becomes "Junked", its `current_streak` is reset to zero, and that value is saved as the `last_streak`.
+    - **FR-4.7.2:** If a user moves a "Junked" habit to "Today", its streak resets to 1.</snippet>
+      </artifact>
+      <artifact>
+        <path>docs/sprint-artifacts/tech-spec-epic-2.md</path>
+        <title>Epic Technical Specification: Habit Management (Recurring Habits)</title>
+        <section>Data Models and Contracts</section>
+        <snippet>The core data model is the `habits` table in Supabase.
+```sql
+CREATE TABLE habits (
+  id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+  user_id UUID REFERENCES auth.users(id) NOT NULL,
+  name TEXT NOT NULL,
+  is_public BOOLEAN DEFAULT TRUE NOT NULL,
+  current_streak INT DEFAULT 0 NOT NULL,
+  last_streak INT DEFAULT 0 NOT NULL,
+  goal_value INT,
+  goal_unit TEXT,
+  pile_state TEXT DEFAULT 'junked' NOT NULL, -- 'lively', 'junked'
+  junked_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+  updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
+);
+```</snippet>
+      </artifact>
+    </docs>
+    <code>
+      <artifact>
+        <path>components/habits/HabitCard.tsx</path>
+        <kind>React Component</kind>
+        <symbol>HabitCard</symbol>
+        <reason>The component that will display the streak counter.</reason>
+      </artifact>
+      <artifact>
+        <path>lib/supabase/habit.ts</path>
+        <kind>Supabase Service</kind>
+        <symbol>createHabit, updateHabit, deleteHabit</symbol>
+        <reason>Existing habit service functions that will be extended or used for streak management.</reason>
+      </artifact>
+      <artifact>
+        <path>hooks/useAuth.ts</path>
+        <kind>React Hook</kind>
+        <symbol>useAuth</symbol>
+        <reason>Provides user authentication status, which is necessary for user-specific habit data.</reason>
+      </artifact>
+      <artifact>
+        <path>lib/supabase/client.ts</path>
+        <kind>Supabase Client</kind>
+        <symbol>supabaseClient</symbol>
+        <reason>The Supabase client instance for interacting with the database.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <ecosystem name="Node.js/npm">
+        <package name="@supabase/supabase-js" version="^2.81.1" />
+        <package name="next" version="16.0.2" />
+        <package name="react" version="19.2.0" />
+        <package name="zustand" version="^5.0.8" />
+        <package name="vitest" version="^4.0.8" />
+        <package name="@playwright/test" version="^1.56.1" />
+      </ecosystem>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>
+      <type>Database Schema</type>
+      <description>`habits` table must have `current_streak` (integer) and `last_streak` (integer) columns.</description>
+    </constraint>
+    <constraint>
+      <type>UI/UX</type>
+      <description>The streak counter must be clearly visible on each habit chip.</description>
+    </constraint>
+    <constraint>
+      <type>Logic</type>
+      <description>The "Two-Day Rule" must be correctly implemented for streak resets and `last_streak` preservation.</description>
+    </constraint>
+    <constraint>
+      <type>Security</type>
+      <description>RLS policies on the `habits` table must ensure only the owner can modify streak data.</description>
+    </constraint>
+  </constraints>
+  <interfaces>
+    <interface>
+      <name>updateStreak</name>
+      <kind>function</kind>
+      <signature>updateStreak(habitId: string, newCurrentStreak: number, newLastStreak: number): Promise&lt;{ data: any | null, error: Error | null }&gt;</signature>
+      <path>lib/supabase/habit.ts</path>
+    </interface>
+  </interfaces>
+  <tests>
+    <standards>
+      Unit tests with Vitest and React Testing Library. Integration tests with Vitest. E2E tests with Playwright. All integrated with GitHub Actions.
+    </standards>
+    <locations>
+      <location>tests/unit/</location>
+      <location>tests/integration/</location>
+      <location>tests/e2e/</location>
+    </locations>
+    <ideas>
+      <idea ac_id="1,2,5">Unit test `HabitCard.tsx` to verify correct display of `current_streak` and `last_streak`.</idea>
+      <idea ac_id="3,4">Integration test `updateStreak` function to verify correct updates to `current_streak` and `last_streak` in the database under various scenarios (completion, missed day 1, missed day 2).</idea>
+      <idea ac_id="1,3,4">E2E test to simulate a user completing a habit, missing a habit for one day (lively state), missing for two days (junked state), and then restarting a junked habit, verifying the streak counter's behavior at each step.</idea>
+    </ideas>
+  </tests>
+</story-context>

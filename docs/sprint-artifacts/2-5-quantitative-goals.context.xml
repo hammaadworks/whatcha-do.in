@@ -1,0 +1,149 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>2</epicId>
+    <storyId>2.5</storyId>
+    <title>Quantitative Goals</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-14</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprint-artifacts/2-5-quantitative-goals.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>user</asA>
+    <iWant>to set and modify a quantitative goal for a habit by providing a number and selecting a unit from a list (e.g., "pages", "minutes") or entering my own custom unit</iWant>
+    <soThat>I can track specific, measurable outcomes</soThat>
+    <tasks>
+- [ ] **Task 1: Implement Goal Editing UI** (AC: #1, #2, #3)
+    - [ ] Subtask 1.1: Modify `components/habits/EditHabitModal.tsx` to include input fields for `goal_value` (number) and `goal_unit` (dropdown/text).
+    - [ ] Subtask 1.2: Populate `goal_unit` dropdown with predefined list (e.g., `minutes`, `hours`, `pages`, `reps`, `sets`, `questions`).
+    - [ ] Subtask 1.3: Implement logic for "Custom..." unit input, allowing user to type a custom unit.
+    - [ ] Subtask 1.4: Implement client-side validation for `goal_value` (e.g., positive number) and `goal_unit` (not empty if custom).
+- [ ] **Task 2: Implement Habit Update Service for Goals** (AC: #1, #3, #4)
+    - [ ] Subtask 2.1: Modify `updateHabit` method in `lib/supabase/habit.ts` to accept and update `goal_value` and `goal_unit`.
+    - [ ] Subtask 2.2: Ensure `updateHabit` does not modify `current_streak` when `goal_value` or `goal_unit` are updated.
+- [ ] **Task 3: Integrate Goal Update Logic with UI** (AC: #1, #3, #4)
+    - [ ] Subtask 3.1: Update `hooks/useHabits.ts` to call `HabitService.updateHabit` with new goal data.
+    - [ ] Subtask 3.2: Implement optimistic UI updates for goal changes.
+    - [ ] Subtask 3.3: Handle error states and display feedback using `react-hot-toast`.
+- [ ] **Task 4: Update Habit Card UI to Display Goals** (AC: #5)
+    - [ ] Subtask 4.1: Modify `components/habits/HabitCard.tsx` to display the `goal_value` and `goal_unit` (e.g., "5 pages").
+- [ ] **Task 5: Testing** (AC: #1, #2, #3, #4, #5)
+    - [ ] Subtask 5.1: Write unit tests for client-side goal validation.
+    - [ ] Subtask 5.2: Write integration tests for `HabitService.updateHabit` to verify `goal_value` and `goal_unit` updates and `current_streak` preservation.
+    - [ ] Subtask 5.3: Write E2E tests using Playwright for the habit goal editing flow, verifying UI display and streak continuity.
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+1.  Users can set a quantitative goal for a habit, consisting of a number and a unit.
+2.  The unit for the quantitative goal can be selected from a predefined list (e.g., `minutes`, `hours`, `pages`, `reps`, `sets`, `questions`) or a custom value entered by the user.
+3.  Users can modify an existing quantitative goal (number and unit) for a habit.
+4.  When a habit's quantitative goal is modified, its `current_streak` remains unchanged.
+5.  The `goal_value` and `goal_unit` are correctly displayed on the habit card.
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>whatcha-doin - Product Requirements Document</title>
+        <section>FR-2.6, FR-2.7</section>
+        <snippet>FR-2.6: Users must be able to set and modify a quantitative goal. FR-2.7: When a habit's goal is upgraded or downgraded, the existing streak must continue uninterrupted.</snippet>
+      </doc>
+      <doc>
+        <path>docs/sprint-artifacts/tech-spec-epic-2.md</path>
+        <title>Epic Technical Specification: Habit Management</title>
+        <section>Acceptance Criteria (Authoritative)</section>
+        <snippet>AC-2.7: Users can set and modify a quantitative goal. AC-2.8: Modifying a habit's goal does not reset its streak.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture</title>
+        <section>Data Modeling (Habits &amp; Completions)</section>
+        <snippet>The `habits` table in Supabase (PostgreSQL) already supports `goal_value` (numeric) and `goal_unit` (text) columns.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>components/habits/EditHabitModal.tsx</path>
+        <kind>component</kind>
+        <symbol>EditHabitModal</symbol>
+        <reason>The UI for editing a habit. It needs to be updated to include fields for `goal_value` and `goal_unit`.</reason>
+      </artifact>
+      <artifact>
+        <path>components/habits/HabitCard.tsx</path>
+        <kind>component</kind>
+        <symbol>HabitCard</symbol>
+        <reason>The UI component that displays a habit. It needs to be updated to show the `goal_value` and `goal_unit`.</reason>
+      </artifact>
+      <artifact>
+        <path>lib/supabase/habit.ts</path>
+        <kind>service</kind>
+        <symbol>updateHabit</symbol>
+        <reason>This service handles database updates for habits. The `updateHabit` function must be modified to handle `goal_value` and `goal_unit` updates.</reason>
+      </artifact>
+      <artifact>
+        <path>hooks/useHabits.ts</path>
+        <kind>hook</kind>
+        <symbol>useHabits</symbol>
+        <reason>This hook manages the state of habits. The `updateHabit` function within this hook needs to be updated to support goal modifications and optimistic UI updates.</reason>
+      </artifact>
+      <artifact>
+        <path>supabase/migrations/20251113093152_initial_schema_setup.sql</path>
+        <kind>database schema</kind>
+        <symbol>habits</symbol>
+        <reason>This file contains the SQL schema for the `habits` table, which includes the `goal_value` and `goal_unit` columns.</reason>
+      </artifact>
+    </code>
+  </artifacts>
+
+  <constraints>
+    - Adhere to the established architecture for Supabase interactions, RLS, and UI component structure.
+    - The `habits` table already supports `goal_value` (numeric) and `goal_unit` (text) columns.
+    - Modifying `goal_value` or `goal_unit` must not affect the `current_streak`.
+  </constraints>
+  <interfaces>
+      <interface>
+        <name>updateHabit</name>
+        <kind>function signature</kind>
+        <signature>updateHabit(habitId: string, habitData: { name?: string; is_public?: boolean; goal_value?: number; goal_unit?: string; }): Promise&lt;any&gt;</signature>
+        <path>lib/supabase/habit.ts</path>
+      </interface>
+      <interface>
+        <name>Habit</name>
+        <kind>type definition</kind>
+        <signature>
+interface Habit {
+  id: string;
+  name: string;
+  is_public: boolean;
+  user_id: string;
+  created_at: string;
+  pile_state: string;
+  current_streak: number;
+  last_streak: number;
+  last_completed_at: string | null;
+  goal_value: number | null;
+  goal_unit: string | null;
+}
+        </signature>
+        <path>hooks/useHabits.ts</path>
+      </interface>
+  </interfaces>
+  <tests>
+    <standards>
+      Follow the lean MVP testing strategy (Unit, Integration, E2E) as defined in `docs/architecture.md#Testing-Strategy`.
+    </standards>
+    <locations>
+      - Unit tests for client-side validation.
+      - Integration tests for database updates and streak preservation.
+      - E2E tests for UI display and behavior.
+    </locations>
+    <ideas>
+      - (AC: #1, #2, #3) Unit test the `EditHabitModal` component to ensure it correctly handles input for `goal_value` and `goal_unit`.
+      - (AC: #4) Integration test the `updateHabit` service to verify that updating `goal_value` and `goal_unit` does not change `current_streak`.
+      - (AC: #5) E2E test the full user flow: open the edit modal, change the goal, save, and verify the updated goal is displayed on the `HabitCard`.
+    </ideas>
+  </tests>
+</story-context>

@@ -1,0 +1,212 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>2</epicId>
+    <storyId>2.1</storyId>
+    <title>Create Habit</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-14</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprint-artifacts/2-1-create-habit.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>As a user,</asA>
+    <iWant>I want to create a new habit with a name directly in "The Pile", with the option to also set a quantitative goal,</iWant>
+    <soThat>so I can quickly add new activities to track. The habit should default to Public.</soThat>
+    <tasks>
+-   [ ] **Task 1: Implement Habit Creation UI in "The Pile"** (AC: #1, #2, #3, #4)
+    -   [ ] Subtask 1.1: Create an inline input field component for new habit names within "The Pile" column.
+    -   [ ] Subtask 1.2: Implement logic to display "+ Add Goal" button when user starts typing.
+    -   [ ] Subtask 1.3: Develop UI for quantitative goal input (number field and unit dropdown/custom input) that appears when "+ Add Goal" is clicked.
+    -   [ ] Subtask 1.4: Integrate predefined unit list and custom unit input functionality.
+-   [ ] **Task 2: Develop Supabase Service for Habit Creation** (AC: #5, #6, #7)
+    -   [ ] Subtask 2.1: In `lib/supabase/client.ts` (or `lib/supabase/habit.ts`), create an asynchronous function `createHabit(habitData)` that inserts a new record into the `habits` table.
+    -   [ ] Subtask 2.2: Ensure `createHabit` sets `is_public` to `true` by default and `current_streak` to `0`.
+    -   [ ] Subtask 2.3: Handle optional `goal_value` and `goal_unit` parameters in `createHabit`.
+-   [ ] **Task 3: Integrate UI with Supabase Service** (AC: #7, #8)
+    -   [ ] Subtask 3.1: Connect the habit creation UI to the `createHabit` Supabase service function.
+    -   [ ] Subtask 3.2: After successful creation, update the UI to display the new habit in "The Pile".
+-   [ ] **Task 4: Testing**
+    -   [ ] Subtask 4.1: Write unit tests (Vitest + React Testing Library) for the habit creation UI components.
+    -   [ ] Subtask 4.2: Write an integration test (Vitest) for the `createHabit` Supabase service function, verifying correct data insertion and default values.
+    -   [ ] Subtask 4.3: Write an E2E test (Playwright) that simulates creating a habit with and without a goal, and verifies its appearance in "The Pile".
+</tasks>
+  </story>
+
+  <acceptanceCriteria>
+1.  Users can create a new habit by typing a name into an inline input field within "The Pile" column.
+2.  As the user types, a "+ Add Goal" button appears next to the input field.
+3.  Users can optionally click "+ Add Goal" to reveal fields for a quantitative goal (number and unit).
+4.  The unit for the quantitative goal can be selected from a predefined list (e.g., `minutes`, `hours`, `pages`, `reps`, `sets`, `questions`) or a custom value entered by the user.
+5.  New habits default to 'Public' status upon creation.
+6.  New habits start with a `current_streak` count of 0.
+7.  Users can successfully save a new habit with or without a quantitative goal.
+8.  The newly created habit appears in "The Pile" column.
+</acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <artifact>
+        <path>docs/PRD.md</path>
+        <title>whatcha-doin - Product Requirements Document</title>
+        <section>FR-2: Habit Management (Recurring Habits)</section>
+        <snippet>- **FR-2.1:** Users must be able to create a new "habit" with a name via an inline input field within "The Pile" column. As the user types, a "+ Add Goal" button will appear, allowing them to optionally set a quantitative goal (number and unit) before creation. New habits default to 'Public' and start with a streak count of 0.
+- **FR-2.2:** When creating or editing a habit, users must be able to mark it as "public" or "private".</snippet>
+      </artifact>
+      <artifact>
+        <path>docs/architecture.md</path>
+        <title>Architecture</title>
+        <section>Project Structure</section>
+        <snippet>The project will adopt a Next.js App Router-based structure, designed for clear separation of concerns, maintainability, and efficient development. This structure accommodates our chosen technologies and facilitates collaboration.</snippet>
+      </artifact>
+      <artifact>
+        <path>docs/architecture.md</path>
+        <title>Architecture</title>
+        <section>Data Modeling (Habits & Completions)</section>
+        <snippet>The data architecture will be built upon **Supabase PostgreSQL**, leveraging its relational capabilities to ensure data integrity and support complex queries. Data models will be designed to reflect the core entities of the application: users, habits, todos, and journal entries.
+*   **Habits:** Will store recurring habit details (e.g., `habit_id`, `user_id`, `name`, `is_public`, `current_streak`, `last_streak`, `created_at`, `goal_value`, `goal_unit`, `last_recorded_mood`, `last_recorded_work_value`, `last_recorded_work_unit`, `pile_state`, `junked_at`).</snippet>
+      </artifact>
+      <artifact>
+        <path>docs/architecture.md</path>
+        <title>Architecture</title>
+        <section>Naming Conventions</section>
+        <snippet>To ensure a cohesive and efficient user experience, the following UX pattern decisions will guide the application's design:
+*   **Database Table Naming:** `snake_case_plural` (e.g., `users`, `habits`, `journal_entries`).
+*   **Database Column Naming:** `snake_case` (e.g., `user_id`, `created_at`, `habit_name`).
+*   **Frontend Component Naming (React/Next.js):** `PascalCase` for component files and names.
+*   **Frontend Variable/Function Naming (TypeScript):** `camelCase` for variables and functions.</snippet>
+      </artifact>
+      <artifact>
+        <path>docs/architecture.md</path>
+        <title>Architecture</title>
+        <section>Testing Strategy</section>
+        <snippet>*   **Unit Tests:** Focus: Critical business logic, utility functions, isolated React components. Frameworks: Vitest (for speed) with React Testing Library (for components).
+*   **Integration Tests:** Focus: Key interactions between Next.js frontend and Supabase. Frameworks: Vitest, direct testing of Supabase Database Functions.
+*   **End-to-End (E2E) Tests:** Focus: Critical user journeys. Framework: Playwright.</snippet>
+      </artifact>
+      <artifact>
+        <path>docs/ux-design-specification.md</path>
+        <title>whatcha-doin UX Design Specification</title>
+        <section>Habit Management (Identity Momentum Board)</section>
+        <snippet>*   **Habit Creation Flow:** To create a new habit, the user clicks an "add new" area in "The Pile", which reveals an inline input field for the habit's name. As the user types, a `+ Add Goal` button appears next to the input.</snippet>
+      </artifact>
+      <artifact>
+        <path>docs/ux-design-specification.md</path>
+        <title>whatcha-doin UX Design Specification</title>
+        <section>Component Strategy</section>
+        <snippet>*   **Foundational Components:** `shadcn/ui` will serve as the primary design system for core UI components.
+*   **Animation and Micro-interactions:** `Aceternity UI` will be integrated to deliver "wow" moments and fluid animations.</snippet>
+      </artifact>
+      <artifact>
+        <path>docs/ux-design-specification.md</path>
+        <title>whatcha-doin UX Design Specification</title>
+        <section>UX Pattern Decisions</section>
+        <snippet>*   **Keyboard-First Interaction:** The application will adhere to a "keyboard-first" design philosophy, prioritizing robust navigation and interaction via `Tab`, `Space`, and `Enter` keys.
+*   **Micro-interactions and Subtle Cues:** The interface will be rich with micro-interactions and subtle visual cues.</snippet>
+      </artifact>
+    </docs>
+    <code>
+      <artifact>
+        <path>lib/supabase/client.ts</path>
+        <kind>Supabase Client</kind>
+        <symbol>createClient</symbol>
+        <reason>Provides the Supabase client instance for interacting with the database. New habit creation function will likely use this.</reason>
+      </artifact>
+      <artifact>
+        <path>lib/supabase/user.ts</path>
+        <kind>Supabase Service</kind>
+        <symbol>getPublicProfileData</symbol>
+        <reason>Example of a data access function for Supabase, providing a pattern for `createHabit`.</reason>
+      </artifact>
+      <artifact>
+        <path>components/profile/EditBioForm.tsx</path>
+        <kind>React Component</kind>
+        <symbol>EditBioForm</symbol>
+        <reason>Provides an example of a form component with input fields and submission logic.</reason>
+      </artifact>
+      <artifact>
+        <path>components/profile/PublicProfileView.tsx</path>
+        <kind>React Component</kind>
+        <symbol>PublicProfileView</symbol>
+        <reason>Example of displaying user data, including lists, which might be relevant for displaying habits in "The Pile".</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <ecosystem name="Node.js/npm">
+        <package name="@supabase/ssr" version="^0.7.0" />
+        <package name="@supabase/supabase-js" version="^2.81.1" />
+        <package name="next" version="16.0.2" />
+        <package name="react" version="19.2.0" />
+        <package name="react-dom" version="19.2.0" />
+        <package name="react-hot-toast" version="^2.6.0" />
+        <package name="zustand" version="^5.0.8" />
+        <package name="@playwright/test" version="^1.56.1" />
+        <package name="@tailwindcss/postcss" version="^4" />
+        <package name="@types/node" version="^20" />
+        <package name="@types/react" version="^19" />
+        <package name="@types/react-dom" version="^19" />
+        <package name="eslint" version="^9" />
+        <package name="eslint-config-next" version="16.0.2" />
+        <package name="jsdom" version="^27.2.0" />
+        <package name="tailwindcss" version="^4" />
+        <package name="typescript" version="^5" />
+        <package name="vitest" version="^4.0.8" />
+      </ecosystem>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>
+      <type>Required Pattern</type>
+      <description>Use `lib/supabase/client.ts` for Supabase interactions.</description>
+    </constraint>
+    <constraint>
+      <type>Required Pattern</type>
+      <description>Follow existing component structure (e.g., `components/habits/` for new habit components).</description>
+    </constraint>
+    <constraint>
+      <type>Required Pattern</type>
+      <description>Adhere to Naming Conventions (PascalCase for components, camelCase for functions, snake_case for DB).</description>
+    </constraint>
+    <constraint>
+      <type>Testing Requirement</type>
+      <description>Unit tests for UI components (Vitest + React Testing Library).</description>
+    </constraint>
+    <constraint>
+      <type>Testing Requirement</type>
+      <description>Integration tests for Supabase service functions (Vitest).</description>
+    </constraint>
+    <constraint>
+      <type>Testing Requirement</type>
+      <description>E2E tests for critical user journeys (Playwright).</description>
+    </constraint>
+    <constraint>
+      <type>Database Schema</type>
+      <description>`habits` table must support `name`, `is_public`, `current_streak`, `goal_value`, `goal_unit`.</description>
+    </constraint>
+  </constraints>
+  <interfaces>
+    <interface>
+      <name>Supabase PostgREST API</name>
+      <kind>REST endpoint</kind>
+      <signature>POST /rest/v1/habits</signature>
+      <path>lib/supabase/client.ts</path>
+    </interface>
+  </interfaces>
+  <tests>
+    <standards>The project uses Vitest with React Testing Library for unit and integration tests, and Playwright for E2E tests. All tests are integrated into the GitHub Actions CI/CD pipeline.</standards>
+    <locations>
+      <location>tests/unit/</location>
+      <location>tests/integration/</location>
+      <location>tests/e2e/</location>
+      <location>playwright.config.ts</location>
+      <location>vitest.config.ts</location>
+      <location>vitest.setup.ts</location>
+    </locations>
+    <ideas>
+      <idea ac_id="1,2,3,4">Unit tests for the habit creation UI components (inline input, "+ Add Goal" button, goal input fields).</idea>
+      <idea ac_id="5,6,7">Integration tests for the `createHabit` Supabase service function, verifying correct data insertion, default `is_public=true`, and `current_streak=0`.</idea>
+      <idea ac_id="7,8">E2E test simulating creating a habit with and without a goal, and verifying its appearance in "The Pile".</idea>
+    </ideas>
+  </tests>
+</story-context>
