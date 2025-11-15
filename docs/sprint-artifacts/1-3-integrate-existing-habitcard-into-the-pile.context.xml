@@ -1,0 +1,104 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>1</epicId>
+    <storyId>1.3</storyId>
+    <title>Integrate Existing HabitCard into "The Pile"</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-15</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprint-artifacts/1-3-integrate-existing-habitcard-into-the-pile.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>a user</asA>
+    <iWant>to see a sample habit card displayed within "The Pile" column on my dashboard</iWant>
+    <soThat>I can visualize how my habits will appear and confirm the basic integration of habit components.</soThat>
+    <tasks>
+      <task id="4.1">Import and Render `HabitCard`</task>
+      <task id="4.2">Provide Static Data</task>
+      <task id="4.3">Verify Styling and Layout</task>
+      <task id="4.4">E2E Test</task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="AC-1">**Given** the foundational dashboard layout from story 1.2 is present, **when** the user navigates to the `/dashboard` route, **then** at least one `HabitCard` component is rendered inside the element designated as "The Pile".</criterion>
+    <criterion id="AC-2">The integrated `HabitCard` must be populated with static (dummy) data for display purposes.</criterion>
+    <criterion id="AC-3">The `HabitCard` must be styled correctly and appear visually integrated within the layout without breaking the parent container's styles.</criterion>
+    <criterion id="AC-4">The application must run without errors via `pnpm dev`, and the integrated `HabitCard` must be visible on the rendered page.</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Product Requirements Document</title>
+        <section>Implementation Planning</section>
+        <snippet>Initial Integration of Epic 2 Components: Integrate at least one habit component (e.g., `HabitCard`) into 'The Pile' column within the new layout to demonstrate visible, incremental progress.</snippet>
+      </doc>
+      <doc>
+        <path>docs/sprint-artifacts/tech-spec-epic-1.md</path>
+        <title>Epic Technical Specification: Core Application Foundation & Habit Integration</title>
+        <section>Detailed Design</section>
+        <snippet>HabitCard (React Component): Displays a single habit. (To be integrated).</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic Breakdown</title>
+        <section>Story 1.3: Integrate Existing HabitCard into "The Pile"</section>
+        <snippet>As a user, I want to see a sample habit card displayed within "The Pile" column on my dashboard, so that I can visualize how my habits will appear and confirm the basic integration of habit components.</snippet>
+      </doc>
+    </docs>
+<code>
+      <artifact>
+        <path>components/habits/HabitCard.tsx</path>
+        <kind>React Component</kind>
+        <symbol>HabitCard</symbol>
+        <reason>The primary component to be integrated into the dashboard layout.</reason>
+      </artifact>
+      <artifact>
+        <path>app/dashboard/page.tsx</path>
+        <kind>Next.js Page</kind>
+        <symbol>Dashboard</symbol>
+        <reason>The page where the foundational layout will be built and the HabitCard will be rendered.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <dependency ecosystem="npm">
+        <group>Framework</group>
+        <package>next</package>
+        <package>react</package>
+        <package>react-dom</package>
+      </dependency>
+      <dependency ecosystem="npm">
+        <group>UI &amp; Styling</group>
+        <package>tailwindcss</package>
+        <package>@radix-ui/react-slot</package>
+        <package>class-variance-authority</package>
+        <package>clsx</package>
+        <package>lucide-react</package>
+        <package>tailwind-merge</package>
+      </dependency>
+      <dependency ecosystem="npm">
+        <group>State Management</group>
+        <package>zustand</package>
+      </dependency>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>This is a UI-only story. The `HabitCard` component must be rendered with static/dummy data. No backend API calls should be made.</constraint>
+  </constraints>
+  <interfaces />
+  <tests>
+    <standards>The project follows a "Lean MVP" testing strategy as defined in the architecture document. Unit and integration tests use Vitest, while E2E tests use Playwright.</standards>
+    <locations>
+      <location kind="E2E">/tests/e2e/</location>
+    </locations>
+    <ideas>
+      <idea for="AC-1, AC-3, AC-4">Create a Playwright E2E test that navigates to the `/dashboard` page and asserts that a component with a test-id of `habit-card` exists within the section designated as "The Pile".</idea>
+      <idea for="AC-2">The E2E test should also assert that the rendered `HabitCard` contains the expected static/dummy text.</idea>
+      <idea for="AC-3">A visual regression test could be added to the Playwright suite to ensure the `HabitCard` is styled correctly and does not break the layout.</idea>
+    </ideas>
+  </tests>
+</story-context>

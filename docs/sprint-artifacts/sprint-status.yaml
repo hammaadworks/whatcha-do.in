@@ -1,4 +1,4 @@
-# generated: 2025-11-12
+# generated: 2025-11-15
 # project: whatcha-doin
 # project_key: whatcha-doin
 # tracking_system: file-system
@@ -8,79 +8,88 @@
 # ==================
 # Epic Status:
 #   - backlog: Epic exists in epic file but not contexted
-#   - contexted: Epic tech context created (required before drafting stories)
+#   - contexted: Next epic tech context created by *epic-tech-context (required)
 #
 # Story Status:
 #   - backlog: Story only exists in epic file
-#   - drafted: Story file created in stories folder
-#   - ready-for-dev: Draft approved and story context created
-#   - in-progress: Developer actively working on implementation
-#   - review: Under SM review (via code-review workflow)
-#   - done: Story completed
+#   - drafted: Story file created in stories folder by *create-story
+#   - ready-for-dev: Draft approved and story context created by *story-ready
+#   - in-progress: Developer actively working on implementation by *dev-story
+#   - review: Implementation complete, ready for review by *code-review
+#   - done: Story completed by *story-done
 #
 # Retrospective Status:
 #   - optional: Can be completed but not required
-#   - completed: Retrospective has been done
+#   - completed: Retrospective has been done by *retrospective
 #
 # WORKFLOW NOTES:
 # ===============
 # - Epics should be 'contexted' before stories can be 'drafted'
-# - Stories can be worked in parallel if team capacity allows
-# - SM typically drafts next story after previous one is 'done' to incorporate learnings
-# - Dev moves story to 'review', SM reviews, then Dev moves to 'done'
+# - SM typically drafts next story ONLY after previous one is 'done' to incorporate learnings
+# - Dev moves story to 'review', dev reviews, then Dev moves to 'done'
 
-generated: "2025-11-12"
-project: "whatcha-doin"
-project_key: "whatcha-doin"
-tracking_system: "file-system"
+generated: 2025-11-15
+project: whatcha-doin
+project_key: whatcha-doin
+tracking_system: file-system
 story_location: "/Users/alhamdulillah/codespace/whatcha-doin/docs/sprint-artifacts"
 
 development_status:
-  epic-1: "contexted"
-  0-1-db-setup: "done"
-  1-1-sign-up: "done"
-  1-2-authentication: "done"
-  1-3-bio: "done"
-  1-4-public-profile: "done"
-  epic-1-retrospective: "optional"
-  epic-2: "contexted"
-  2-1-create-habit: "done"
-  2-2-edit-habit: "done"
-  2-3-delete-habit: "done"
-  2-4-streak-counter: "done"
-  2-5-quantitative-goals: "done"
-  2-6-goal-change: "done"
-  epic-2-retrospective: "optional"
-  epic-3: "backlog"
-  3-1-create-todo: "backlog"
-  3-2-sub-todos: "backlog"
-  3-3-todo-privacy: "backlog"
-  3-4-complete-todo: "backlog"
-  3-5-delete-todo: "backlog"
-  epic-3-retrospective: "optional"
-  epic-4: "backlog"
-  4-1-three-column-layout: "backlog"
-  4-2-daily-state-change: "backlog"
-  4-3-mark-complete: "backlog"
-  4-4-two-day-rule: "backlog"
-  4-5-grace-period: "backlog"
-  4-6-restart-habit: "backlog"
-  4-7-undo-action: "backlog"
-  epic-4-retrospective: "optional"
-  epic-5: "backlog"
-  5-1-completion-modal: "backlog"
-  5-2-bypass-modal: "backlog"
-  5-3-dual-journal: "backlog"
-  5-4-auto-journaling: "backlog"
-  5-5-free-form-entry: "backlog"
-  5-6-journal-navigation: "backlog"
-  epic-5-retrospective: "optional"
-  epic-6: "backlog"
-  6-1-keyboard-first: "backlog"
-  6-2-theme-switcher: "backlog"
-  6-3-motivational-quote: "backlog"
-  epic-6-retrospective: "optional"
-  epic-7: "backlog"
-  7-1-positive-urgency-ui: "backlog"
-  7-2-teleport-to-journal: "backlog"
-  epic-7-retrospective: "optional"
+  epic-1: contexted
+  1-1-project-setup-and-core-infrastructure: done
+  1-2-implement-foundational-dashboard-layout: ready-for-dev
+  1-3-integrate-existing-habitcard-into-the-pile: ready-for-dev
+  1-4-refactor-and-integrate-habitcreator-into-the-pile: ready-for-dev
+  epic-1-retrospective: optional
+
+  epic-2: backlog
+  2-1-integrate-user-authentication-flow: backlog
+  2-2-display-user-bio-on-dashboard: backlog
+  2-3-access-and-display-public-profile: backlog
+  epic-2-retrospective: optional
+
+  epic-3: backlog
+  3-1-implement-todo-creation-input: backlog
+  3-2-create-and-display-basic-todos: backlog
+  3-3-implement-todo-completion: backlog
+  3-4-implement-todo-deletion: backlog
+  3-5-implement-todo-privacy-toggle: backlog
+  3-6-implement-2-level-sub-todos: backlog
+  epic-3-retrospective: optional
+
+  epic-4: backlog
+  4-1-implement-drag-and-drop-for-habits-desktop: backlog
+  4-2-implement-tap-to-move-for-habits-mobile: backlog
+  4-3-implement-daily-state-change-logic: backlog
+  4-4-implement-grace-period-screen: backlog
+  4-5-implement-two-day-rule-lively-state: backlog
+  4-6-implement-two-day-rule-junked-state: backlog
+  4-7-display-junked-days-counter: backlog
+  4-8-implement-undo-completion: backlog
+  epic-4-retrospective: optional
+
+  epic-5: backlog
+  5-1-implement-habit-todo-completion-modal-trigger: backlog
+  5-2-display-streak-and-mood-selector-in-completion-modal: backlog
+  5-3-implement-quantitative-goal-and-work-input-in-modal: backlog
+  5-4-implement-duration-input-and-notes-in-modal: backlog
+  5-5-implement-modal-bypass-and-cancel: backlog
+  5-6-implement-modal-pre-fill-for-re-records: backlog
+  5-7-implement-dual-view-journal-layout: backlog
+  5-8-implement-automatic-journaling-for-public-items: backlog
+  5-9-implement-automatic-journaling-for-private-items: backlog
+  5-10-implement-free-form-journal-entry: backlog
+  5-11-implement-journal-entry-editing: backlog
+  5-12-implement-journal-date-selector: backlog
+  epic-5-retrospective: optional
+
+  epic-6: backlog
+  6-1-implement-motivational-quote-widget: backlog
+  6-2-implement-core-keyboard-shortcuts: backlog
+  6-3-implement-theme-switcher: backlog
+  epic-6-retrospective: optional
+
+  epic-7: backlog
+  7-1-implement-positive-urgency-ui-in-yesterday-column: backlog
+  7-2-implement-teleport-to-journal-animation: backlog
+  epic-7-retrospective: optional

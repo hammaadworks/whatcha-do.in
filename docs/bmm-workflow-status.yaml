@@ -46,7 +46,7 @@ workflow_status:
   # Phase 2: Solutioning
   create-architecture: docs/architecture.md  # agent: architect
   validate-architecture: optional  # agent: architect
-  solutioning-gate-check: docs/implementation-readiness-report-2025-11-12.md  # agent: architect
+  solutioning-gate-check: docs/implementation-readiness-report-2025-11-15.md  # agent: architect
 
   # Phase 3: Implementation
   sprint-planning: .bmad-ephemeral/sprint-status.yaml  # agent: sm

@@ -182,11 +182,28 @@ This section details the specific functionalities of the application, derived fr
 
 ## Implementation Planning
 
-### Epic Breakdown Required
+### Revised Development Strategy: Incremental and Integrated
 
-Requirements must be decomposed into epics and bite-sized stories.
+Based on recent retrospectives, our development approach will now prioritize incremental and integrated delivery. Each story, or small set of stories, will aim to deliver a visible, testable feature integrated directly into the main application. This ensures continuous progress, early feedback, and tangible results for stakeholders.
 
-**Next Step:** Run `workflow create-epics-and-stories` to create the implementation breakdown.
+Key tenets of this revised strategy:
+-   **Foundational UI First:** Establish the core application layout as a "canvas" before developing new features.
+-   **Immediate Integration:** All newly developed components, and existing ones, will be integrated into the main application as soon as they are ready.
+-   **Vertical Slicing:** Features will be developed end-to-end (UI, logic, data) in small, shippable increments.
+-   **"Definition of Done" Update:** A story is considered "done" only when its functionality is integrated, visible via `npm run dev`, and has undergone basic manual testing.
+-   **Re-sequencing for Visibility:** Stories will be re-sequenced and re-scoped to prioritize visible UI elements and immediate user value.
+
+### Immediate Next Steps (Pre-Epic 3 Kickoff)
+
+To implement this revised strategy, the following critical and parallel tasks must be completed:
+
+**Critical Preparation Tasks:**
+1.  **Implement Basic Foundational Layout:** Implement the foundational layout for the private dashboard, including the bio, todo, and three-box sections (Today, Yesterday, The Pile). (Owner: Charlie, Est: 16 hours)
+2.  **Restructure Epic 3 Stories for Visibility:** Review and restructure all Epic 3 stories to ensure each delivers a visible, integrated component into the new layout. (Owner: Alice, Est: 4 hours)
+
+**Parallel Preparation Tasks:**
+3.  **Refactor Existing Epic 2 Components for Integration:** Ensure existing Epic 2 components (e.g., `HabitCard`, `EditHabitModal`, `HabitCreator`) are refactored as necessary for seamless integration into the new foundational layout. (Owner: Charlie, Est: 8 hours)
+4.  **Initial Integration of Epic 2 Components:** Integrate at least one habit component (e.g., `HabitCard`) into 'The Pile' column within the new layout to demonstrate visible, incremental progress. (Owner: Elena, Est: 8 hours)
 
 ---
 
@@ -194,9 +211,9 @@ Requirements must be decomposed into epics and bite-sized stories.
 
 ## Next Steps
 
-1. **Epic & Story Breakdown** - Run: `workflow create-epics-and-stories`
-2. **UX Design** (if UI) - Run: `workflow ux-design`
-3. **Architecture** - Run: `workflow create-architecture`
+1.  **Epic & Story Breakdown (Revised)** - Alice (Product Owner) will lead the restructuring of Epic 3 stories based on the new strategy.
+2.  **UX Design** (if UI) - Run: `workflow ux-design`
+3.  **Architecture** - Run: `workflow create-architecture`
 
 ---
 
