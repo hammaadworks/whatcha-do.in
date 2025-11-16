@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from 'react-hot-toast';
 import "./globals.css";
-import AuthWrapper from "@/components/auth/AuthWrapper";
+import { ThemeProvider } from "@/components/theme-provider"; // Import ThemeProvider
+import { SupabaseProvider } from "@/lib/supabase/provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,8 +31,11 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <Toaster />
-        <AuthWrapper />
-        {children}
+        <SupabaseProvider>
+          <ThemeProvider>
+            {children}
+          </ThemeProvider>
+        </SupabaseProvider>
       </body>
     </html>
   );

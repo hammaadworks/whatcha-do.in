@@ -169,6 +169,7 @@ The component strategy will leverage established UI libraries to ensure consiste
 
 *   **Foundational Components:** `shadcn/ui` will serve as the primary design system for core UI components (buttons, forms, modals, etc.). This choice provides a robust, accessible, and customizable foundation.
 *   **Animation and Micro-interactions:** `Aceternity UI` will be integrated to deliver "wow" moments and fluid animations, enhancing the overall aesthetic and user delight. This library will be used for subtle transitions, visual feedback, and dynamic elements that contribute to the app's "out-of-the-box wow design" aesthetic.
+*   **Additional UI Enhancements:** `Magic UI` components (https://magicui.design/docs/components) can be utilized for further visual enhancements and complex UI patterns, ensuring compatibility and adherence to the overall design aesthetic.
 
 This dual-library approach allows for efficient development of standard UI elements while providing the flexibility to implement unique and engaging visual interactions. Custom components will be developed only when specific UI/UX requirements cannot be met by these libraries.
 

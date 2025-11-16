@@ -1,9 +1,9 @@
-import { createClient } from '@/lib/supabase/server';
+import {  createServer } from '@/lib/supabase/server';
 import EditBioForm from '@/components/profile/EditBioForm';
 import { redirect } from 'next/navigation';
 
 export default async function ProfileEditPage() {
-  const supabase = createClient();
+  const supabase =  createServer();
 
   const {
     data: { user },

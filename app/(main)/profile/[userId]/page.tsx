@@ -1,5 +1,8 @@
+"use client"
+
 import { getPublicProfileData } from '@/lib/supabase/user';
 import PublicProfileView from '@/components/profile/PublicProfileView';
+import * as React from "react";
 
 type Props = {
   params: {
@@ -8,7 +11,7 @@ type Props = {
 };
 
 export default async function PublicProfilePage({ params }: Props) {
-  const { userId } = params;
+  const { userId } = await params;
   const { data: profile, error } = await getPublicProfileData(userId);
 
   if (error || !profile) {
