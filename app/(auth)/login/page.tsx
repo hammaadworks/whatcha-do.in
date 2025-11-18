@@ -6,7 +6,7 @@ import { Ripple } from "@/components/ui/ripple"; // Import Ripple component
 export default function Home() {
   return (
     <main className="relative flex min-h-screen flex-col items-center justify-center p-4 md:p-24 overflow-hidden
-      bg-gradient-to-br from-blue-100 via-blue-300 to-blue-500 dark:from-gray-800 dark:via-gray-900 dark:to-black">
+      bg-gradient-to-br from-blue-100 via-blue-300 to-blue-500 dark:bg-background">
       {/* Ripple Background */}
       <Ripple />
       

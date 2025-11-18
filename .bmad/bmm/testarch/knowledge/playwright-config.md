@@ -21,9 +21,9 @@ Environment-specific configuration prevents hardcoded URLs, timeouts, and creden
 import { config as dotenvConfig } from 'dotenv';
 import path from 'path';
 
-// Load .env from project root
+// Load .env.local from project root
 dotenvConfig({
-  path: path.resolve(__dirname, '../../.env'),
+  path: path.resolve(__dirname, '../../.env.local'),
 });
 
 // Central environment config map

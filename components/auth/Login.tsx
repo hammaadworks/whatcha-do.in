@@ -32,7 +32,7 @@ export default function Login() {
     const { data, error } = await supabase.auth.signInWithOtp({
       email,
       options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
+        emailRedirectTo: `${window.location.origin}?next=/dashboard`,
       },
     });
 
@@ -52,7 +52,7 @@ export default function Login() {
         <div className="p-3 rounded-full bg-gray-100 dark:bg-gray-700 inline-flex mb-4">
           <ArrowRight className="h-6 w-6 text-gray-600 dark:text-gray-300" />
         </div>
-        <h1 className="text-3xl font-bold mb-2" style={{ color: "var(--text-color)" }}>
+        <h1 className="text-3xl font-bold mb-2 text-foreground">
           Sign in with email
         </h1>
         <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -74,36 +74,25 @@ export default function Login() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="pl-10 h-10" // Increased height for better visual
-              style={{
-                backgroundColor: "var(--input-bg)",
-                borderColor: "var(--input-border)",
-                color: "var(--text-color)",
-                boxShadow: "inset 0 1px 2px rgba(0,0,0,0.06)", // Subtle inner shadow
-              }}
+              className="pl-10 h-10 bg-input border-input text-foreground shadow-inner"
             />
           </div>
         </div>
         <Button
           type="submit"
-          className="w-full py-2 px-4 rounded-md text-sm font-medium h-10" // Increased height
-          style={{
-            backgroundColor: "var(--primary)",
-            color: "var(--primary-text)",
-            boxShadow: "0 4px 6px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.08)", // Subtle outer shadow
-          }}
+          className="w-full py-2 px-4 rounded-md text-sm font-medium h-10 shadow-md"
           disabled={loading}
         >
           {loading ? "Sending..." : "Send Magic Link"}
         </Button>
       </form>
       {message && (
-        <p className="mt-4 text-center text-sm" style={{ color: "var(--success-text)" }}>
+        <p className="mt-4 text-center text-sm text-success-foreground">
           {message}
         </p>
       )}
       {error && (
-        <p className="mt-4 text-center text-sm" style={{ color: "var(--error-text)" }}>
+        <p className="mt-4 text-center text-sm text-destructive-foreground">
           {error}
         </p>
       )}

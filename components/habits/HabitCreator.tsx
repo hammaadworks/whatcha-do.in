@@ -117,17 +117,17 @@ export function HabitCreator({ onHabitCreated }: HabitCreatorProps) {
       </div>
 
       {showGoalInput && (
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <Input
             type="number"
             placeholder="Goal value"
             value={goalValue === undefined ? "" : goalValue}
             onChange={(e) => setGoalValue(parseFloat(e.target.value) || undefined)}
-            className="w-32"
+            className="w-full sm:w-32"
             disabled={loading}
           />
           <Select value={goalUnit} onValueChange={setGoalUnit} disabled={loading}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-full sm:w-[176px]">
               <SelectValue placeholder="Select a unit" />
             </SelectTrigger>
             <SelectContent>
@@ -144,13 +144,13 @@ export function HabitCreator({ onHabitCreated }: HabitCreatorProps) {
               placeholder="Enter custom unit"
               value={customUnit}
               onChange={(e) => setCustomUnit(e.target.value)}
-              className="flex-grow"
+              className="w-full sm:flex-grow"
               disabled={loading}
             />
           )}
         </div>
       )}
-      {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+      {error && <p className="text-destructive-foreground text-[var(--font-size-sm)] mt-2">{error}</p>}
     </div>
   );
 }

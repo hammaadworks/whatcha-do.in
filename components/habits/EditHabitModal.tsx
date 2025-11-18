@@ -111,7 +111,7 @@ const EditHabitModal: React.FC<EditHabitModalProps> = ({ isOpen, onClose, habit,
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[424px]">
         <DialogHeader>
           <DialogTitle>Edit Habit</DialogTitle>
         </DialogHeader>

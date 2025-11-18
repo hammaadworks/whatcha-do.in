@@ -25,14 +25,15 @@ function EditBioForm({bio}: { bio: string }) {
     };
 
     return (
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="p-4">
       <textarea
           value={newBio}
           onChange={(e) => setNewBio(e.target.value)}
           rows={4}
           cols={50}
+          className="w-full bg-input border-input text-foreground rounded-md p-2 mb-4"
       />
-            <button type="submit">Save</button>
+            <button type="submit" className="bg-primary text-primary-foreground py-2 px-4 rounded-md">Save</button>
         </form>
     );
 }
