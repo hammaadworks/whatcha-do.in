@@ -569,7 +569,7 @@ if echo "$CHANGED_FILES" | grep -qE '(package\.json|package-lock\.json|playwrigh
   run_all_tests=true
 
 # Auth/security changes = run all auth + smoke tests
-elif echo "$CHANGED_FILES" | grep -qE '(auth|login|signup|security)'; then
+elif echo "$CHANGED_FILES" | grep -qE '(auth|logins|signup|security)'; then
   echo "🔒 Auth/security files changed. Running auth + smoke tests."
   npm run test -- --grep "@auth|@smoke"
   exit $?
