@@ -1,23 +1,36 @@
 import {createServerClient} from '@supabase/ssr';
 import {cookies} from 'next/headers';
 
-export const createServer = () => {
-    const cookieStore = cookies();
+export const createServer = async () => {
+    const cookieStore = await cookies();
+
+    // Replit Secrets may have the values swapped, so we validate and swap if needed
+    let supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+    let supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+
+    // Check if they're swapped (URL should start with https://, key with eyJ)
+    if (supabaseUrl.startsWith('eyJ') && supabaseAnonKey.startsWith('https://')) {
+        console.log('⚠️  Swapping URL and KEY (they were reversed)');
+        [supabaseUrl, supabaseAnonKey] = [supabaseAnonKey, supabaseUrl];
+    }
+
+    if (!supabaseUrl || !supabaseAnonKey) {
+        console.error('Missing Supabase environment variables');
+        throw new Error('Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY');
+    }
 
     return createServerClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        supabaseUrl,
+        supabaseAnonKey,
         {
             cookies: {
                 async getAll() {
-                    const store = await cookieStore;
-                    return store.getAll();
+                    return cookieStore.getAll();
                 },
                 async setAll(cookiesToSet) {
-                    const store = await cookieStore;
                     try {
                         cookiesToSet.forEach(({name, value, options}) => {
-                            store.set(name, value, options);
+                            cookieStore.set(name, value, options);
                         });
                     } catch (error) {
                         // The `setAll` method was called from a Server Component.

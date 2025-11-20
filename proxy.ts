@@ -8,7 +8,7 @@ export async function proxy(request: NextRequest) {
     },
   })
 
-  const supabase = createServer();
+  const supabase = await createServer();
 
   const {
     data: { user },
