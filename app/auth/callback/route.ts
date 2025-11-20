@@ -9,12 +9,21 @@ export async function GET(request: Request) {
   if (code) {
     const supabase = await createServer()
     const { error } = await supabase.auth.exchangeCodeForSession(code)
+    
     if (!error) {
       return NextResponse.redirect(`${origin}${next}`)
     }
+    
     console.error('Error exchanging code for session:', error)
+    
+    // Redirect to error page with error message
+    const errorUrl = new URL('/auth/auth-code-error', origin)
+    errorUrl.searchParams.set('error', error.message || 'Failed to authenticate')
+    return NextResponse.redirect(errorUrl.toString())
   }
 
-  // return the user to an error page with instructions
-  return NextResponse.redirect(`${origin}/auth/auth-code-error`)
+  // No code provided
+  const errorUrl = new URL('/auth/auth-code-error', origin)
+  errorUrl.searchParams.set('error', 'No authentication code provided')
+  return NextResponse.redirect(errorUrl.toString())
 }
