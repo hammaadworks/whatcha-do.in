@@ -1,6 +1,6 @@
-# generated: 2025-11-15
+# generated: 2025-11-20
 # project: whatcha-doin
-# project_key: whatcha-doin
+# project_key: jira-1234
 # tracking_system: file-system
 # story_location: /Users/alhamdulillah/codespace/whatcha-doin/docs/sprint-artifacts
 
@@ -8,44 +8,58 @@
 # ==================
 # Epic Status:
 #   - backlog: Epic exists in epic file but not contexted
-#   - contexted: Next epic tech context created by *epic-tech-context (required)
+#   - contexted: Epic tech context created (required before drafting stories)
 #
 # Story Status:
 #   - backlog: Story only exists in epic file
-#   - drafted: Story file created in stories folder by *create-story
-#   - ready-for-dev: Draft approved and story context created by *story-ready
-#   - in-progress: Developer actively working on implementation by *dev-story
-#   - review: Implementation complete, ready for review by *code-review
-#   - done: Story completed by *story-done
+#   - drafted: Story file created in stories folder
+#   - ready-for-dev: Draft approved and story context created
+#   - in-progress: Developer actively working on implementation
+#   - review: Under SM review (via code-review workflow)
+#   - done: Story completed
 #
 # Retrospective Status:
 #   - optional: Can be completed but not required
-#   - completed: Retrospective has been done by *retrospective
+#   - completed: Retrospective has been done
 #
 # WORKFLOW NOTES:
 # ===============
 # - Epics should be 'contexted' before stories can be 'drafted'
-# - SM typically drafts next story ONLY after previous one is 'done' to incorporate learnings
-# - Dev moves story to 'review', dev reviews, then Dev moves to 'done'
+# - Stories can be worked in parallel if team capacity allows
+# - SM typically drafts next story after previous one is 'done' to incorporate learnings
+# - Dev moves story to 'review', SM reviews, then Dev moves to 'done'
 
-generated: 2025-11-15
+generated: 2025-11-20
 project: whatcha-doin
-project_key: whatcha-doin
+project_key: jira-1234
 tracking_system: file-system
 story_location: "/Users/alhamdulillah/codespace/whatcha-doin/docs/sprint-artifacts"
 
 development_status:
   epic-1: contexted
-  1-1-project-setup-and-core-infrastructure: done
-  1-2-implement-foundational-dashboard-layout: done
-  1-3-integrate-existing-habitcard-into-the-pile: done
-  1-4-refactor-and-integrate-habitcreator-into-the-pile: ready-for-dev
+  1-0-initial-database-schema-setup: backlog
+  1-1-project-setup-and-core-infrastructure: drafted
+  1-2-implement-development-login-bypass: backlog
+  1-3-implement-foundational-dashboard-layout: backlog
+  1-4-integrate-existing-habitcard-into-the-pile: backlog
+  1-5-refactor-and-integrate-habitcreator-into-the-pile: backlog
   epic-1-retrospective: optional
 
   epic-2: backlog
-  2-1-integrate-user-authentication-flow: backlog
-  2-2-display-user-bio-on-dashboard: backlog
-  2-3-access-and-display-public-profile: backlog
+  2-1-implement-visible-streak-counter: backlog
+  2-2-implement-habit-creation: backlog
+  2-3-implement-habit-editing: backlog
+  2-4-implement-habit-deletion: backlog
+  2-5-implement-quantitative-goals: backlog
+  2-6-implement-goal-change-logic: backlog
+  2-7-implement-drag-and-drop-for-habits-desktop: backlog
+  2-8-implement-tap-to-move-for-habits-mobile: backlog
+  2-9-implement-daily-state-change-logic: backlog
+  2-10-implement-grace-period-screen: backlog
+  2-11-implement-two-day-rule-lively-state: backlog
+  2-12-implement-two-day-rule-junked-state: backlog
+  2-13-display-junked-days-counter: backlog
+  2-14-implement-undo-completion: backlog
   epic-2-retrospective: optional
 
   epic-3: backlog
@@ -58,29 +72,24 @@ development_status:
   epic-3-retrospective: optional
 
   epic-4: backlog
-  4-1-implement-drag-and-drop-for-habits-desktop: backlog
-  4-2-implement-tap-to-move-for-habits-mobile: backlog
-  4-3-implement-daily-state-change-logic: backlog
-  4-4-implement-grace-period-screen: backlog
-  4-5-implement-two-day-rule-lively-state: backlog
-  4-6-implement-two-day-rule-junked-state: backlog
-  4-7-display-junked-days-counter: backlog
-  4-8-implement-undo-completion: backlog
+  4-1-implement-habit-todo-completion-modal-trigger: backlog
+  4-2-display-streak-and-mood-selector-in-completion-modal: backlog
+  4-3-implement-quantitative-goal-and-work-input-in-modal: backlog
+  4-4-implement-duration-input-and-notes-in-modal: backlog
+  4-5-implement-modal-bypass-and-cancel: backlog
+  4-6-implement-modal-pre-fill-for-re-records: backlog
+  4-7-implement-dual-view-journal-layout: backlog
+  4-8-implement-automatic-journaling-for-public-items: backlog
+  4-9-implement-automatic-journaling-for-private-items: backlog
+  4-10-implement-free-form-journal-entry: backlog
+  4-11-implement-journal-entry-editing: backlog
+  4-12-implement-journal-date-selector: backlog
   epic-4-retrospective: optional
 
   epic-5: backlog
-  5-1-implement-habit-todo-completion-modal-trigger: backlog
-  5-2-display-streak-and-mood-selector-in-completion-modal: backlog
-  5-3-implement-quantitative-goal-and-work-input-in-modal: backlog
-  5-4-implement-duration-input-and-notes-in-modal: backlog
-  5-5-implement-modal-bypass-and-cancel: backlog
-  5-6-implement-modal-pre-fill-for-re-records: backlog
-  5-7-implement-dual-view-journal-layout: backlog
-  5-8-implement-automatic-journaling-for-public-items: backlog
-  5-9-implement-automatic-journaling-for-private-items: backlog
-  5-10-implement-free-form-journal-entry: backlog
-  5-11-implement-journal-entry-editing: backlog
-  5-12-implement-journal-date-selector: backlog
+  5-1-implement-public-slug-configuration-ui-and-bio-editing: backlog
+  5-2-implement-public-slug-uniqueness-validation-storage-supabase: backlog
+  5-3-update-public-profile-page-to-use-configurable-slug-and-display-content: backlog
   epic-5-retrospective: optional
 
   epic-6: backlog
@@ -93,3 +102,7 @@ development_status:
   7-1-implement-positive-urgency-ui-in-yesterday-column: backlog
   7-2-implement-teleport-to-journal-animation: backlog
   epic-7-retrospective: optional
+
+  epic-8: backlog
+  8-1-supabase-login-and-logout: backlog
+  epic-8-retrospective: optional
