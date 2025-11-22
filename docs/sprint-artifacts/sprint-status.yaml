@@ -39,7 +39,7 @@ development_status:
   epic-1: contexted
   1-0-initial-database-schema-setup: done
   1-1-project-setup-and-core-infrastructure: done
-  1-2-implement-development-login-bypass: backlog
+  1-2-implement-development-login-bypass: ready-for-dev
   1-3-implement-foundational-dashboard-layout: backlog
   1-4-integrate-existing-habitcard-into-the-pile: backlog
   1-5-refactor-and-integrate-habitcreator-into-the-pile: backlog
