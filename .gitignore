@@ -42,6 +42,7 @@ next-env.d.ts
 
 # custom
 .gemini/tmp
+.gemini/settings.json
 .gemini/mcp.json
 
 # supabase
