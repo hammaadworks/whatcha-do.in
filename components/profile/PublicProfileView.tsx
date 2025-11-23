@@ -1,6 +1,6 @@
 'use client';
 
-import { PublicUserDisplay } from '@/lib/supabase/user';
+import { PublicUserDisplay } from '@/lib/supabase/types';
 
 type PublicProfileViewProps = {
   user: PublicUserDisplay;

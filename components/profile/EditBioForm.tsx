@@ -1,7 +1,7 @@
 'use client';
 
 import React, {useState} from 'react';
-import {updateUserBio} from '@/lib/supabase/user';
+import {updateUserBio} from '@/lib/supabase/user.client';
 import { createClient } from '@/lib/supabase/client';
 import toast from 'react-hot-toast';
 

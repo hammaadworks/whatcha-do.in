@@ -3,9 +3,7 @@
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import ProfilePage from '@/app/[username]/page';
-import { getUserByUsernameClient, getUserByUsernameServer } from '@/lib/supabase/user';
-// import { notFound } from 'next/navigation'; // Removed unused import
+import ProfilePageClient from '@/components/profile/ProfilePageClient'; // Corrected import to test the Client Component
 import { User } from '@supabase/supabase-js'; // Import User type
 
 // Mock AuthContext and useAuth
@@ -26,11 +24,9 @@ jest.mock('@/hooks/useAuth', () => ({
 }));
 
 
-// Mock getUserByUsernameClient and getUserByUsernameServer
-jest.mock('@/lib/supabase/user', () => ({
-  getUserByUsernameClient: jest.fn(),
-  getUserByUsernameServer: jest.fn(),
-}));
+// Mock the global fetch API
+const mockFetch = jest.spyOn(global, 'fetch');
+
 // We need to capture the reference to the actual mock function for notFound
 let mockedNotFound: jest.Mock;
 jest.mock('next/navigation', () => {
@@ -45,9 +41,9 @@ jest.mock('@/components/layout/AppHeader', () => {
   return jest.fn(() => <div data-testid="app-header">Mocked AppHeader</div>);
 });
 
-describe('AuthenticatedMainViewLayout', () => {
+describe('ProfilePageClient', () => { // Changed describe block title
   const mockUsername = 'testuser';
-  const mockAuthenticatedUser: User & { username: string } = { // Add username to mock user
+  const mockAuthenticatedUser: User & { username: string; bio?: string } = { // Add bio as optional
     id: 'user123',
     username: mockUsername,
     email: 'test@example.com',
@@ -56,9 +52,10 @@ describe('AuthenticatedMainViewLayout', () => {
     user_metadata: {},
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
+    bio: 'Test bio', // Added bio
   };
 
-  const mockOtherUser: User & { username: string } = { // Add username to mock user
+  const mockOtherUser: User & { username: string; bio?: string } = { // Add bio as optional
     id: 'otheruser',
     username: 'otheruser',
     email: 'other@example.com',
@@ -67,15 +64,15 @@ describe('AuthenticatedMainViewLayout', () => {
     user_metadata: {},
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
+    bio: 'Other user bio', // Added bio
   };
 
   beforeEach(() => {
     // Reset mocks before each test
     mockUseAuth.mockReset();
     mockUseAuth.mockReturnValue({ user: null, loading: false }); // Default mock value
-    (getUserByUsernameClient as jest.Mock).mockReset();
-    (getUserByUsernameServer as jest.Mock).mockReset();
     mockedNotFound.mockReset(); // Use the directly captured mock reference
+    mockFetch.mockReset(); // Reset fetch mock
   });
 
   // Test case for AC: #1, #2, #3, #4
@@ -84,9 +81,8 @@ describe('AuthenticatedMainViewLayout', () => {
       user: mockAuthenticatedUser,
       loading: false,
     });
-    (getUserByUsernameClient as jest.Mock).mockResolvedValue(mockAuthenticatedUser);
-
-    render(<ProfilePage params={{ username: mockUsername }} />);
+    // For owner, initialProfileUser should be the authenticated user
+    render(<ProfilePageClient username={mockUsername} initialProfileUser={mockAuthenticatedUser} />);
 
     await waitFor(() => {
       // Check for AppHeader
@@ -112,16 +108,19 @@ describe('AuthenticatedMainViewLayout', () => {
   // Test for loading state
   it('renders loading state when auth is loading', () => {
     mockUseAuth.mockReturnValue({ user: null, loading: true });
-    render(<ProfilePage params={{ username: mockUsername }} />);
+    render(<ProfilePageClient username={mockUsername} initialProfileUser={null} />); // Pass initialProfileUser as null
     expect(screen.getByText(/Loading.../i)).toBeInTheDocument();
   });
 
   // Test for AC: #1 (PublicProfileView for non-owner)
-  it('renders PublicProfileView for unauthenticated user', async () => {
-    mockUseAuth.mockReturnValue({ user: null, loading: false });
-    (getUserByUsernameClient as jest.Mock).mockResolvedValue({ id: 'someid', username: mockUsername }); // Mock public user data
+  it('renders PublicProfileView for unauthenticated user (fetched client-side)', async () => {
+    mockFetch.mockResolvedValueOnce(Promise.resolve({
+      ok: true,
+      status: 200,
+      json: async () => ({ id: 'someid', username: mockUsername, bio: 'Public test bio' }),
+    } as Response));
 
-    render(<ProfilePage params={{ username: mockUsername }} />);
+    render(<ProfilePageClient username={mockUsername} initialProfileUser={null} />); // initialProfileUser is null, so it will fetch
 
     await waitFor(() => {
       expect(screen.getByText(`Public Profile of ${mockUsername}`)).toBeInTheDocument();
@@ -130,14 +129,19 @@ describe('AuthenticatedMainViewLayout', () => {
     });
   });
 
-  it('renders PublicProfileView for authenticated user viewing another user\'s profile', async () => {
+  it('renders PublicProfileView for authenticated user viewing another user\'s profile (fetched client-side)', async () => {
     mockUseAuth.mockReturnValue({
       user: mockOtherUser,
       loading: false,
     });
-    (getUserByUsernameClient as jest.Mock).mockResolvedValue({ id: 'someid', username: mockUsername }); // Mock public user data
+    // Simulate fetch API call for public user data
+    mockFetch.mockResolvedValueOnce(Promise.resolve({
+      ok: true,
+      status: 200,
+      json: async () => ({ id: 'someid', username: mockUsername, bio: 'Public test bio' }),
+    } as Response));
 
-    render(<ProfilePage params={{ username: mockUsername }} />);
+    render(<ProfilePageClient username={mockUsername} initialProfileUser={null} />); // initialProfileUser is null, so it will fetch
 
     await waitFor(() => {
       expect(screen.getByText(`Public Profile of ${mockUsername}`)).toBeInTheDocument();
@@ -145,13 +149,16 @@ describe('AuthenticatedMainViewLayout', () => {
     });
   });
 
-  it('calls notFound when public user does not exist', async () => {
+  it('calls notFound when public user does not exist (client-side fetch)', async () => {
     mockUseAuth.mockReturnValue({ user: null, loading: false });
-    (getUserByUsernameClient as jest.Mock).mockResolvedValue(null);
+    mockFetch.mockResolvedValueOnce(Promise.resolve({
+      ok: false, // Simulate error or not found
+      status: 404,
+      json: async () => ({ error: 'User not found' }),
+    } as Response));
 
-    render(<ProfilePage params={{ username: mockUsername }} />);
+    render(<ProfilePageClient username={mockUsername} initialProfileUser={null} />); // initialProfileUser is null, so it will fetch
 
-    // notFound is called outside the component render, so we expect it to be called
     await waitFor(() => {
         expect(mockedNotFound).toHaveBeenCalled();
     });

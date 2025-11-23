@@ -1,3 +1,5 @@
+import { createClient } from '@/lib/supabase/client';
+import { User } from '@supabase/supabase-js';
 import { getUserByUsernameServer } from '@/lib/supabase/user.server';
 import { PublicUserDisplay } from '@/lib/supabase/types';
 import { createServerSideClient } from '@/lib/supabase/server'; // Add this import
@@ -149,7 +151,6 @@ describe('getUserByUsernameServer function', () => { // Corrected describe block
   let mockFrom: jest.Mock;
   const mockUserFromDb: PublicUserDisplay = {
     id: 'user-abc',
-    email: 'test@example.com',
     username: 'testuser',
     bio: 'A test user',
   };
@@ -184,7 +185,7 @@ describe('getUserByUsernameServer function', () => { // Corrected describe block
   });
 
   it('should return user data if username exists', async () => {
-    const user = await getUserByUsernameServer(mockUserFromDb.username); // Corrected function call
+    const user = await getUserByUsernameServer(mockUserFromDb.username!); // Add non-null assertion
     expect(user).toEqual(mockUserFromDb);
     expect(mockSupabase.from).toHaveBeenCalledWith('users');
     expect(mockSupabase.from('users').select).toHaveBeenCalledWith('id, username, bio');
@@ -201,7 +202,7 @@ describe('getUserByUsernameServer function', () => { // Corrected describe block
     mockSingle.mockResolvedValueOnce({ data: null, error: mockError });
     const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
-    const user = await getUserByUsernameServer('testuser'); // Corrected function call
+    const user = await getUserByUsernameServer(mockUserFromDb.username!); // Add non-null assertion
 
     expect(user).toBeNull();
     expect(consoleErrorSpy).toHaveBeenCalledWith('Error fetching user by username:', mockError);

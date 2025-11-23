@@ -14,7 +14,7 @@ export async function createServerSideClient() {
         set(name: string, value: string, options: CookieOptions) {
           try {
             cookieStore.set({ name, value, ...options });
-          } catch (error) {
+          } catch (_error) {
             // TODO: Implement Next.js middleware to refresh user sessions.
             // This `set` method was called from a Server Component.
             // This can be ignored if you have middleware refreshing
@@ -24,7 +24,7 @@ export async function createServerSideClient() {
         remove(name: string, options: CookieOptions) {
           try {
             cookieStore.set({ name, value: '', ...options });
-          } catch (error) {
+          } catch (_error) {
             // TODO: Implement Next.js middleware to refresh user sessions.
             // The `remove` method was called from a Server Component.
             // This can be ignored if you have middleware refreshing

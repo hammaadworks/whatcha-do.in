@@ -9,7 +9,7 @@ export interface User extends SupabaseUser {
 
 interface AuthContextType {
   user: User | null;
-  loading: boolean; // Renamed from isLoading for consistency
+  loading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -26,28 +26,33 @@ export function AuthProvider({
 
   useEffect(() => {
     const initializeAuth = async () => {
-      if (process.env.NEXT_PUBLIC_DEV_MODE_ENABLED === "true") {
-        console.log("Development mode enabled. Injecting mock user.");
-        const mockUser: User = {
-          id: "68be1abf-ecbe-47a7-bafb-46be273a2e",
-          email: "hammaadworks@gmail.com",
-          username: "hammaadworks", // Added username
-          aud: "authenticated",
-          app_metadata: {},
-          user_metadata: {},
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        };
-        setUser(mockUser);
-      } else if (initialUser) {
-        setUser(initialUser);
-      } else {
-        setUser(null);
-      }
-      setLoading(false);
+      await Promise.resolve().then(() => {
+        if (process.env.NEXT_PUBLIC_DEV_MODE_ENABLED === "true") {
+          console.log("Development mode enabled. Injecting mock user.");
+          const mockUser: User = {
+            id: "68be1abf-ecbe-47a7-bafb-46be273a2e",
+            email: "hammaadworks@gmail.com",
+            username: "hammaadworks", // Added username
+            aud: "authenticated",
+            app_metadata: {},
+            user_metadata: {},
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          };
+          setUser(mockUser);
+        } else if (initialUser) {
+          setUser(initialUser);
+        } else {
+          setUser(null);
+        }
+        setLoading(false);
+      });
     };
 
-    initializeAuth();
+    initializeAuth().catch(error => {
+      console.error("Error initializing authentication:", error);
+      setLoading(false); // Ensure loading is set to false even if an error occurs
+    });
   }, [initialUser]);
 
   return (

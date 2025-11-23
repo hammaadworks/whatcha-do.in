@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import {getUserByUsername} from '@/lib/supabase/user';
+import {getUserByUsernameServer} from '@/lib/supabase/user.server'; // Corrected import
 
 export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
@@ -22,7 +22,7 @@ export async function proxy(request: NextRequest) {
 
   if (usernameMatch) {
     const username = usernameMatch[1];
-    const userExists = await getUserByUsername(username); // Call server-side function
+    const userExists = await getUserByUsernameServer(username); // Corrected function call
 
     if (!userExists) {
       // If username is invalid, rewrite to generic /not-found and set header
@@ -38,5 +38,5 @@ export async function proxy(request: NextRequest) {
 export const config = {
   // Match all paths to be safe, but filter internally.
   // Or refine matcher to only target dynamic routes more precisely.
-  matcher: ['/:path*'], 
+  matcher: ['/:path*'],
 };

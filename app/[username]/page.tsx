@@ -1,25 +1,26 @@
 import { notFound } from 'next/navigation';
-import { getUserByUsername } from '@/lib/supabase/user';
-import { PublicProfileView } from '@/components/profile/PublicProfileView';
+import { getUserByUsernameServer } from '@/lib/supabase/user.server';
+import { PublicUserDisplay } from '@/lib/supabase/types'; // Correct import for PublicUserDisplay
+import ProfilePageClient from '@/components/profile/ProfilePageClient'; // Import the new client component
 
 type ProfilePageProps = {
-  params: {
+  params: Promise<{
     username: string;
-  };
+  }>;
 };
 
 export default async function ProfilePage({ params }: ProfilePageProps) {
   const { username } = await params;
-  const user = await getUserByUsername(username);
+  const user: PublicUserDisplay | null = await getUserByUsernameServer(username); // Fetch user data on server
 
   if (!user) {
+    // If user does not exist, Next.js will render the not-found page
+    // This handles the /xyz expected: user not found scenario.
     notFound();
   }
 
-  // Assuming PublicProfileView can handle the full user object
+  // Pass the fetched user data to the Client Component
   return (
-    <div>
-      <PublicProfileView user={user} />
-    </div>
+    <ProfilePageClient username={username} initialProfileUser={user} />
   );
 }
