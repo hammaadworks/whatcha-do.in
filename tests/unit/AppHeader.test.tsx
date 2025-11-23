@@ -11,9 +11,11 @@ jest.mock('@/hooks/useAuth', () => ({
 
 // Mock the next/link component
 jest.mock('next/link', () => {
-  return ({ children, href }: { children: React.ReactNode; href: string }) => (
+  const MockLink = ({ children, href }: { children: React.ReactNode; href: string }) => (
     <a href={href}>{children}</a>
   );
+  MockLink.displayName = 'Link'; // Add displayName here
+  return MockLink;
 });
 
 describe('AppHeader', () => {

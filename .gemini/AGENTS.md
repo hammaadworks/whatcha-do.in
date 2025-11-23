@@ -31,3 +31,7 @@
 
   - Try `whatsapp://` first
   - Fall back to `https://wa.me/` after a short delay
+
+[//]: # (Custom)
+- All dev-ops related tasks were moved to stories after version 8.2.
+- The authenticated dashboard/profile page will be accessed via `domain/[username]`. If the user is authenticated, it shows their private dashboard. If not, it shows a login button. This is similar to GitHub's profile page behavior.

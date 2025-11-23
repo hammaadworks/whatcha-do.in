@@ -26,10 +26,16 @@ describe('useAuth Hook', () => {
   beforeEach(() => {
     // Reset environment variable before each test
     delete process.env.NEXT_PUBLIC_DEV_MODE_ENABLED;
+    jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
   });
 
   it('should return initial loading state as true', () => {
     const { result } = renderHook(() => useAuth(), { wrapper: createWrapper() });
+    jest.runAllTimers();
     expect(result.current.loading).toBe(true);
     expect(result.current.user).toBeNull();
   });
@@ -39,6 +45,7 @@ describe('useAuth Hook', () => {
 
     const { result } = renderHook(() => useAuth(), { wrapper: createWrapper() });
 
+    jest.runAllTimers(); // Ensure all pending promises are resolved
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
       expect(result.current.user).toEqual(expect.objectContaining({
@@ -54,6 +61,7 @@ describe('useAuth Hook', () => {
 
     const { result } = renderHook(() => useAuth(), { wrapper: createWrapper(testInitialUser) });
 
+    jest.runAllTimers(); // Ensure all pending promises are resolved
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
       expect(result.current.user).toEqual(expect.objectContaining({
@@ -68,6 +76,7 @@ describe('useAuth Hook', () => {
 
     const { result } = renderHook(() => useAuth(), { wrapper: createWrapper(null) });
 
+    jest.runAllTimers(); // Ensure all pending promises are resolved
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
       expect(result.current.user).toBeNull();
@@ -80,6 +89,7 @@ describe('useAuth Hook', () => {
 
     const { result } = renderHook(() => useAuth(), { wrapper: createWrapper(testInitialUser) });
 
+    jest.runAllTimers(); // Ensure all pending promises are resolved
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
       expect(result.current.user).toEqual(expect.objectContaining({

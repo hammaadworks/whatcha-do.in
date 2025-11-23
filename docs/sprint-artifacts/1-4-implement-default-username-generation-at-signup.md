@@ -24,9 +24,9 @@ so that I can have a seamless onboarding experience with a ready-to-use profile 
 
 - [x] **Task 1: Create Supabase migration for username generation (AC: #1, #2, #3, #4, #5)**
   - [x] Subtask 1.1: Create a new SQL migration file in `supabase/migrations`.
-  - [ ] Subtask 1.2: Write a PostgreSQL function to handle unique username generation from the `new.email` record.
-  - [ ] Subtask 1.3: Write a trigger to execute the function after an insert on `auth.users`.
-  - [ ] Subtask 1.4: Apply the migration using `supabase db push`.
+  - [x] Subtask 1.2: Write a PostgreSQL function to handle unique username generation from the `new.email` record.
+  - [x] Subtask 1.3: Write a trigger to execute the function after an insert on `auth.users`.
+  - [x] Subtask 1.4: Apply the migration using `supabase db push`.
 - [x] **Task 2: Create the `AppHeader` component (AC: #6, #7)**
   - [x] Subtask 2.1: Create the file `components/layout/AppHeader.tsx`.
   - [x] Subtask 2.2: Implement the component to use the `useAuth` hook to check the session.

@@ -16,11 +16,20 @@ jest.mock('@/lib/supabase/client', () => ({
 }));
 
 describe('Supabase Username Generation Logic', () => {
-  let mockSupabase: any;
+  let mockSupabase: { from: jest.Mock; };
   let mockExistingUsernames: Set<string>;
+  let mockInsert: jest.Mock;
 
   beforeEach(() => {
     mockExistingUsernames = new Set<string>();
+    mockInsert = jest.fn(async (data: Partial<SupabaseUser> & { username?: string }) => {
+      if (data.username) {
+        mockExistingUsernames.add(data.username);
+        return { data, error: null };
+      }
+      return { data: null, error: new Error('Username not provided') };
+    });
+
     mockSupabase = {
       from: jest.fn((tableName: string) => ({
         select: jest.fn(() => ({
@@ -36,13 +45,7 @@ describe('Supabase Username Generation Logic', () => {
             }),
           })),
         })),
-        insert: jest.fn(async (data: any) => {
-          if (tableName === 'users') {
-            mockExistingUsernames.add(data.username);
-            return { data, error: null };
-          }
-          return { data: null, error: null };
-        }),
+        insert: mockInsert, // Assign the globally declared mockInsert here
       })),
     };
     (createClient as jest.Mock).mockReturnValue(mockSupabase);
@@ -88,7 +91,7 @@ describe('Supabase Username Generation Logic', () => {
 
     expect(username).toBe('testuser');
     expect(mockExistingUsernames.has('testuser')).toBe(true);
-    expect(mockSupabase.from('users').insert).toHaveBeenCalledWith({
+    expect(mockInsert).toHaveBeenCalledWith({
       id: 'user-1',
       email: 'testuser@example.com',
       username: 'testuser',
@@ -104,10 +107,10 @@ describe('Supabase Username Generation Logic', () => {
     } as SupabaseUser & { email: string };
 
     const username = await simulateHandleNewUser(newUser);
-
+    console.log("Existing username + mod = " + username);
     expect(username).toMatch(/^existinguser_[0-9]{3}$/);
     expect(mockExistingUsernames.has(username)).toBe(true);
-    expect(mockSupabase.from('users').insert).toHaveBeenCalledWith({
+    expect(mockInsert).toHaveBeenCalledWith({
       id: 'user-2',
       email: 'existinguser@example.com',
       username: username,
@@ -121,10 +124,11 @@ describe('Supabase Username Generation Logic', () => {
     } as SupabaseUser & { email: string };
 
     const username = await simulateHandleNewUser(newUser);
+    console.log("Reserved username + mod = " + username);
 
     expect(username).toMatch(/^auth_[0-9]{3}$/);
     expect(mockExistingUsernames.has(username)).toBe(true);
-    expect(mockSupabase.from('users').insert).toHaveBeenCalledWith({
+    expect(mockInsert).toHaveBeenCalledWith({
       id: 'user-3',
       email: 'auth@example.com',
       username: username,
@@ -141,13 +145,14 @@ describe('Supabase Username Generation Logic', () => {
     } as SupabaseUser & { email: string };
 
     const username = await simulateHandleNewUser(newUser);
+    console.log("Collisions username + mod = " + username);
 
     // Expecting a generated username that is not 'collision' or 'collision_123'
     expect(username).toMatch(/^collision_[0-9]{3}$/);
     expect(username).not.toBe('collision');
     expect(username).not.toBe('collision_123');
     expect(mockExistingUsernames.has(username)).toBe(true);
-    expect(mockSupabase.from('users').insert).toHaveBeenCalledWith({
+    expect(mockInsert).toHaveBeenCalledWith({
       id: 'user-4',
       email: 'collision@example.com',
       username: username,

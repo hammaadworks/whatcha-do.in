@@ -1,7 +1,17 @@
-// tests/integration/supabaseClient.test.ts
-import { createClient } from '@/lib/supabase/client';
-import { User } from '@supabase/supabase-js';
-import { getUserByUsername } from '@/lib/supabase/user';
+import { getUserByUsernameServer } from '@/lib/supabase/user.server';
+import { PublicUserDisplay } from '@/lib/supabase/types';
+import { createServerSideClient } from '@/lib/supabase/server'; // Add this import
+
+jest.mock('@/lib/supabase/server'); // Mock the server-side client
+
+jest.mock('@/lib/supabase/client', () => ({
+  createClient: jest.fn(() => ({
+    auth: {
+      getSession: jest.fn(async () => ({ data: { session: null }, error: null })),
+      getUser: jest.fn(async () => ({ data: { user: null }, error: null })),
+    },
+  })),
+}));
 
 // Define the expected mock user from lib/supabase/client.ts
 const EXPECTED_MOCK_USER: User = {
@@ -30,6 +40,29 @@ describe('Supabase Client in Development Mode', () => {
     // Set placeholder values for Supabase URL and ANON KEY
     process.env.NEXT_PUBLIC_SUPABASE_URL = 'http://localhost:54321'; // Placeholder
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'anon-key-for-test'; // Placeholder
+
+    // Configure the mock createClient for dev mode
+    (createClient as jest.Mock).mockImplementation(() => ({
+      auth: {
+        getSession: jest.fn(async () => ({
+          data: {
+            session: {
+              access_token: 'mock-access-token',
+              token_type: 'bearer',
+              user: EXPECTED_MOCK_USER,
+              expires_in: 3600,
+              expires_at: 123,
+              refresh_token: 'mock-refresh-token',
+            },
+          },
+          error: null,
+        })),
+        getUser: jest.fn(async () => ({
+          data: { user: EXPECTED_MOCK_USER },
+          error: null,
+        })),
+      },
+    }));
   });
 
   afterAll(() => {
@@ -108,9 +141,13 @@ describe('Supabase Client in Development Mode', () => {
   });
 });
 
-describe('getUserByUsername function', () => {
-  let mockSupabase: any;
-  const mockUserFromDb = {
+describe('getUserByUsernameServer function', () => { // Corrected describe block title
+  let mockSupabase: { from: jest.Mock; };
+  let mockSingle: jest.Mock;
+  let mockEq: jest.Mock;
+  let mockSelect: jest.Mock;
+  let mockFrom: jest.Mock;
+  const mockUserFromDb: PublicUserDisplay = {
     id: 'user-abc',
     email: 'test@example.com',
     username: 'testuser',
@@ -118,44 +155,53 @@ describe('getUserByUsername function', () => {
   };
 
   beforeEach(() => {
-    // Reset the mock for createClient for each test in this describe block
     jest.clearAllMocks();
+    mockSingle = jest.fn(async ({ column, value }) => {
+      if (column === 'username' && value === mockUserFromDb.username) {
+        return { data: mockUserFromDb, error: null };
+      }
+      return { data: null, error: null };
+    });
+
+    mockEq = jest.fn((column, value) => ({
+      single: () => mockSingle({ column, value }),
+    }));
+    mockSelect = jest.fn(() => ({
+      eq: mockEq,
+    }));
+    mockFrom = jest.fn((tableName: string) => {
+      if (tableName === 'users') {
+        return { select: mockSelect };
+      }
+      return { select: jest.fn() };
+    });
+
     mockSupabase = {
-      from: jest.fn((tableName: string) => ({
-        select: jest.fn(() => ({
-          eq: jest.fn((column: string, value: string) => ({
-            single: jest.fn(async () => {
-              if (tableName === 'users' && column === 'username' && value === mockUserFromDb.username) {
-                return { data: mockUserFromDb, error: null };
-              }
-              return { data: null, error: null };
-            }),
-          })),
-        })),
-      })),
+      from: mockFrom,
     };
-    (createClient as jest.Mock).mockReturnValue(mockSupabase);
+
+    (createServerSideClient as jest.Mock).mockReturnValue(mockSupabase);
   });
 
   it('should return user data if username exists', async () => {
-    const user = await getUserByUsername(mockUserFromDb.username);
+    const user = await getUserByUsernameServer(mockUserFromDb.username); // Corrected function call
     expect(user).toEqual(mockUserFromDb);
     expect(mockSupabase.from).toHaveBeenCalledWith('users');
-    expect(mockSupabase.from('users').select).toHaveBeenCalledWith('*');
+    expect(mockSupabase.from('users').select).toHaveBeenCalledWith('id, username, bio');
     expect(mockSupabase.from('users').select().eq).toHaveBeenCalledWith('username', mockUserFromDb.username);
   });
 
   it('should return null if username does not exist', async () => {
-    const user = await getUserByUsername('nonexistent');
+    const user = await getUserByUsernameServer('nonexistent'); // Corrected function call
     expect(user).toBeNull();
   });
 
   it('should log an error and return null if Supabase query fails', async () => {
     const mockError = new Error('Database error');
-    mockSupabase.from('users').select().eq().single.mockResolvedValueOnce({ data: null, error: mockError });
+    mockSingle.mockResolvedValueOnce({ data: null, error: mockError });
     const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
-    const user = await getUserByUsername('testuser');
+    const user = await getUserByUsernameServer('testuser'); // Corrected function call
 
     expect(user).toBeNull();
     expect(consoleErrorSpy).toHaveBeenCalledWith('Error fetching user by username:', mockError);

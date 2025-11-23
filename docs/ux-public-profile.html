@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UX Grace Period Screen</title>
+    <title>UX Public Profile</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700;800&display=swap" rel="stylesheet">
@@ -25,12 +25,9 @@
             --secondary-bg: #F1F3F5;
             --secondary-fg: #495057;
             --accent-gradient: linear-gradient(45deg, #FF6B6B, #FF8E53);
-            --chip-pending-bg: #F1F3F5;
-            --chip-pending-fg: #495057;
-            --chip-pending-border: #DEE2E6;
-            --chip-done-bg: #E9F7EC;
-            --chip-done-fg: #1E7E34;
-            --chip-done-border: #A3D9B1;
+            --chip-bg: #F1F3F5;
+            --chip-text: #212529;
+            --chip-border: #DEE2E6;
         }
 
         .theme-dark {
@@ -45,12 +42,9 @@
             --secondary-bg: #2a2a2a;
             --secondary-fg: #CCCCCC;
             --accent-gradient: linear-gradient(45deg, #00F5A0, #00D2B8);
-            --chip-pending-bg: #222222;
-            --chip-pending-fg: #E0E0E0;
-            --chip-pending-border: #444444;
-            --chip-done-bg: rgba(0, 245, 160, 0.05);
-            --chip-done-fg: #99FFD9;
-            --chip-done-border: #00B375;
+            --chip-bg: #222222;
+            --chip-text: #E0E0E0;
+            --chip-border: #444444;
         }
 
         body {
@@ -58,25 +52,25 @@
             background-color: var(--bg);
             color: var(--fg);
             margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            padding: 2rem;
             min-height: 100vh;
             transition: background-color 0.3s ease, color 0.3s ease;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* Align items to the top */
         }
 
-        .screen-container {
+        .profile-container {
             width: 100%;
-            max-width: 500px;
+            max-width: 800px;
             background-color: var(--card);
             border-radius: 1.5rem;
             border: 1px solid var(--card-border);
             box-shadow: 0 20px 50px rgba(0,0,0,0.2);
             padding: 2.5rem 3rem;
-            text-align: center;
             position: relative;
         }
-        
+
         .theme-switcher {
             position: absolute;
             top: 1.5rem;
@@ -95,122 +89,146 @@
         }
 
         h1 {
-            font-size: 2rem;
+            font-size: 2.5rem;
             font-weight: 800;
             margin: 0 0 0.5rem 0;
+            text-align: center;
+            color: var(--primary);
         }
 
-        p {
-            color: var(--muted-fg);
+        .bio {
             font-size: 1.1rem;
+            color: var(--muted-fg);
+            text-align: center;
+            margin-bottom: 2rem;
             line-height: 1.6;
-            margin: 0 0 2rem 0;
         }
 
-        .habits-grid {
+        .section {
+            margin-bottom: 2.5rem;
+        }
+
+        .section h2 {
+            font-size: 1.75rem;
+            font-weight: 800;
+            border-bottom: 1px solid var(--card-border);
+            padding-bottom: 0.75rem;
+            margin-bottom: 1.5rem;
+            color: var(--fg);
+        }
+
+        .habit-grid {
             display: flex;
             flex-wrap: wrap;
             gap: 0.75rem;
-            justify-content: center;
-            margin-bottom: 2rem;
-            padding-bottom: 2rem;
-            border-bottom: 1px solid var(--card-border);
         }
 
-        .habit-chip {
+        .todo-list {
+            list-style-type: decimal; /* Ensure numbering */
+            padding-left: 1.5rem; /* Indent for numbers */
+            margin-top: 0;
+            margin-bottom: 0;
+        }
+
+        .habit-chip, .todo-item-content { /* Changed from .todo-item to .todo-item-content */
             padding: 0.6rem 1.25rem;
             border-radius: 999px;
             font-weight: 700;
-            cursor: pointer;
-            transition: all 0.2s ease;
+            background-color: var(--chip-bg);
+            color: var(--chip-text);
+            border: 1px solid var(--chip-border);
             display: flex;
             align-items: center;
             gap: 0.5rem;
         }
-        
-        .habit-chip.pending {
-            background-color: var(--chip-pending-bg);
-            color: var(--chip-pending-fg);
-            border: 1px solid var(--chip-pending-border);
-        }
-        .habit-chip.pending:hover {
-            transform: translateY(-2px);
-            border-color: var(--primary);
-        }
-
-        .habit-chip.done {
-            background-color: var(--chip-done-bg);
-            color: var(--chip-done-fg);
-            border: 1px solid var(--chip-done-border);
-            text-decoration: line-through;
-        }
-
-        .actions {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        .btn {
-            font-family: var(--font-sans);
-            font-weight: 700;
-            padding: 1rem 1.5rem;
-            border-radius: var(--radius);
-            border: none;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            font-size: 1.1rem;
-            width: 100%;
-        }
-
-        .btn-primary {
-            background: var(--accent-gradient);
+        .habit-chip .streak {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.5rem;
+            background: var(--primary);
             color: var(--primary-fg);
-            box-shadow: 0 4px 15px -5px var(--primary);
-        }
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px -5px var(--primary);
+            font-size: 0.9rem;
+            font-weight: 800;
         }
 
-        .btn-secondary {
-            background: transparent;
-            color: var(--muted-fg);
+        .todo-item {
             font-weight: 700;
+            margin-bottom: 0.5rem; /* Space between list items */
+            color: var(--fg); /* Ensure text color is set */
         }
-        .btn-secondary:hover {
+
+        .journal-entry {
+            background-color: var(--bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .journal-entry h3 {
+            font-size: 1.25rem;
+            margin: 0 0 0.5rem 0;
+            color: var(--primary);
+        }
+        .journal-entry .date {
+            font-size: 0.9rem;
+            color: var(--muted-fg);
+            margin-bottom: 1rem;
+        }
+        .journal-entry p {
+            font-size: 1rem;
+            line-height: 1.6;
             color: var(--fg);
-            background-color: var(--secondary-bg);
+            margin: 0;
         }
 
     </style>
 </head>
 <body class="theme-dark">
 
-    <div class="screen-container">
+    <div class="profile-container">
         <button id="theme-switcher" class="theme-switcher" title="Switch Theme">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
         </button>
         
-        <h1>Good morning!</h1>
-        <p>Let's wrap up Tuesday before we begin.</p>
+        <h1>hammaadworks</h1>
+        <p class="bio">Passionate about building software that helps people live more intentionally. Currently focused on mastering daily habits and reflecting on life's journey.</p>
 
-        <div class="habits-grid">
-            <div class="habit-chip pending" data-habit="spanish">❓ Review Spanish</div>
-            <div class="habit-chip pending" data-habit="guitar">❓ Practice Guitar</div>
-            <div class="habit-chip pending" data-habit="journal">❓ Write Journal</div>
+        <div class="section">
+            <h2>Habits</h2>
+            <div class="habit-grid">
+                <div class="habit-chip">Read a book <span class="streak">12</span></div>
+                <div class="habit-chip">Meditate <span class="streak">5</span></div>
+                <div class="habit-chip">Learn Spanish <span class="streak">30</span></div>
+                <div class="habit-chip">Workout <span class="streak">28</span></div>
+            </div>
         </div>
 
-        <div class="actions">
-            <button class="btn btn-primary">Finish & Start Wednesday</button>
-            <button class="btn btn-secondary">+ Add another habit you completed</button>
+        <div class="section">
+            <h2>Todos</h2>
+            <ol class="todo-list">
+                <li class="todo-item">Complete project proposal</li>
+                <li class="todo-item">Buy groceries</li>
+            </ol>
+        </div>
+
+        <div class="section">
+            <h2>Journal</h2>
+            <div class="journal-entry">
+                <h3>Reflections on consistency</h3>
+                <div class="date">November 22, 2025</div>
+                <p>Today was a good day for consistency. Managed to hit all my habits, even the tough ones. Reading for 30 minutes felt especially rewarding. It's becoming easier to get into the flow.</p>
+            </div>
+            <div class="journal-entry">
+                <h3>New insights from meditation</h3>
+                <div class="date">November 21, 2025</div>
+                <p>My meditation practice is deepening. Noticing subtle shifts in my thought patterns throughout the day. It's a powerful tool for self-awareness. Also, the Spanish lesson was tough today, but I pushed through.</p>
+            </div>
         </div>
     </div>
 
     <script>
+        // Theme switcher logic
         const themeSwitcher = document.getElementById('theme-switcher');
-        const habits = document.querySelectorAll('.habit-chip');
-
         themeSwitcher.addEventListener('click', () => {
             const isLightCurrently = document.body.classList.contains('theme-light');
             
@@ -220,21 +238,6 @@
             themeSwitcher.innerHTML = isLightCurrently
                 ? `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`
                 : `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>`;
-        });
-
-        habits.forEach(habit => {
-            habit.addEventListener('click', () => {
-                const isPending = habit.classList.contains('pending');
-                if (isPending) {
-                    habit.classList.remove('pending');
-                    habit.classList.add('done');
-                    habit.innerHTML = `✅ ${habit.dataset.habit}`;
-                } else {
-                    habit.classList.remove('done');
-                    habit.classList.add('pending');
-                    habit.innerHTML = `❓ ${habit.dataset.habit}`;
-                }
-            });
         });
     </script>
 
