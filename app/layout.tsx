@@ -1,10 +1,12 @@
+import React from "react";
 import type {Metadata} from "next";
 import {Geist, Geist_Mono} from "next/font/google";
 import "./globals.css";
 import {AuthProvider} from "@/components/auth/AuthProvider";
 import AppHeader from "@/components/layout/AppHeader";
 import AppFooter from "@/components/layout/AppFooter";
-import React from "react";
+import { createServerSideClient } from '@/lib/supabase/server';
+import logger from '@/lib/logger/server'; // Import the server logger
 
 const geistSans = Geist({
     variable: "--font-geist-sans", subsets: ["latin"],
@@ -62,7 +64,28 @@ export const metadata: Metadata = {
     manifest: "/manifest.json",
 };
 
-export default function RootLayout({children,}: Readonly<{ children: React.ReactNode; }>) {
+export default async function RootLayout({children,}: Readonly<{ children: React.ReactNode; }>) {
+    const log = logger.child({ function: 'RootLayout' });
+    log.info('Fetching user session in RootLayout');
+
+    const supabase = await createServerSideClient();
+    const { data: { session }, error } = await supabase.auth.getSession();
+
+    if (error) {
+        log.error({ err: error }, 'Error fetching session in RootLayout');
+    }
+
+    let initialUser = null;
+    if (session?.user) {
+        initialUser = {
+            ...session.user,
+            username: session.user.user_metadata?.username || session.user.email?.split('@')[0],
+        };
+        log.info({ userId: initialUser.id, username: initialUser.username }, 'Session found for user');
+    } else {
+        log.info('No active session found');
+    }
+
     return (<html lang="en">
         <head>
             <meta name="apple-mobile-web-app-title" content="whatcha-doin"/>
@@ -71,7 +94,7 @@ export default function RootLayout({children,}: Readonly<{ children: React.React
         <body
             className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}
         >
-        <AuthProvider>
+        <AuthProvider initialUser={initialUser}>
             <AppHeader/>
             <main className="flex-grow flex items-center justify-center">
                 {children}
@@ -81,3 +104,4 @@ export default function RootLayout({children,}: Readonly<{ children: React.React
         </body>
         </html>);
 }
+
