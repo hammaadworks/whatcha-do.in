@@ -1,0 +1,45 @@
+<story-context>
+  <story-details>
+    <epic-id>1</epic-id>
+    <story-id>5</story-id>
+    <story-key>1-5-implement-foundational-authenticated-main-view-layout</story-key>
+    <story-title>Implement Foundational Authenticated Main View Layout</story-title>
+    <status>drafted</status>
+    <user-story>
+      <as-a>user</as-a>
+      <i-want>to see the basic layout of my private profile view at `/[username]`, including placeholders for my bio, todo list, and the three
+habit columns ("Today", "Yesterday", and "The Pile")</i-want>
+      <so-that>I have a clear structure for where my habits and todos will appear.</so-that>
+    </user-story>
+  </story-details>
+  <acceptance-criteria>
+    <ac id="1">The `app/[username]/page.tsx` renders the basic layout for an authenticated user.</ac>
+    <ac id="2">The layout includes a placeholder for the user's bio.</ac>
+    <ac id="3">The layout includes a placeholder for the todo list ("Actions" Section).</ac>
+    <ac id="4">The layout includes three distinct column placeholders for habits: "Today", "Yesterday", and "The Pile".</ac>
+    <ac id="5">The layout is responsive, adapting to desktop (two-row) and mobile (single-column, stacked) views as described in UX Design Specification.</ac>
+  </acceptance-criteria>
+  <tasks>
+    <task id="1" title="Implement basic layout structure in `app/[username]/page.tsx`" ac-refs="#1, #2, #3, #4, #5">
+      <subtask id="1.1" title="Create `app/[username]/layout.tsx` to wrap the `page.tsx` with user-specific layout." ac-refs="#1"/>
+      <subtask id="1.2" title="Define a root container for the main view." ac-refs="#1"/>
+      <subtask id="1.3" title="Add a placeholder for the user's bio (e.g., a `div` or component with a descriptive comment)." ac-refs="#2"/>
+      <subtask id="1.4" title="Add a placeholder for the 'Actions' section (Todos)." ac-refs="#3"/>
+      <subtask id="1.5" title="Add a container for the three habit columns ('Today', 'Yesterday', 'The Pile')." ac-refs="#4"/>
+      <subtask id="1.6" title="Implement basic CSS for the three habit columns to demonstrate desktop (two-row) and mobile (stacked) layouts using Tailwind CSS." ac-refs="#5"/>
+    </task>
+    <task id="2" title="Integrate `AppHeader` into `app/[username]/layout.tsx` (or parent layout if appropriate)" ac-refs="#1">
+      <subtask id="2.1" title="Ensure the `AppHeader` (created in Story 1.4) is correctly displayed at the top of the authenticated view. (This might involve adjusting `app/layout.tsx` if `app/[username]/layout.tsx` takes over more responsibility)." ac-refs="#1"/>
+    </task>
+    <task id="3" title="Basic UI Component Usage" ac-refs="#1">
+      <subtask id="3.1" title="Utilize `shadcn/ui` components for basic structural elements where appropriate (e.g., `Card` for column containers)." ac-refs="#1"/>
+    </task>
+    <task id="4" title="Create basic unit/integration tests" ac-refs="#1, #2, #3, #4, #5">
+      <subtask id="4.1" title="Create a test file `tests/unit/AuthenticatedMainViewLayout.test.tsx`." ac-refs="#1"/>
+      <subtask id="4.2" title="Write a test to ensure the bio placeholder is rendered." ac-refs="#2"/>
+      <subtask id="4.3" title="Write a test to ensure the todo list placeholder is rendered." ac-refs="#3"/>
+      <subtask id="4.4" title="Write tests to ensure the three habit column placeholders are rendered." ac-refs="#4"/>
+      <subtask id="4.5" title=" (Optional) Write a basic test to verify responsive layout classes (e.g., flex directions or grid setups)." ac-refs="#5"/>
+    </task>
+  </tasks>
+</story-context>

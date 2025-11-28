@@ -121,6 +121,7 @@ The application's core functionality revolves around several critical user journ
     *   **Undo:** A long-press on a 'Today' chip allows users to undo the completion. This action reverts the streak count and moves the habit back based on its prior state: to "Yesterday" if the streak was > 1, or to "The Pile" if the streak was 1.
     *   **Deletion:** Habits can only be deleted when they are in "The Pile".
     *   **Habit Chip:** Displays name, streak badge, and `🌐 Public` / `🔒 Private` icon.
+    *   **Habit Details View:** Clicking on a habit chip (that is not in an editing state) will trigger a modal dialog. This modal provides a read-only, 'at-a-glance' view of the habit's key properties, including its full name, streak, goal, privacy status, and the date it was created. This allows for quick inspection without entering an edit flow.
     *   **Habit Goal Adjustment (Upgrade/Downgrade):**
         *   Users can set and modify a quantitative goal for a habit (e.g., "Read 5 pages", "Do 20 pushups").
         *   When a habit's goal is upgraded or downgraded, the existing streak will **continue uninterrupted**. The new `goal_value` becomes the requirement for continuing the streak from the moment of change.

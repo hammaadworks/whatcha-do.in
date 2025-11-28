@@ -524,7 +524,7 @@ List with EXACT versions from detected stack:
 List internal dependencies:
 
 - @/services/UserService
-- @/middleware/auth
+- @/proxy/auth
 - @/utils/validation
 
 **Configuration Changes:**

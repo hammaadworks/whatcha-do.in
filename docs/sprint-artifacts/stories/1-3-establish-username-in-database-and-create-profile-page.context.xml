@@ -1,0 +1,265 @@
+<story-context id="{bmad_folder}/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>1</epicId>
+    <storyId>3</storyId>
+    <title>Establish username in Database and Create Profile Page</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-22</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>/Users/alhamdulillah/codespace/whatcha-doin/docs/sprint-artifacts/1-3-establish-username-in-database-and-create-profile-page.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>As a developer,</asA>
+    <iWant>I want to add a `username` column to the `users` table and create the basic page structure for the `/[username]` dynamic route,</iWant>
+    <soThat>So that there is a foundation for the user's profile and main authenticated view.</soThat>
+    <tasks>-   **Task 1: Create Supabase Migration for `username` Column** (AC: #1, #2, #3)
+    -   [ ] Subtask 1.1: Generate a new Supabase migration file.
+    -   [ ] Subtask 1.2: Add `username` column of type `text` to `public.users` table.
+    -   [ ] Subtask 1.3: Add `UNIQUE` constraint to the `username` column.
+    -   [ ] Subtask 1.4: Update the existing test user(s) with a default `username` (as per `epics.md` technical notes) ensuring it's not a reserved slug (ADR 017).
+    -   [ ] Subtask 1.5: Apply the migration locally.
+    -   **Testing:** Run `supabase db diff` to confirm the migration. Manually verify `username` column and constraint in local Supabase DB.
+-   **Task 2: Create Dynamic `[username]` Page** (AC: #4, #5)
+    -   [ ] Subtask 2.1: Create `app/[username]/page.tsx` file.
+    -   [ ] Subtask 2.2: Implement basic rendering for the page (e.g., "Hello [username]").
+    -   [ ] Subtask 2.3: Ensure the page can retrieve the `username` from the URL.
+    -   [ ] Subtask 2.4: Conditionally render a placeholder for the authenticated user's private profile or a public view (as per ADR 017).
+    -   **Testing:** Manual navigation to `/{test_username}` (or the default test user's username) to verify rendering without errors. E2E test to navigate to a test user's profile and assert content.
+-   **Task 3: Review and Update RLS Policies for `public.users` Table**
+    -   [ ] Subtask 3.1: Review existing RLS policies for `public.users` to ensure compatibility with the new `username` column (as per previous story learnings).
+    -   [ ] Subtask 3.2: If necessary, modify RLS policies to allow authenticated users (including the dev-mode mock user) to `SELECT` and `UPDATE` their own `username`.
+    -   **Testing:** Integration tests to verify RLS policies work as expected for `username` updates by the mock user.</tasks>
+  </story>
+
+  <acceptanceCriteria>1.  A new Supabase migration file is created that adds a `username` column to the `public.users` table.
+2.  The `username` column is of type `text` and has a `UNIQUE` constraint.
+3.  The migration is successfully applied to the database.
+4.  The `app/[username]/page.tsx` file is created.
+5.  When navigating to `/[username]` (e.g., `/hammaadworks`), the page renders without errors.</acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>whatcha-doin - Product Requirements Document</title>
+        <section>FR-1: User &amp; Profile Management</section>
+        <snippet>FR-1.4: Each user must be able to configure a unique username which makes their public profile page accessible via a shareable, user-friendly URL (e.g., `/user-chosen-username`). The username must consist only of alphanumeric characters (a-z, A-Z, 0-9), hyphens (-), and underscores (_), and must be unique across all users.</snippet>
+      </doc>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>whatcha-doin - Product Requirements Document</title>
+        <section>FR-1: User &amp; Profile Management</section>
+        <snippet>FR-1.5: The public profile page must display the user's bio, all public habits, all public todos, and the public journal.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture</title>
+        <section>Data Models and Contracts</section>
+        <snippet>The `users` table schema defines a `username` column as `text` with `UNIQUE` and `Index` constraints, mapping to the user's `username`.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture</title>
+        <section>Security Architecture</section>
+        <snippet>Reserved Slugs Enforcement prevents `usernames` from conflicting with system routes, ensuring routing integrity.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture</title>
+        <section>ADR 017: Dynamic Root Routing for User Profiles</section>
+        <snippet>Decision to use a dynamic root segment `/[username]` for user profiles, serving public/private views based on authentication. Notes the need for reserved system usernames.</snippet>
+      </doc>
+      <doc>
+        <path>docs/ux-design-specification.md</path>
+        <title>whatcha-doin UX Design Specification</title>
+        <section>4.2 Overall Page Structure</section>
+        <snippet>The main interface structure includes a dynamic route `/[username]/` for user profiles.</snippet>
+      </doc>
+      <doc>
+        <path>docs/ux-design-specification.md</path>
+        <title>whatcha-doin UX Design Specification</title>
+        <section>5.1 Critical User Paths</section>
+        <snippet>The `username` makes public profiles accessible and shareable.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>whatcha-doin - Epic Breakdown</title>
+        <section>Epic 1: Core Application Foundation &amp; Authenticated Root View</section>
+        <snippet>Goal: Establish foundational project infrastructure, implement a development-friendly bypass for Supabase data interaction, and lay out the basic authenticated UI accessible via the user's username.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>whatcha-doin - Epic Breakdown</title>
+        <section>Story 1.3: Establish `username` in Database and Create Profile Page</section>
+        <snippet>As a developer, I want to add a `username` column to the `users` table and create the basic page structure for the `/[username]` dynamic route, so that there is a foundation for the user's profile and main authenticated view.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>whatcha-doin - Epic Breakdown</title>
+        <section>Data Models and Contracts (`users` table schema)</section>
+        <snippet>The `users` table includes a `username TEXT UNIQUE NOT NULL` column, which is critical for this story's implementation.</snippet>
+      </doc>
+      <doc>
+        <path>docs/sprint-artifacts/tech-spec-epic-1.md</path>
+        <title>Epic Technical Specification: Core Application Foundations: User, Habit, and Todo Management</title>
+        <section>Detailed Design - Data Models and Contracts</section>
+        <snippet>The `Users Table` schema specifies a `username` column as `text` (Unique, Index).</snippet>
+      </doc>
+      <doc>
+        <path>docs/sprint-artifacts/tech-spec-epic-1.md</path>
+        <title>Epic Technical Specification: Core Application Foundations: User, Habit, and Todo Management</title>
+        <section>Acceptance Criteria (Authoritative)</section>
+        <snippet>AC #4 states that the user can configure a unique username and AC #5 specifies the public profile display at `/[username]`.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>supabase/migrations/</path>
+        <kind>directory</kind>
+        <reason>Location for new Supabase migration file to add 'username' column.</reason>
+      </artifact>
+      <artifact>
+        <path>app/[username]/page.tsx</path>
+        <kind>nextjs-page</kind>
+        <reason>New file for the dynamic user profile page.</reason>
+      </artifact>
+      <artifact>
+        <path>lib/supabase/user.ts</path>
+        <kind>service</kind>
+        <reason>Existing service for interacting with the 'users' table; may need updates for 'username' related queries/mutations.</reason>
+      </artifact>
+      <artifact>
+        <path>lib/supabase/client.ts</path>
+        <kind>service</kind>
+        <reason>Provides the Supabase client instance for database interactions, including user data.</reason>
+      </artifact>
+      <artifact>
+        <path>components/auth/AuthProvider.tsx</path>
+        <kind>component</kind>
+        <reason>Part of the authentication context, important for ensuring the dev-mode mock user interacts correctly with the new 'username' functionality.</reason>
+      </artifact>
+      <artifact>
+        <path>hooks/useAuth.tsx</path>
+        <kind>hook</kind>
+        <reason>Centralizes authentication state management and mock user injection, relevant for interacting with the 'username' field in development.</reason>
+      </artifact>
+      <artifact>
+        <path>supabase/config.toml</path>
+        <kind>config</kind>
+        <reason>Supabase configuration file, potentially relevant for authentication settings.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <ecosystem name="Node.js" manifest="package.json">
+        <package name="@radix-ui/react-alert-dialog" version="^1.1.15" type="dependency"/>
+        <package name="@radix-ui/react-dialog" version="^1.1.15" type="dependency"/>
+        <package name="@radix-ui/react-icons" version="^1.3.2" type="dependency"/>
+        <package name="@radix-ui/react-label" version="^2.1.8" type="dependency"/>
+        <package name="@radix-ui/react-select" version="^2.2.6" type="dependency"/>
+        <package name="@radix-ui/react-slot" version="^1.2.4" type="dependency"/>
+        <package name="@radix-ui/react-switch" version="^1.2.6" type="dependency"/>
+        <package name="@supabase/ssr" version="^0.7.0" type="dependency"/>
+        <package name="@supabase/supabase-js" version="^2.81.1" type="dependency"/>
+        <package name="@testing-library/jest-dom" version="^6.9.1" type="dependency"/>
+        <package name="@testing-library/react" version="^16.3.0" type="dependency"/>
+        <package name="class-variance-authority" version="^0.7.1" type="dependency"/>
+        <package name="clsx" version="^2.1.1" type="dependency"/>
+        <package name="cobe" version="^0.6.5" type="dependency"/>
+        <package name="lucide-react" version="^0.553.0" type="dependency"/>
+        <package name="motion" version="^12.23.24" type="dependency"/>
+        <package name="next" version="16.0.2" type="dependency"/>
+        <package name="next-themes" version="^0.4.6" type="dependency"/>
+        <package name="react" version="19.2.0" type="dependency"/>
+        <package name="react-dom" version="19.2.0" type="dependency"/>
+        <package name="react-hot-toast" version="^2.6.0" type="dependency"/>
+        <package name="tailwind-merge" version="^3.4.0" type="dependency"/>
+        <package name="tailwindcss-animate" version="^1.0.7" type="dependency"/>
+        <package name="zustand" version="^5.0.8" type="dependency"/>
+        <package name="@playwright/test" version="^1.56.1" type="devDependency"/>
+        <package name="@tailwindcss/postcss" version="^4" type="devDependency"/>
+        <package name="@types/node" version="^20.19.25" type="devDependency"/>
+        <package name="@types/react" version="^19.2.6" type="devDependency"/>
+        <package name="@types/react-dom" version="^19.2.3" type="devDependency"/>
+        <package name="eslint" version="^9" type="devDependency"/>
+        <package name="eslint-config-next" version="16.0.2" type="devDependency"/>
+        <package name="jsdom" version="^27.2.0" type="devDependency"/>
+        <package name="tailwindcss" version="^4" type="devDependency"/>
+        <package name="tsconfig-paths" version="^4.2.0" type="devDependency"/>
+        <package name="tw-animate-css" version="^1.4.0" type="devDependency"/>
+        <package name="typescript" version="^5" type="devDependency"/>
+        <package name="vitest" version="^4.0.8" type="devDependency"/>
+      </ecosystem>
+      <frameworks>
+        <framework name="Next.js" type="web_framework"/>
+        <framework name="React" type="ui_library"/>
+        <framework name="TypeScript" type="language"/>
+        <framework name="Tailwind CSS" type="styling_framework"/>
+        <framework name="ESLint" type="linting_tool"/>
+        <framework name="Playwright" type="e2e_testing_framework"/>
+        <framework name="Vitest" type="unit_integration_testing_framework"/>
+        <framework name="Supabase" type="backend_as_a_service"/>
+        <framework name="Zustand" type="state_management_library"/>
+        <framework name="Radix UI" type="ui_component_library"/>
+        <framework name="Aceternity UI" type="animation_library"/>
+        <framework name="shadcn/ui" type="ui_component_library"/>
+      </frameworks>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>
+      <type>architectural-decision</type>
+      <description>ADR 017: Dynamic Root Routing for User Profiles - use `/[username]` for user profile routing.</description>
+    </constraint>
+    <constraint>
+      <type>user-onboarding</type>
+      <description>Default Username Generation: A Supabase Database Function, triggered on new user creation, will automatically generate a default username from the user's email, appending a random 3-digit number if there is a conflict.</description>
+    </constraint>
+    <constraint>
+      <type>security</type>
+      <description>Reserved Slugs Enforcement: A Supabase Database Function will be implemented to prevent `usernames` from conflicting with system routes (e.g., `auth`, `dashboard`).</description>
+    </constraint>
+    <constraint>
+      <type>development-mode</type>
+      <description>ADR 016: Development Mode User Injection - The mock `user_id` must interact with RLS policies for the new `username` column (SELECT, UPDATE).</description>
+    </constraint>
+    <constraint>
+      <type>database-schema</type>
+      <description>Supabase Users Table Schema: `username` of type `text` with a `UNIQUE` constraint, enforced by a Supabase Database Function.</description>
+    </constraint>
+    <constraint>
+      <type>security</type>
+      <description>RLS Policies: Review and update RLS policies for `public.users` to ensure compatibility and correct interaction for `username`.</description>
+    </constraint>
+  </constraints>
+  <interfaces>
+    <interface>
+      <name>check_username_uniqueness</name>
+      <kind>Supabase Database Function</kind>
+      <signature>SELECT public.check_username_uniqueness(p_username TEXT)</signature>
+      <path>supabase/migrations/</path>
+    </interface>
+    <interface>
+      <name>Update User Profile</name>
+      <kind>REST API</kind>
+      <signature>PUT /users/{user_id}</signature>
+      <path>lib/supabase/user.ts</path>
+    </interface>
+  </interfaces>
+  <tests>
+    <standards>
+      Unit testing will use Vitest and React Testing Library, focusing on `username` validation (e.g., format, reserved slugs). Integration tests will use Vitest to verify RLS policies for the `public.users` table with the dev-mode mock user, ensuring correct `SELECT` and `UPDATE` operations. E2E tests will use Playwright to verify dynamic `/[username]` page rendering and content for a test user. All tests will be integrated with GitHub Actions.
+    </standards>
+    <locations>
+      <location>tests/unit/</location>
+      <location>tests/integration/</location>
+      <location>tests/e2e/</location>
+    </locations>
+    <ideas>
+      <idea>Unit tests for helper functions related to `username` validation (e.g., valid characters, length, reserved words).</idea>
+      <idea>Integration tests to verify that the mock `user_id` can successfully update its `username` in the `public.users` table, and that RLS prevents unauthorized updates.</idea>
+      <idea>E2E tests: Navigate to `/[username]` for a test user and verify that the page loads correctly and displays the expected `username`.</idea>
+    </ideas>
+  </tests>
+</story-context>

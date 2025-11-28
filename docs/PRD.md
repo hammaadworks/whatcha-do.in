@@ -9,7 +9,7 @@
 
 ## Executive Summary
 
-**NOTE:** For development purposes, Magic Link authentication is temporarily disabled. The application is configured to use a hardcoded test user session for all feature development. This is achieved by injecting a mock user via the `AuthProvider` component in `app/(main)/layout.tsx` when `NEXT_PUBLIC_DEV_MODE_ENABLED=true`. To re-enable Magic Link, set `NEXT_PUBLIC_DEV_MODE_ENABLED=false` in `.env.local` (or remove it) and set `enable_signup = true` in `supabase/config.toml` under both `[auth]` and `[auth.email]` sections.
+**NOTE:** For development purposes, Supabase authentication is temporarily bypassed. The application is configured to directly interact with Supabase tables using a hardcoded test user's `user_id` for all feature development. This is achieved by injecting the `user_id` via the `AuthProvider` component in `app/(main)/layout.tsx` when `NEXT_PUBLIC_DEV_MODE_ENABLED=true`. Full Supabase authentication will be integrated in the final epic. To re-enable Magic Link functionality for testing the final epic, set `NEXT_PUBLIC_DEV_MODE_ENABLED=false` in `.env.local` (or remove it) and set `enable_signup = true` in `supabase/config.toml` under both `[auth]` and `[auth.email]` sections.
 
 This PRD outlines the development of "whatcha-doin," a habit and todo tracking application designed to foster personal growth and consistency. The vision is to create an intuitive, keyboard-first experience that empowers users to build positive routines and reflect on their progress, ultimately leading to a more organized and fulfilling life.
 
@@ -45,12 +45,12 @@ The success of "whatcha-doin" will be measured by user engagement, habit complet
 ### MVP - Minimum Viable Product
 
 This is the focused feature set required to deliver the core identity-building experience.
-- **User System:** User accounts with Magic Link logins and a simple user bio.
+- **User System:** User accounts with Magic Link logins, a simple user bio, and a user-configurable, unique username for their public profile.
 - **Core "Habits" System:** Create, edit, and delete recurring "habits" with a public/private flag. A three-column layout ("Today", "Yesterday", "The Pile") with drag-and-drop functionality. The "Two-Day Rule" governs streak management, and a visible streak counter is displayed on each habit.
 - **Core "Todos" System:** Create, edit, and delete one-off "todos", also with a public/private flag.
 - **Journal System:** A dual-view journal with "Public" and "Private" tabs. It automatically aggregates notes from completed items into the correct tab. Users can also add free-form text and edit any journal entry at any time. The main UI shows today's entry by default, with a date selector to view past entries.
 - **Daily Interaction:** A recording modal appears upon completion of any habit or todo to log an effort score, duration, and notes.
-- **Content & Profile:** A motivational quote widget. A shareable public profile page that displays the user's bio, all public habits and their streaks, all public todos, and the complete, searchable Public Journal.
+- **Content & Profile:** A motivational quote widget. A shareable public profile (accessible via `/[username]`) that displays the user's bio, all public habits and their streaks, all public todos, and the complete, searchable Public Journal. This same `/[username]` URL serves as the entry point to the private dashboard for the authenticated user.
 
 ### Growth Features (Post-MVP)
 
@@ -90,9 +90,10 @@ This section details the specific functionalities of the application, derived fr
 
 ### FR-1: User & Profile Management
 - **FR-1.1:** Users must be able to create an account using a Magic Link sent to their email address.
+- **FR-1.1.1:** Upon account creation, the system must automatically generate a default `username`. This username will be derived from the user's email address (the part before the '@'). If the derived username is already taken, a random 3-digit number will be appended (e.g., `abc_198`). Users can change this default username later in their settings.
 - **FR-1.2:** The system must support user logins and logout.
 - **FR-1.3:** Users must be able to edit a simple text bio for their profile.
-- **FR-1.4:** Each user must have a public profile page accessible via a shareable, unique URL.
+- **FR-1.4:** Each user must be able to configure a unique username which makes their public profile page accessible via a shareable, user-friendly URL (e.g., `/user-chosen-username`). The username must consist only of alphanumeric characters (a-z, A-Z, 0-9), hyphens (-), and underscores (_), and must be unique across all users.
 - **FR-1.5:** The public profile page must display the user's bio, all public habits, all public todos, and the public journal.
 
 ### FR-2: Habit Management (Recurring Habits)
@@ -104,6 +105,7 @@ This section details the specific functionalities of the application, derived fr
 - **FR-2.6:** Users must be able to set and modify a quantitative goal for a habit (e.g., "Read 5 pages"). The goal consists of a number and a unit. The unit can be selected from a predefined list (e.g., `minutes`, `hours`, `pages`, `reps`, `sets`, `questions`) or can be a custom value defined by the user.
 - **FR-2.7:** When a habit's goal is upgraded or downgraded, the existing streak must continue uninterrupted. The new `goal_value` becomes the requirement for continuing the streak from the moment of change.
 - **FR-2.8:** The system must support both broad habits (e.g., "Workout") and atomic habits (e.g., "10 Pushups"). For broad habits, the UI will allow for logging details (e.g., reps, duration, specific activities) within the completion flow without requiring separate habit definitions.
+- **FR-2.9:** Users must be able to click on any habit chip to open a modal that displays a read-only summary of the habit's details, such as its name, current streak, goal, public/private status, and creation date.
 
 ### FR-3: Todo Management (One-off Tasks)
 - **FR-3.1:** Users must be able to create a new "todo" with a text description using an "Intelligent Notepad" concept. This includes an inline input field at the bottom of the list and the ability to create 2-level deep sub-todos using the `Tab` key.
@@ -112,13 +114,13 @@ This section details the specific functionalities of the application, derived fr
 - **FR-3.4:** Users must be able to delete a todo.
 
 ### FR-4: Main Interface & Core Logic
-- **FR-4.1:** The main user interface must display three primary columns for managing habits: "Today", "Yesterday", and "The Pile".
+- **FR-4.1:** The main user interface for an authenticated user, located at their `/[username]` route, must display three primary columns for managing habits: "Today", "Yesterday", and "The Pile".
     - On desktop, this will be a two-row layout: Top row with "Today" and "Yesterday" side-by-side, and a full-width "The Pile" on the bottom. Interaction will be `Drag-and-Drop`.
     - On mobile, this will be a single-column, stacked layout: "Today", then "Yesterday", then "The Pile". Interaction will be `Tap-to-Move`.
     All columns must sort their habit chips according to the following three-level order: 1. Public habits first, 2. by highest streak count (descending), 3. by name (ascending). "The Pile" column has a special sorting order: 1. "Lively" habits first, then 2. Public habits, 3. by highest last streak (descending), and 4. by name (ascending).
 - **FR-4.2:** The daily state change occurs at 12:00 am in the user's local timezone. At this time, any habits completed the previous day appear in the "Yesterday" column.
 - **FR-4.3:** Users must be able to drag a habit from "Yesterday" to "Today" to mark it as complete for the current day and continue its active streak.
-- **FR-4.4 (The "Grace Period"):** If a user opens the app for the first time on a new day and has pending habits from the previous day, they must be presented with a dedicated "End of Day Summary" screen.
+-   **FR-4.4 (The "Grace Period"):** If a user opens the app for the first time on a new day and has pending habits from the previous day, they must be presented with a dedicated "End of Day Summary" screen. This screen specifically addresses habits from the *immediately preceding* day. Habits missed for days prior to the immediate previous day will have already transitioned to "Lively" or "Junked" states as per the "Two-Day Rule".
     - **FR-4.4.1:** This screen must allow the user to mark pending habits from the previous day as complete.
     - **FR-4.4.2:** From this screen, the user must be able to add a new or existing habit to the previous day's record.
     - **FR-4.4.3:** After confirming the summary, the daily state change cycle runs with the corrected data.

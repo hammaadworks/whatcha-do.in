@@ -1,23 +1,22 @@
 "use client";
 
 import React, { useState } from "react";
-import { Input } from "@/components/ui/input"; // Assuming shadcn/ui input
-import { Button } from "@/components/ui/button"; // Assuming shadcn/ui button
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"; // Assuming shadcn/ui select
+} from "@/components/ui/select";
 import { createHabit } from "@/lib/supabase/habit"; // Import createHabit
-import { useAuth } from "@/hooks/useAuth"; // Assuming a hook to get user info
+import { useAuth } from "@/hooks/useAuth";
 import { Switch } from "@/components/ui/switch"; // Import Switch
 import { Label } from "@/components/ui/label"; // Import Label
 
 interface HabitCreatorProps {
   onHabitCreated: () => void; // New prop to notify parent
-  initialUser?: any; // Optional prop to pass a mock user for development/testing
 }
 
 const predefinedUnits = [
@@ -30,8 +29,8 @@ const predefinedUnits = [
   "Custom...",
 ];
 
-export function HabitCreator({ onHabitCreated, initialUser }: HabitCreatorProps) {
-  const { user } = useAuth(initialUser); // Pass initialUser to useAuth
+export function HabitCreator({ onHabitCreated }: HabitCreatorProps) {
+  const { user } = useAuth();
   const [habitName, setHabitName] = useState("");
   const [showGoalInput, setShowGoalInput] = useState(false);
   const [goalValue, setGoalValue] = useState<number | undefined>(undefined);
@@ -72,8 +71,8 @@ export function HabitCreator({ onHabitCreated, initialUser }: HabitCreatorProps)
       setGoalUnit(predefinedUnits[0]);
       setCustomUnit("");
       setIsPublic(true); // Reset isPublic to default
-    } catch (err: any) {
-      setError(err.message || "Failed to create habit.");
+    } catch (err: unknown) {
+      setError((err instanceof Error) ? err.message : "Failed to create habit.");
     } finally {
       setLoading(false);
     }

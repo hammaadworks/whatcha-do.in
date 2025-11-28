@@ -100,7 +100,7 @@ e2e_test:
 
 - Testing persistence layer
 - Validating service contracts
-- Testing middleware/interceptors
+- Testing proxy/interceptors
 - Component boundaries critical
 
 ### Favor E2E Tests When:

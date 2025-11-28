@@ -1,4 +1,5 @@
 import type { Config } from "tailwindcss";
+import tailwindcssAnimate from "tailwindcss-animate"; // Import the plugin
 
 const config = {
   darkMode: ["class", ".dark"],
@@ -75,15 +76,20 @@ const config = {
             transform: "rotate(360deg) translateY(calc(var(--radius) * -1)) rotate(-360deg)",
           },
         },
+        shine: {
+          '0%': { backgroundPosition: '200% 0' },
+          '100%': { backgroundPosition: '-200% 0' },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         orbit: "orbit var(--duration) linear infinite",
+        shine: 'shine var(--duration) linear infinite',
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [tailwindcssAnimate],
 } satisfies Config;
 
 export default config;

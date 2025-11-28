@@ -1,0 +1,16 @@
+// tsconfig.e2e.json
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "CommonJS", // Playwright usually runs in Node.js environment
+    "types": ["@playwright/test", "node"], // Include Playwright and Node.js types
+    "jsx": "react-jsx", // Enable JSX support
+    "allowJs": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./*"]
+    }
+  },
+  "include": ["tests/e2e/**/*.ts", "tests/e2e/**/*.tsx", "playwright.config.ts"],
+  "exclude": ["node_modules"]
+}

@@ -1,0 +1,214 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>epic-1</epicId>
+    <storyId>1-6</storyId>
+    <title>Integrate Existing HabitCard into 'The Pile' Column</title>
+    <status>ready-for-dev</status>
+    <generatedAt>2025-11-23</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprint-artifacts/stories/1-6-integrate-existing-habitcard-into-the-pile.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>As a user,</asA>
+    <iWant>I want to see a sample habit card displayed within "The Pile" column on my main view,</iWant>
+    <soThat>so that I can visualize how my habits will appear and confirm the basic integration of habit components.</soThat>
+    <tasks>
+      <task>Task 1: Integrate `HabitCard` into "The Pile" column in `PrivatePage.tsx` (AC: #1, #3)</task>
+      <task>Subtask 1.1: Locate the placeholder for "The Pile" within `components/profile/PrivatePage.tsx`.</task>
+      <task>Subtask 1.2: Import the `HabitCard` component from `components/habits/HabitCard.tsx`.</task>
+      <task>Subtask 1.3: Render a `HabitCard` component within the 'The Pile' column.</task>
+      <task>Task 2: Populate `HabitCard` with mock data (AC: #2)</task>
+      <task>Subtask 2.1: Create a mock `habit` object with `id`, `name` ('Sample Habit'), `is_public` (true), `pile_state` ('lively'), `current_streak` (0), `last_streak` (0), and null for `goal_value` and `goal_unit`.</task>
+      <task>Subtask 2.2: Pass the mock `habit` object to the `habit` prop of `HabitCard`.</task>
+      <task>Subtask 2.3: Provide dummy `onHabitUpdated` and `onHabitDeleted` functions to `HabitCard`.</task>
+      <task>Task 3: (New) Enhance `HabitCard` visual design to match UX specifications (AC: #5, #6, #7, #8)</task>
+      <task>Subtask 3.1: Implement theme-aware styling for the `HabitCard` component (background, text color, border) using Tailwind CSS and CSS variables defined in the themes.</task>
+      <task>Subtask 3.2: Style the streak badge within the `HabitCard` to match the mockups (distinct background, text, border-radius).</task>
+      <task>Subtask 3.3: Add conditional rendering for privacy icons (🌐 for public, 🔒 for private) within the `HabitCard`, ensuring proper positioning and styling.</task>
+      <task>Subtask 3.4: Integrate `shadcn/ui` components (e.g., `Badge`, `Card`) or other appropriate components if they enhance the habit chip's design without adding unnecessary complexity, aligning with `UX Design Specification` component strategy.</task>
+      <task>Task 4: Basic integration tests (AC: #1, #2, #5, #6, #7, #8)</task>
+      <task>Subtask 4.1: Create a test file `tests/integration/HabitCardIntegration.test.tsx`.</task>
+      <task>Subtask 4.2: Write a test to ensure a `HabitCard` is rendered within 'The Pile' when `PrivatePage` is viewed.</task>
+      <task>Subtask 4.3: Write a test to verify the mock content ('Sample Habit', '0' streak) is displayed in the `HabitCard`.</task>
+      <task>Subtask 4.4: (New) Write a test to verify the `HabitCard` applies theme-aware styling correctly (e.g., by checking CSS classes or computed styles for light/dark modes).</task>
+      <task>Subtask 4.5: (New) Write a test to verify the streak badge is styled as per mockups.</task>
+      <task>Subtask 4.6: (New) Write a test to verify privacy icons are displayed correctly for public/private habits.</task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    - When navigating to the authenticated main view at `/[username]`, a `HabitCard` component is visibly rendered within 'The Pile' column.
+    - The `HabitCard` component displays placeholder content for a habit name (e.g., 'Sample Habit') and a placeholder streak count (e.g., '0').
+    - The `HabitCard` component is integrated into `app/[username]/page.tsx` or its layout (`app/[username]/layout.tsx`).
+    - The `HabitCard` component adheres to the project's foundational styling conventions (Tailwind CSS, `shadcn/ui` based).
+    - The `HabitCard` component's visual style (padding, border-radius, background, text colors) must match the `habit-chip` examples in `docs/ux-color-themes.html` and `docs/ux-public-profile.html`.
+    - The streak badge within the `HabitCard` must be visually distinct, with appropriate background, text color, and border-radius as shown in the mockups.
+    - The `HabitCard` must dynamically adapt its styling for both Light ('Zenith') and Dark ('Monolith') themes as defined in `docs/ux-color-themes.html`."
+    - The `HabitCard` must display privacy indicators (🌐 for public, 🔒 for private) positioned as shown in `docs/ux-public-profile.html`."
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <artifact>
+        <path>docs/PRD.md</path>
+        <title>whatcha-doin - Product Requirements Document</title>
+        <section>Product Scope, Functional Requirements</section>
+        <snippet>
+          The core "Habits" System involves a three-column layout ("Today", "Yesterday", "The Pile").
+          FR-4.1 states that the main user interface for an authenticated user at `/[username]` must display these three columns.
+          On desktop, "The Pile" will be a full-width bottom row.
+        </snippet>
+      </artifact>
+      <artifact>
+        <path>docs/architecture.md</path>
+        <title>Architecture</title>
+        <section>Project Structure, Naming Conventions, Code Organization, ADR 001, ADR 017</section>
+        <snippet>
+          The project structure includes `app/[username]/page.tsx` for dynamic user profiles and private dashboards, and `components/habits/HabitCard.tsx` for habit-specific components.
+          Frontend component naming uses `PascalCase`. The project is built on Next.js, TypeScript, and Tailwind CSS (`ADR 001`).
+          The `/[username]` route serves as a unified entry point (`ADR 017`).
+        </snippet>
+      </artifact>
+      <artifact>
+        <path>docs/ux-design-specification.md</path>
+        <title>whatcha-doin UX Design Specification</title>
+        <section>Design System Foundation, Overall Page Structure, Main Board Layout & Interaction, Critical User Paths, Component Library</section>
+        <snippet>
+          The primary design system is `shadcn/ui`.
+          The main interface includes a "Habits" Section with "Today", "Yesterday", and "The Pile" columns.
+          On desktop, "The Pile" is a full-width bottom row. Habit chips display name, streak badge, and privacy icon.
+        </snippet>
+      </artifact>
+      <artifact>
+        <path>docs/epics.md</path>
+        <title>whatcha-doin - Epic Breakdown</title>
+        <section>Epic 1: Core Application Foundation & Authenticated Root View, Story 1.6</section>
+        <snippet>
+          Epic 1 establishes the foundational infrastructure and the authenticated root view at `/[username]`.
+          Story 1.6's objective is to display a sample habit card displayed within "The Pile" on the main view.
+        </snippet>
+      </artifact>
+    </docs>
+    <code>
+      <artifact>
+        <path>components/habits/HabitCard.tsx</path>
+        <kind>component</kind>
+        <symbol>HabitCard</symbol>
+        <lines>8-20</lines>
+        <reason>The component to be integrated, defines its expected props (habit, onHabitUpdated, onHabitDeleted).</reason>
+      </artifact>
+      <artifact>
+        <path>app/[username]/page.tsx</path>
+        <kind>Next.js Server Component</kind>
+        <symbol>ProfilePage</symbol>
+        <reason>Entry point for the dynamic user profile route, responsible for fetching initial data and rendering `PrivatePage`.</reason>
+      </artifact>
+      <artifact>
+        <path>components/profile/PrivatePage.tsx</path>
+        <kind>React Client Component</kind>
+        <symbol>PrivatePage</symbol>
+        <lines>64-94</lines>
+        <reason>The client-side component where the main user dashboard layout is rendered, including the placeholder for "The Pile" where `HabitCard` will be integrated.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <ecosystem name="Node.js">
+        <package name="@radix-ui/react-alert-dialog" version="^1.1.15" />
+        <package name="@radix-ui/react-dialog" version="^1.1.15" />
+        <package name="@radix-ui/react-icons" version="^1.3.2" />
+        <package name="@radix-ui/react-label" version="^2.1.8" />
+        <package name="@radix-ui/react-select" version="^2.2.6" />
+        <package name="@radix-ui/react-slot" version="^1.2.4" />
+        <package name="@radix-ui/react-switch" version="^1.2.6" />
+        <package name="@supabase/ssr" version="^0.1.0" />
+        <package name="@supabase/supabase-js" version="^2.84.0" />
+        <package name="class-variance-authority" version="^0.7.1" />
+        <package name="clsx" version="^2.1.1" />
+        <package name="cobe" version="^0.6.3" />
+        <package name="framer-motion" version="^12.0.0" />
+        <package name="lucide-react" version="^0.554.0" />
+        <package name="next" version="^16.0.3" />
+        <package name="react" version="19.2.0" />
+        <package name="react-dom" version="19.2.0" />
+        <package name="react-hot-toast" version="^2.4.1" />
+        <package name="tailwind-merge" version="^3.4.0" />
+        <package name="tailwindcss-animate" version="^1.0.7" />
+        <package name="tw-animate-css" version="^1.4.0" />
+        <package name="zustand" version="^5.0.8" />
+        <package name="@tailwindcss/postcss" version="^4" />
+        <package name="@testing-library/jest-dom" version="^6.9.1" />
+        <package name="@testing-library/react" version="^16.3.0" />
+        <package name="@types/jest" version="^29.5.12" />
+        <package name="@types/node" version="^20" />
+        <package name="@types/react" version="^19" />
+        <package name="@types/react-dom" version="^19" />
+        <package name="babel-plugin-react-compiler" version="1.0.0" />
+        <package name="eslint" version="^9" />
+        <package name="eslint-config-next" version="16.0.3" />
+        <package name="jest" version="^29.7.0" />
+        <package name="jest-environment-jsdom" version="^29.7.0" />
+        <package name="jsdom" version="^27.2.0" />
+        <package name="tailwindcss" version="^4" />
+        <package name="ts-jest" version="^29.2.0" />
+        <package name="typescript" version="^5" />
+        <package name="@playwright/test" version="^1.45.0" />
+      </ecosystem>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>Integration must occur within `PrivatePage.tsx` which is a Client Component.</constraint>
+    <constraint>Styling must adhere to Tailwind CSS and `shadcn/ui` conventions.</constraint>
+    <constraint>For this story, the `HabitCard` will use mock/hardcoded data.</constraint>
+  </constraints>
+  <interfaces>
+    <interface>
+      <name>HabitCardProps</name>
+      <kind>TypeScript Interface</kind>
+      <signature>
+        interface HabitCardProps {
+          habit: {
+            id: string;
+            name: string;
+            is_public: boolean;
+            pile_state: string;
+            current_streak: number;
+            last_streak: number;
+            goal_value?: number | null;
+            goal_unit?: string | null;
+          };
+          onHabitUpdated: (
+            habitId: string,
+            name: string,
+            isPublic: boolean,
+            goalValue?: number | null,
+            goalUnit?: string | null
+          ) => void;
+          onHabitDeleted: (habitId: string) => void;
+        }
+      </signature>
+      <path>components/habits/HabitCard.tsx</path>
+    </interface>
+  </interfaces>
+  <tests>
+    <standards>
+      Unit tests (Jest/Vitest with React Testing Library) for isolated components/logic.
+      Integration tests (Vitest) for key interactions.
+      E2E tests (Playwright) for critical user journeys.
+      All tests integrated into GitHub Actions pipeline.
+    </standards>
+    <locations>
+      <location>tests/unit/</location>
+      <location>tests/integration/</location>
+      <location>tests/e2e/</location>
+    </locations>
+    <ideas>
+      <idea type="integration">Verify that navigating to a user's `/[username]` URL successfully renders the `HabitCard` within the 'The Pile' section of the layout and check for console errors.</idea>
+      <idea type="e2e">Manual verification by running `pnpm dev` and confirming visual presence and styling of `HabitCard` in 'The Pile'.</idea>
+      <idea type="integration">(New) Verify the `HabitCard` applies theme-aware styling correctly (e.g., by checking CSS classes or computed styles for light/dark modes).</idea>
+      <idea type="integration">(New) Verify the streak badge is styled as per mockups.</idea>
+      <idea type="integration">(New) Verify privacy icons are displayed correctly for public/private habits.</idea>
+    </ideas>
+  </tests>
+</story-context>

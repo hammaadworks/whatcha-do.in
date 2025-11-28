@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UX Public Profile</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --font-sans: 'Manrope', sans-serif;
+            --radius: 0.75rem;
+        }
+
+        .theme-light {
+            --bg: #FFFFFF;
+            --fg: #212529;
+            --muted-fg: #495057;
+            --card: #F8F9FA;
+            --card-fg: #212529;
+            --card-border: #DEE2E6;
+            --primary: #FF6B6B;
+            --primary-fg: #FFFFFF;
+            --secondary-bg: #F1F3F5;
+            --secondary-fg: #495057;
+            --accent-gradient: linear-gradient(45deg, #FF6B6B, #FF8E53);
+            --chip-bg: #F1F3F5;
+            --chip-text: #212529;
+            --chip-border: #DEE2E6;
+        }
+
+        .theme-dark {
+            --bg: #161616;
+            --fg: #E0E0E0;
+            --muted-fg: #CCCCCC;
+            --card: #222222;
+            --card-fg: #E0E0E0;
+            --card-border: #3A3A3A;
+            --primary: #00F5A0;
+            --primary-fg: #000000;
+            --secondary-bg: #2a2a2a;
+            --secondary-fg: #CCCCCC;
+            --accent-gradient: linear-gradient(45deg, #00F5A0, #00D2B8);
+            --chip-bg: #222222;
+            --chip-text: #E0E0E0;
+            --chip-border: #444444;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background-color: var(--bg);
+            color: var(--fg);
+            margin: 0;
+            padding: 2rem;
+            min-height: 100vh;
+            transition: background-color 0.3s ease, color 0.3s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center; /* Align items to the top */
+        }
+
+        .profile-container {
+            width: 100%;
+            max-width: 800px; /* Default for smaller screens */
+            background-color: var(--card);
+            border-radius: 1.5rem;
+            border: 1px solid var(--card-border);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+            padding: 2.5rem 3rem;
+            position: relative;
+        }
+
+        @media (min-width: 1024px) { /* Larger screens */
+            .profile-container {
+                            max-width: 1100px; /* Wider for desktop */
+                            padding: 3rem 3.5rem; /* More padding for desktop */            }
+            .main-profile-grid {
+                display: grid;
+                grid-template-columns: 2fr 1fr; /* Main content 2/3, sidebar 1/3 */
+                gap: 3rem; /* Space between columns */
+            }
+            .main-content-column {
+                /* Content will naturally flow */
+            }
+            .sidebar-column {
+                background-color: var(--bg); /* Lighter background for sidebar */
+                border-radius: 1rem;
+                border: 1px solid var(--card-border);
+                padding: 2rem;
+                display: flex;
+                flex-direction: column;
+                gap: 1.5rem;
+            }
+            .sidebar-column .stat-item {
+                background-color: var(--card);
+                border: 1px solid var(--card-border);
+                border-radius: 0.75rem;
+                padding: 1.5rem;
+            }
+            .sidebar-column .stat-item .label {
+                font-size: 0.9rem;
+                color: var(--muted-fg);
+                margin-bottom: 0.5rem;
+            }
+            .sidebar-column .stat-item .value {
+                font-size: 1.5rem;
+                font-weight: 800;
+                color: var(--primary);
+            }
+        }
+
+        .theme-switcher {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            padding: 0.5rem;
+            border-radius: 50%;
+            border: 1px solid var(--card-border);
+            background-color: var(--bg);
+            color: var(--fg);
+            cursor: pointer;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin: 0 0 0.5rem 0;
+            text-align: center;
+            color: var(--primary);
+        }
+
+        .bio {
+            font-size: 1.1rem;
+            color: var(--muted-fg);
+            text-align: center;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .section {
+            margin-bottom: 2.5rem;
+        }
+
+        .section h2 {
+            font-size: 1.75rem;
+            font-weight: 800;
+            border-bottom: 1px solid var(--card-border);
+            padding-bottom: 0.75rem;
+            margin-bottom: 1.5rem;
+            color: var(--fg);
+        }
+
+        .habit-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+
+        .todo-list {
+            list-style-type: decimal; /* Ensure numbering */
+            padding-left: 1.5rem; /* Indent for numbers */
+            margin-top: 0;
+            margin-bottom: 0;
+        }
+
+        .habit-chip, .todo-item-content { /* Changed from .todo-item to .todo-item-content */
+            padding: 0.6rem 1.25rem;
+            border-radius: 999px;
+            font-weight: 700;
+            background-color: var(--chip-bg);
+            color: var(--chip-text);
+            border: 1px solid var(--chip-border);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .habit-chip .streak {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.5rem;
+            background: var(--primary);
+            color: var(--primary-fg);
+            font-size: 0.9rem;
+            font-weight: 800;
+        }
+
+        .todo-item {
+            font-weight: 700;
+            margin-bottom: 0.5rem; /* Space between list items */
+            color: var(--fg); /* Ensure text color is set */
+        }
+
+        .journal-entry {
+            background-color: var(--bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .journal-entry h3 {
+            font-size: 1.25rem;
+            margin: 0 0 0.5rem 0;
+            color: var(--primary);
+        }
+
+        .journal-entry .date {
+            font-size: 0.9rem;
+            color: var(--muted-fg);
+            margin-bottom: 1rem;
+        }
+
+        .journal-entry p {
+            font-size: 1rem;
+            line-height: 1.6;
+            color: var(--fg);
+            margin: 0;
+        }
+
+        .motivational-quote-card {
+            background: var(--accent-gradient);
+            color: var(--primary-fg);
+            border-radius: 1.5rem;
+            padding: 2.5rem;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+            border: 1px solid var(--primary); /* subtle border matching primary */
+            animation: pulse-glow 5s infinite ease-in-out; /* Subtle animation for energy */
+        }
+        
+        .motivational-quote-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at center, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+            animation: rotate-light 15s linear infinite;
+            opacity: 0.3;
+        }
+
+        .motivational-quote-card .quote-text {
+            font-size: 1.8rem;
+            font-weight: 800;
+            line-height: 1.4;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 1;
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .motivational-quote-card .quote-source {
+            font-size: 1.1rem;
+            font-weight: 600;
+            opacity: 0.8;
+            position: relative;
+            z-index: 1;
+        }
+
+        @keyframes pulse-glow {
+            0% { box-shadow: 0 0 10px var(--primary); }
+            50% { box-shadow: 0 0 25px var(--primary), 0 0 50px rgba(255,255,255,0.1); }
+            100% { box-shadow: 0 0 10px var(--primary); }
+        }
+
+        @keyframes rotate-light {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+    </style>
+</head>
+<body class="theme-dark">
+
+<div class="profile-container">
+    <button id="theme-switcher" class="theme-switcher" title="Switch Theme">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+    </button>
+
+    <div class="main-profile-grid">
+        <div class="main-content-column">
+            <h1>hammaadworks</h1>
+            <p class="bio">Passionate about building software that helps people live more intentionally. Currently focused on
+                mastering daily habits and reflecting on life's journey.</p>
+            <div class="section">
+                <h2>Actions</h2>
+                <ol class="todo-list">
+                    <li class="todo-item">Complete project proposal</li>
+                    <li class="todo-item">Buy groceries</li>
+                </ol>
+            </div>
+
+            <div class="section">
+                <h2>Habits</h2>
+                <div class="habit-grid">
+                    <div class="habit-chip">Read a book <span class="streak">12</span></div>
+                    <div class="habit-chip">Meditate <span class="streak">5</span></div>
+                    <div class="habit-chip">Learn Spanish <span class="streak">30</span></div>
+                    <div class="habit-chip">Workout <span class="streak">28</span></div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>Journal</h2>
+                <div class="journal-entry">
+                    <h3>Reflections on consistency</h3>
+                    <div class="date">November 22, 2025</div>
+                    <p>Today was a good day for consistency. Managed to hit all my habits, even the tough ones. Reading for 30
+                        minutes felt especially rewarding. It's becoming easier to get into the flow.</p>
+                </div>
+                <div class="journal-entry">
+                    <h3>New insights from meditation</h3>
+                    <div class="date">November 21, 2025</div>
+                    <p>My meditation practice is deepening. Noticing subtle shifts in my thought patterns throughout the day.
+                        It's a powerful tool for self-awareness. Also, the Spanish lesson was tough today, but I pushed
+                        through.</p>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>Motivational Quote</h2>
+                <div class="motivational-quote-card">
+                    <p class="quote-text"><q>Work on your dreams as if your life depends on it. Because it does.</q></p>
+                    <p class="quote-source">— Unknown</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="sidebar-column">
+            <h2 style="margin-top: 0;">User Highlights</h2>
+            <div class="stat-item">
+                <div class="label">Longest Streak</div>
+                <div class="value">90 days</div>
+            </div>
+            <div class="stat-item">
+                <div class="label">Total Habits</div>
+                <div class="value">15</div>
+            </div>
+            <div class="stat-item">
+                <div class="label">Average Mood</div>
+                <div class="value">🙂 80%</div>
+            </div>
+            <div class="stat-item">
+                <div class="label">Goals Completed</div>
+                <div class="value">23</div>
+            </div>
+            <div class="stat-item">
+                <div class="label">Joined</div>
+                <div class="value">Oct 2025</div>
+            </div>
+            <div class="stat-item">
+                <div class="label">Public Journal Entries</div>
+                <div class="value">50</div>
+            </div>
+        </div>
+    </div>
+
+    <footer style="text-align: center; margin-top: 3rem; color: var(--muted-fg); font-size: 0.9rem;">
+        &copy; 2025 whatcha-doin. All rights reserved.
+    </footer>
+
+<script>
+    // Theme switcher logic
+    const themeSwitcher = document.getElementById('theme-switcher');
+    themeSwitcher.addEventListener('click', () => {
+        const isLightCurrently = document.body.classList.contains('theme-light');
+
+        document.body.classList.toggle('theme-light', !isLightCurrently);
+        document.body.classList.toggle('theme-dark', isLightCurrently);
+
+        themeSwitcher.innerHTML = isLightCurrently
+            ? `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`
+            : `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>`;
+    });
+</script>
+
+</body>
+</html>

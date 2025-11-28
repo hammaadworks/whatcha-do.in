@@ -59,7 +59,7 @@ Follow these steps to revert the development changes and re-enable Magic Link lo
 
 ### 4. Restart Development Server
 
-After making all these changes, restart your development server (e.g., `pnpm dev` or `npm run dev`) to ensure all configurations are reloaded.
+After making all these changes, restart your development server (e.g., `pnpm dev`) to ensure all configurations are reloaded.
 
 ---
 

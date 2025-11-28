@@ -1,0 +1,139 @@
+<story-context id="{bmad_folder}/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>1</epicId>
+    <storyId>1.4</storyId>
+    <title>Implement Default Username Generation at Signup and App Header</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-22</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprint-artifacts/stories/1-4-implement-default-username-generation-at-signup.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>new user/developer</asA>
+    <iWant>a unique username automatically generated for me upon signup and a reusable app header that displays a login button when I'm not authenticated</iWant>
+    <soThat>I can have a seamless onboarding experience with a ready-to-use profile URL and a clear authentication status.</soThat>
+    <tasks>
+- [x] **Task 1: Create Supabase migration for username generation (AC: #1, #2, #3, #4, #5)**
+  - [x] Subtask 1.1: Create a new SQL migration file in `supabase/migrations`.
+  - [x] Subtask 1.2: Write a PostgreSQL function to handle unique username generation from the `new.email` record.
+  - [x] Subtask 1.3: Write a trigger to execute the function after an insert on `auth.users`.
+  - [x] Subtask 1.4: Apply the migration using `supabase db push`.
+- [x] **Task 2: Create the `AppHeader` component (AC: #6, #7)**
+  - [x] Subtask 2.1: Create the file `components/layout/AppHeader.tsx`.
+  - [x] Subtask 2.2: Implement the component to use the `useAuth` hook to check the session.
+  - [x] Subtask 2.3: Render a `Button` (e.g., `ShimmerButton`) with the text "Login" if no session exists. The button should link to the login page.
+- [x] **Task 3: Integrate the `AppHeader` component (AC: #8)**
+  - [x] Subtask 3.1: Read the existing `app/layout.tsx`.
+  - [x] Subtask 3.2: Modify `app/layout.tsx` to import and render the `AppHeader` component within the main `body` tag, before the `main` content.
+- [x] **Task 4: Implement username validation on profile page (AC: #9)**
+  - [x] Subtask 4.1: In `app/[username]/page.tsx`, fetch user data from Supabase based on the `username` URL parameter.
+  - [x] Subtask 4.2: If no user data is returned, call the `notFound()` function from `next/navigation` to trigger the 404 page.
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+1.  A Supabase Database Function is created that triggers on a new user insert into `auth.users`.
+2.  The function extracts the local part of the new user's email (before the '@').
+3.  The function checks if the extracted username already exists in `public.users`.
+4.  If the username is unique, it is inserted into the `username` column for the new user.
+5.  If the username is not unique, a random 3-digit number is appended, and this new username is inserted.
+6.  A reusable `AppHeader` component is created at `components/layout/AppHeader.tsx`.
+7.  The `AppHeader` component displays a "Login" button on the top left if the user is not authenticated.
+8.  The `AppHeader` is integrated into the main application layout (`app/layout.tsx`).
+9.  Navigating to a `/[username]` route where the username does not exist in the database renders the custom 404 page.
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Product Requirements Document</title>
+        <section>FR-1.1.1</section>
+        <snippet>Upon account creation, the system must automatically generate a default `username`. This username will be derived from the user's email address (the part before the '@'). If the derived username is already taken, a random 3-digit number will be appended (e.g., `abc_198`).</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture</title>
+        <section>Data Architecture</section>
+        <snippet>Supabase Database Functions (PostgreSQL functions) will encapsulate critical business logic, such as the enforcement of the "Two-Day Rule", the processing of grace period actions, and the calculation of streak continuity on goal changes, ensuring server-side validation and data integrity.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic Breakdown</title>
+        <section>Story 1.4</section>
+        <snippet>As a new user, I want a default username to be automatically generated for me from my email address upon signup, so that I have a valid profile URL from the start without extra steps.</snippet>
+      </doc>
+    </docs>
+<code>
+      <artifact>
+        <path>app/layout.tsx</path>
+        <kind>layout</kind>
+        <symbol>RootLayout</symbol>
+        <reason>Will be modified to include the new AppHeader component.</reason>
+      </artifact>
+      <artifact>
+        <path>hooks/useAuth.tsx</path>
+        <kind>hook</kind>
+        <symbol>useAuth</symbol>
+        <reason>Will be consumed by the AppHeader component to determine authentication state.</reason>
+      </artifact>
+      <artifact>
+        <path>components/layout/AppHeader.tsx</path>
+        <kind>component</kind>
+        <symbol>AppHeader</symbol>
+        <reason>New component to be created that will display a conditional login button.</reason>
+      </artifact>
+      <artifact>
+        <path>supabase/migrations/YYYYMMDDHHMMSS_add_username_generation_trigger.sql</path>
+        <kind>migration</kind>
+        <symbol>handle_new_user</symbol>
+        <reason>New migration to be created to automatically generate usernames for new users.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <dependency>
+        <name>next</name>
+        <version>^16.0.3</version>
+      </dependency>
+      <dependency>
+        <name>react</name>
+        <version>19.2.0</version>
+      </dependency>
+      <dependency>
+        <name>@supabase/supabase-js</name>
+        <version>^2.84.0</version>
+      </dependency>
+      <dependency>
+        <name>tailwindcss</name>
+        <version>^4</version>
+      </dependency>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>The AppHeader component must be a client component ('use client') because it uses hooks.</constraint>
+    <constraint>Username generation logic must be implemented as a Supabase Database Function and Trigger for security and reliability.</constraint>
+  </constraints>
+  <interfaces>
+      <interface>
+        <name>useAuth</name>
+        <kind>hook</kind>
+        <signature>const { user, loading } = useAuth(): { user: User | null, loading: boolean }</signature>
+        <path>hooks/useAuth.tsx</path>
+      </interface>
+  </interfaces>
+  <tests>
+    <standards>Lean MVP strategy: Unit tests (Vitest + React Testing Library) for core logic/components, Integration tests (Vitest) for key data flows, E2E tests (Playwright) for critical user journeys.</standards>
+    <locations>
+      - `tests/unit`
+      - `tests/integration`
+      - `tests/e2e`
+    </locations>
+    <ideas>
+      - **Unit Test (AppHeader):** Verify that the "Login" button renders when the `useAuth` hook indicates no user is authenticated.
+      - **Integration Test (Supabase Function):** Write a test to invoke the `handle_new_user` function to ensure it correctly generates a unique username, especially when a username collision occurs.
+      - **E2E Test (Signup Flow):** Create a test that simulates a new user signup and verifies that a username is generated and the user is redirected to their new profile page.
+    </ideas>
+  </tests>
+</story-context>

@@ -55,14 +55,16 @@ const EditHabitModal: React.FC<EditHabitModalProps> = ({ isOpen, onClose, habit,
 
   useEffect(() => {
     if (isOpen) {
-      setName(habit.name);
-      setIsPublic(habit.is_public);
-      setGoalValue(habit.goal_value);
-      setGoalUnit(habit.goal_unit && predefinedUnits.includes(habit.goal_unit) ? habit.goal_unit : "Custom...");
-      setCustomUnit(habit.goal_unit && !predefinedUnits.includes(habit.goal_unit) ? habit.goal_unit : "");
-      setNameError('');
-      setGoalValueError('');
-      setGoalUnitError('');
+      setTimeout(() => {
+        setName(habit.name);
+        setIsPublic(habit.is_public);
+        setGoalValue(habit.goal_value);
+        setGoalUnit(habit.goal_unit && predefinedUnits.includes(habit.goal_unit) ? habit.goal_unit : "Custom...");
+        setCustomUnit(habit.goal_unit && !predefinedUnits.includes(habit.goal_unit) ? habit.goal_unit : "");
+        setNameError('');
+        setGoalValueError('');
+        setGoalUnitError('');
+      }, 0);
     }
   }, [isOpen, habit]);
 
@@ -76,7 +78,7 @@ const EditHabitModal: React.FC<EditHabitModalProps> = ({ isOpen, onClose, habit,
       setNameError('');
     }
 
-    let finalGoalValue: number | null | undefined = goalValue;
+    const finalGoalValue: number | null | undefined = goalValue;
     let finalGoalUnit: string | null | undefined = goalUnit;
 
     if (finalGoalUnit === "Custom...") {
