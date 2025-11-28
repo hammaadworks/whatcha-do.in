@@ -1,80 +1,34 @@
 // components/profile/PrivatePage.tsx
 "use client";
 
-import { notFound } from 'next/navigation';
-import { PublicUserDisplay } from '@/lib/supabase/types';
-import { useAuth } from "@/hooks/useAuth";
-import React, { useEffect, useState } from 'react';
+import {notFound} from 'next/navigation';
+import {PublicUserDisplay} from '@/lib/supabase/types';
+import {useAuth} from "@/hooks/useAuth";
+import React, {useEffect, useState} from 'react';
 import ProfileLayout from '@/components/profile/ProfileLayout';
 import ActionsSection from '@/components/profile/sections/ActionsSection';
 import HabitsSection from '@/components/profile/sections/HabitsSection';
 import JournalSection from '@/components/profile/sections/JournalSection';
 import MotivationsSection from '@/components/profile/sections/MotivationsSection';
-import { PublicPage } from '@/components/profile/PublicPage';
-import { mockActionsData } from '@/lib/mock-data'; // Import mock data for initial state
+import {PublicPage} from '@/components/profile/PublicPage';
+import {useActions} from '@/hooks/useActions'; // Import the new hook
 
 type ProfilePageClientProps = {
-    username: string;
-    initialProfileUser: PublicUserDisplay | null;
+    username: string; initialProfileUser: PublicUserDisplay | null;
 };
 
-export default function PrivatePage({ username, initialProfileUser }: ProfilePageClientProps) {
-    const { user: authenticatedUser, loading: authLoading } = useAuth();
-    const [mockActions, setMockActions] = useState(() => {
-        return mockActionsData
-            .map((action, index) => ({ ...action, originalIndex: index })) // Add originalIndex
-            .sort((a, b) => {
-                if (a.completed && !b.completed) return 1;
-                if (!a.completed && b.completed) return -1;
-                return 0;
-            });
-    });
-    const [justCompletedId, setJustCompletedId] = useState<string | null>(null);
-
-    // Common sorting function
-    const sortActions = (actionsToSort: typeof mockActions) => {
-        return [...actionsToSort].sort((a, b) => {
-            // Completed items go to the end
-            if (a.completed && !b.completed) return 1;
-            if (!a.completed && b.completed) return -1;
-
-            // Preserve original order for items with the same completed status
-            return a.originalIndex - b.originalIndex;
-        });
-    };
-
-    const handleActionToggled = (id: string) => {
-        const action = mockActions.find(a => a.id === id);
-        if (!action) return;
-
-        if (!action.completed) {
-            setJustCompletedId(id);
-            setMockActions(currentActions => {
-                const updatedActions = currentActions.map(a =>
-                    a.id === id ? { ...a, completed: true } : a
-                );
-                return sortActions(updatedActions); // Apply sorting immediately
-            });
-
-            setTimeout(() => {
-                setJustCompletedId(null); // Clear highlight after a short delay
-            }, 500);
-        } else {
-            setMockActions(currentActions => {
-                const updatedActions = currentActions.map(a =>
-                    a.id === id ? { ...a, completed: false } : a
-                );
-                return sortActions(updatedActions); // Apply sorting
-            });
-        }
-    };
-
+export default function PrivatePage({username, initialProfileUser}: Readonly<ProfilePageClientProps>) {
+    const {user: authenticatedUser, loading: authLoading} = useAuth();
+    const {actions, justCompletedId, toggleAction, addAction} = useActions();
     const [clientFetchedProfileUser, setClientFetchedProfileUser] = useState<PublicUserDisplay | null>(null);
 
-    const isOwner = authenticatedUser && authenticatedUser.username === username;
+    const isOwner = authenticatedUser?.username === username;
 
-    let profileToDisplay: PublicUserDisplay | (typeof authenticatedUser & { username?: string; bio?: string }) | null = null;
-    let overallLoading = true;
+    let profileToDisplay: PublicUserDisplay | (typeof authenticatedUser & {
+        username?: string;
+        bio?: string
+    }) | null = null;
+    let overallLoading: boolean;
 
     if (authLoading) {
         overallLoading = true;
@@ -111,20 +65,24 @@ export default function PrivatePage({ username, initialProfileUser }: ProfilePag
     }
 
     if (isOwner) {
-        return (
-            <ProfileLayout
+        return (<ProfileLayout
                 username={username}
                 bio={profileToDisplay.bio ?? null}
                 isOwner={isOwner}
             >
-                <ActionsSection isOwner={isOwner} actions={mockActions} onActionToggled={handleActionToggled} justCompletedId={justCompletedId} />
-                <HabitsSection isOwner={isOwner} />
-                <JournalSection isOwner={isOwner} />
-                <MotivationsSection username={username} />
-            </ProfileLayout>
-        );
+                <ActionsSection
+                    isOwner={isOwner}
+                    actions={actions}
+                    onActionToggled={toggleAction}
+                    onActionAdded={addAction}
+                    justCompletedId={justCompletedId}
+                />
+                <HabitsSection isOwner={isOwner}/>
+                <JournalSection isOwner={isOwner}/>
+                <MotivationsSection username={username}/>
+            </ProfileLayout>);
     } else {
         // If not the owner, render the public version of the profile
-        return <PublicPage user={profileToDisplay as PublicUserDisplay} />;
+        return <PublicPage user={profileToDisplay as PublicUserDisplay}/>;
     }
 }

@@ -1,15 +1,26 @@
 // lib/mock-data.ts
 
 import { Habit } from './supabase/types';
+import { Action } from '@/components/shared/ActionsList'; // Import Action interface
+import { addOriginalIndexRecursively } from '@/lib/utils/action-utils'; // Import from new utility
 
-export const mockActionsData = [
-  { id: "1", description: "Complete project proposal", completed: false },
-  { id: "2", description: "Buy groceries", completed: true },
+export const mockActionsData: Action[] = addOriginalIndexRecursively([
+  { id: "1", description: "Complete project proposal", completed: false, children: [
+      { id: "1.1", description: "Outline key sections", completed: false },
+      { id: "1.2", description: "Gather data", completed: false },
+      { id: "1.3", description: "Draft executive summary", completed: false },
+    ]
+  },
+  { id: "2", description: "Buy groceries", completed: true, children: [
+      { id: "2.1", description: "Make shopping list", completed: true },
+      { id: "2.2", description: "Go to supermarket", completed: true },
+    ]
+  },
   { id: "3", description: "Plan weekend trip", completed: false },
   { id: "4", description: "Call mom", completed: false },
   { id: "5", description: "Read for 30 minutes", completed: true },
   { id: "6", description: "Go for a run", completed: false }
-];
+]);
 
 export const mockHabitsData: Habit[] = [
   {
@@ -80,14 +91,21 @@ export const mockHabitsData: Habit[] = [
   },
 ];
 
-export const mockPublicActionsData = [
-  { id: "1", description: "Finish the weekly report", completed: false },
+export const mockPublicActionsData: Action[] = addOriginalIndexRecursively([
+  { id: "1", description: "Finish the weekly report", completed: false, children: [
+      { id: "1.1", description: "Collect sales figures", completed: false },
+      { id: "1.2", description: "Summarize marketing efforts", completed: false },
+    ]
+  },
   { id: "2", description: "Schedule a dentist appointment", completed: true },
   { id: "3", description: "Go for a 30-minute run", completed: false },
-  { id: "4", description: "Read a chapter of 'Atomic Habits'", completed: false },
+  { id: "4", description: "Read a chapter of 'Atomic Habits'", completed: false, children: [
+      { id: "4.1", description: "Identify key takeaways", completed: false },
+    ]
+  },
   { id: "5", description: "Plan meals for the week", completed: true },
   { id: "6", description: "Water the plants", completed: false },
-];
+]);
 
 export const mockPublicHabitsData: Habit[] = [
   { id: '1', name: 'Read a book', current_streak: 12, is_public: true, user_id: '1', last_streak: 10, pile_state: 'active', junked_at: null, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), goal_value: 30, goal_unit: 'pages' },

@@ -4,15 +4,18 @@ import React, { useState } from 'react';
 import { Habit } from '@/lib/supabase/types';
 import HabitInfoModal from './HabitInfoModal';
 import { ShineBorder } from '../ui/shine-border';
+import { HabitPileState } from '@/lib/enums'; // Import HabitPileState enum
 
 interface HabitChipPublicProps {
   habit: Habit;
   disableClick?: boolean;
-  rightAddon?: React.ReactNode; // New prop
-  isPrivate?: boolean; // New prop for styling distinction
+  rightAddon?: React.ReactNode;
+  isPrivate?: boolean;
+  isJunked?: boolean; // New prop for junked state
+  pileState?: string; // New prop for pile state to control ShineBorder
 }
 
-export const HabitChipPublic: React.FC<HabitChipPublicProps> = ({ habit, disableClick, rightAddon, isPrivate }) => {
+export const HabitChipPublic: React.FC<HabitChipPublicProps> = ({ habit, disableClick, rightAddon, isPrivate, isJunked, pileState }) => {
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
 
   const handleClick = () => {
@@ -27,8 +30,10 @@ export const HabitChipPublic: React.FC<HabitChipPublicProps> = ({ habit, disable
         onClick={handleClick}
         className={`group relative flex items-center gap-x-2 rounded-full py-2.5 pl-5 pr-4 font-bold
                    border transition-colors w-fit
-                 bg-[--chip-bg] text-[--chip-text] border-[--chip-border] hover:bg-[--secondary-bg]
-                 ${disableClick ? 'cursor-default' : 'cursor-pointer'}`}
+                 ${isJunked
+                     ? 'bg-gray-800 text-gray-300 border-gray-600 grayscale border-dashed cursor-not-allowed'
+                     : 'bg-[--chip-bg] text-[--chip-text] border-[--chip-border] hover:bg-[--secondary-bg]'}
+                 ${disableClick || isJunked ? 'cursor-default' : 'cursor-pointer'}`}
       >
         {/* Main content */}
         <div className="flex items-center gap-x-2">
@@ -41,7 +46,9 @@ export const HabitChipPublic: React.FC<HabitChipPublicProps> = ({ habit, disable
           </div>
         </div>
         {rightAddon} {/* Render rightAddon here */}
-        <ShineBorder shineColor={isPrivate ? "hsl(var(--secondary))" : "hsl(var(--primary))"} className="z-10" />
+        {pileState !== HabitPileState.JUNKED && (
+            <ShineBorder shineColor={isPrivate ? "hsl(var(--secondary))" : "hsl(var(--primary))"} className="z-10" />
+        )}
       </div>
 
       {/* Modal */}

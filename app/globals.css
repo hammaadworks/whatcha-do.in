@@ -104,7 +104,8 @@
   --muted-foreground: #CCCCCC; /* --muted-fg */
   --accent: #00F5A0; /* Using primary for accent */
   --accent-foreground: #000000; /* Using primary-fg for accent-fg */
-  --destructive: #FF4757; /* Example: A red for destructive actions */
+  --destructive: #FF4757; /* Original bright red for destructive actions */
+  --destructive-foreground: hsl(0 0% 100%); /* Revert to white text */
   --border: #3A3A3A; /* --card-border */
   --input: #3A3A3A; /* Similar to --card-border */
   --ring: #00F5A0; /* Primary color for ring */

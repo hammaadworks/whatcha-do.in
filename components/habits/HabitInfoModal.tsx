@@ -109,11 +109,11 @@ const HabitInfoModal: React.FC<HabitInfoModalProps> = ({
         {isPrivateHabit && (
           <DialogFooter className="flex flex-row gap-2 justify-end pt-4">
             <Button
-              variant="outline"
+              variant="outline" // Reverted from secondary to outline
               onClick={() => {
                 setIsEditModalOpen(true);
               }}
-              size="sm"
+              size="xl"
               className="text-sm"
             >
               <Pencil className="mr-2 h-4 w-4" /> Edit
@@ -122,8 +122,8 @@ const HabitInfoModal: React.FC<HabitInfoModalProps> = ({
               <Button
                 variant="destructive"
                 onClick={handleDeleteClick}
-                size="sm"
-                className="text-sm"
+                size="xl" // Changed from lg to xl
+                className="text-sm" // Removed custom hover class
               >
                 <Trash2 className="mr-2 h-4 w-4" /> Delete
               </Button>

@@ -191,3 +191,8 @@ Then restart the workflow to apply changes.
 - Journaling system
 - Public profile pages
 - Deploy to production
+
+
+## Custom
+
+So today we are bui building the journal feature of our app

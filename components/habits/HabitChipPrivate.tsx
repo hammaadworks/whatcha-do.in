@@ -5,6 +5,7 @@ import { Habit } from '@/lib/supabase/types';
 import { HabitChipPublic } from './HabitChipPublic';
 import HabitInfoModal from './HabitInfoModal'; // Import HabitInfoModal
 import { Info } from 'lucide-react'; // Import Info icon
+import { HabitPileState } from '@/lib/enums';
 
 interface HabitChipPrivateProps {
   habit: Habit;
@@ -39,6 +40,8 @@ export const HabitChipPrivate: React.FC<HabitChipPrivateProps> = ({
           habit={habit}
           disableClick={true}
           isPrivate={true} // Mark as private for styling
+          isJunked={habit.pile_state === HabitPileState.JUNKED}
+          pileState={habit.pile_state} // Pass pile_state for conditional rendering/styling
           rightAddon={
             <button
               onClick={() => setIsInfoModalOpen(true)}

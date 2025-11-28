@@ -1,58 +1,38 @@
 "use client";
 
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { ActionItem } from "./ActionItem"; // Import ActionItem
 
-interface Action {
+export interface Action {
   id: string;
   description: string;
   completed: boolean;
+  children?: Action[]; // Optional array of child actions for nesting
+  originalIndex: number; // Add originalIndex for sorting stability
 }
 
 interface ActionsListProps {
   actions: Action[];
   onActionToggled?: (id: string) => void;
+  onActionAdded?: (description: string, parentId?: string) => void;
   justCompletedId?: string | null;
+  level?: number; // Add level prop for indentation
 }
 
-export const ActionsList: React.FC<ActionsListProps> = ({ actions, onActionToggled, justCompletedId }) => {
+export const ActionsList: React.FC<ActionsListProps> = ({ actions, onActionToggled, onActionAdded, justCompletedId, level = 0 }) => {
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-      {actions.map((action) => {
-        const labelClasses = cn(
-          "text-base font-medium text-foreground cursor-pointer",
-          {
-            "line-through": action.completed,
-            "text-muted-foreground": action.completed && !!onActionToggled,
-          }
-        );
-
-        return (
-          <div
-            key={action.id}
-            className={cn(
-              "flex items-center space-x-3 p-3 rounded-md bg-card border border-card-border shadow-sm transition-all duration-300",
-              {
-                "bg-primary/20 scale-95": justCompletedId === action.id,
-              }
-            )}
-          >
-            <Checkbox
-              id={action.id}
-              checked={action.completed}
-              onCheckedChange={() => onActionToggled && onActionToggled(action.id)}
-              className={cn("h-5 w-5 rounded-sm", { "pointer-events-none": !onActionToggled })}
-            />
-            <Label
-              htmlFor={action.id}
-              className={labelClasses}
-            >
-              {action.description}
-            </Label>
-          </div>
-        );
-      })}
+    <div className={cn("grid grid-cols-1 gap-y-2", { // Changed gap to gap-y-2 for better vertical spacing
+    })}>
+      {actions.map((action) => (
+        <ActionItem
+          key={action.id}
+          action={action}
+          onActionToggled={onActionToggled}
+          onActionAdded={onActionAdded}
+          justCompletedId={justCompletedId}
+          level={level}
+        />
+      ))}
     </div>
   );
 };
