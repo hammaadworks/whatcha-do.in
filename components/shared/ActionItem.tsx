@@ -10,11 +10,12 @@ import { CircularProgress } from '@/components/ui/circular-progress';
 import { AddActionForm } from './AddActionForm';
 import { Input } from "@/components/ui/input";
 import { ActionNode } from '@/lib/supabase/types'; // Import ActionNode
+import { areAllChildrenCompleted } from '@/lib/utils/actionTreeUtils'; // Import areAllChildrenCompleted
 
 interface ActionItemProps {
   action: ActionNode; // Use ActionNode
   onActionToggled?: (id: string) => void;
-  onActionAdded?: (description: string, parentId?: string) => void;
+  onActionAdded?: (description: string, parentId?: string, isPublic?: boolean) => void; // Corrected signature
   onActionUpdated?: (id: string, newText: string) => void;
   onActionDeleted?: (id: string) => void;
   onActionIndented?: (id: string) => void; // New prop
@@ -73,6 +74,7 @@ export const ActionItem: React.FC<ActionItemProps> = ({
   const hasChildren = action.children && action.children.length > 0;
   const { total, completed } = getCompletionCounts(action);
   const progressPercentage = total > 0 ? (completed / total) * 100 : 0;
+  const isDisabledForCompletion = hasChildren && !areAllChildrenCompleted(action);
 
   useEffect(() => {
     if (isEditing && editInputRef.current) {
@@ -165,7 +167,14 @@ export const ActionItem: React.FC<ActionItemProps> = ({
           id={action.id}
           checked={action.completed}
           onCheckedChange={() => onActionToggled && onActionToggled(action.id)}
-          className={cn("h-5 w-5 rounded-full", { "pointer-events-none": !onActionToggled })}
+          disabled={isDisabledForCompletion && !action.completed} // Disable if has uncompleted children and not yet completed
+          className={cn(
+            "h-5 w-5 rounded-full", 
+            { 
+              "pointer-events-none opacity-50 cursor-not-allowed": isDisabledForCompletion && !action.completed,
+              "pointer-events-none": !onActionToggled // Still disable if no toggle handler
+            }
+          )}
         />
         
         {isEditing ? (
@@ -258,7 +267,7 @@ export const ActionItem: React.FC<ActionItemProps> = ({
         <div className="ml-8 mt-2">
           <AddActionForm
             onSave={(description) => {
-              onActionAdded?.(description, action.id);
+              onActionAdded?.(description, action.id, true); // Pass true for isPublic for sub-actions
               setIsAddingSubItem(false);
               setIsExpanded(true); 
             }}

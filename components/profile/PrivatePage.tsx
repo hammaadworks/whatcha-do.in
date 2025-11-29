@@ -37,7 +37,13 @@ export default function PrivatePage({ username, initialProfileUser, publicAction
     // If it's the owner, render the owner's view
     if (isOwner) {
         // Type assertion needed because authenticatedUser is 'User | null', but if isOwner=true, it must be User
-        return <OwnerProfileView username={username} initialProfileUser={authenticatedUser as typeof authenticatedUser & { username: string; id: string; }} />;
+        return <OwnerProfileView
+            username={username}
+            initialProfileUser={authenticatedUser as typeof authenticatedUser & { username: string; id: string; }}
+            publicActions={publicActions}
+            publicHabits={publicHabits}
+            publicJournalEntries={publicJournalEntries}
+        />;
     } else {
         // If not the owner, render the public version of the profile
         return <PublicPage user={initialProfileUser} publicActions={publicActions} publicHabits={publicHabits} publicJournalEntries={publicJournalEntries} />;

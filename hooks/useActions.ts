@@ -46,12 +46,17 @@ export const useActions = (isOwner: boolean, timezone?: string) => {
     }
   }, [isOwner, user]);
 
-  const addAction = (description: string, parentId?: string) => {
-    save(addActionToTree(actions, description, parentId));
+  const addAction = (description: string, parentId?: string, isPublic: boolean = true) => {
+    save(addActionToTree(actions, description, parentId, isPublic));
   };
 
   const toggleAction = (id: string) => {
-    save(toggleActionInTree(actions, id));
+    const newActionsTree = toggleActionInTree(actions, id);
+    if (newActionsTree === actions) { // Check if the tree changed or was prevented
+      toast.error("Complete all sub-actions first!");
+      return;
+    }
+    save(newActionsTree);
   };
 
   const updateActionText = (id: string, newText: string) => {

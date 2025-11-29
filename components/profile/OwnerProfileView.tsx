@@ -16,7 +16,7 @@ import { PublicPage } from '@/components/profile/PublicPage';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
-import { fetchPublicHabits, fetchOwnerHabits } from '@/lib/supabase/habit'; // Import fetchOwnerHabits
+import { fetchOwnerHabits } from '@/lib/supabase/habit';
 import { fetchPublicActions } from '@/lib/supabase/actions';
 import { fetchJournalEntries } from '@/lib/supabase/journal'; // Import fetchJournalEntries
 import { Habit, ActionNode, JournalEntry } from '@/lib/supabase/types'; // Import JournalEntry
@@ -24,9 +24,12 @@ import { Habit, ActionNode, JournalEntry } from '@/lib/supabase/types'; // Impor
 interface OwnerProfileViewProps {
   username: string;
   initialProfileUser: User;
+  publicActions: ActionNode[];
+  publicHabits: Habit[];
+  publicJournalEntries: JournalEntry[];
 }
 
-export default function OwnerProfileView({ username, initialProfileUser }: Readonly<OwnerProfileViewProps>) {
+export default function OwnerProfileView({ username, initialProfileUser, publicActions, publicHabits, publicJournalEntries }: Readonly<OwnerProfileViewProps>) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user: authenticatedUser } = useAuth();
@@ -34,11 +37,11 @@ export default function OwnerProfileView({ username, initialProfileUser }: Reado
   const [optimisticTimezone, setOptimisticTimezone] = useState<string | null>(null);
   const [isPublicPreviewMode, setIsPublicPreviewMode] = useState(false);
   
-  // States for public preview data
-  const [publicActions, setPublicActions] = useState<ActionNode[]>([]);
-  const [publicHabits, setPublicHabits] = useState<Habit[]>([]);
-  const [publicJournalEntries, setPublicJournalEntries] = useState<JournalEntry[]>([]); // Add state for public journal entries
-  const [publicDataLoading, setPublicDataLoading] = useState(false);
+  // No longer need states for public preview data as they come from props
+  // const [publicActions, setPublicActions] = useState<ActionNode[]>([]);
+  // const [publicHabits, setPublicHabits] = useState<Habit[]>([]);
+  // const [publicJournalEntries, setPublicJournalEntries] = useState<JournalEntry[]>([]);
+  // const [publicDataLoading, setPublicDataLoading] = useState(false); // No longer needed
 
   // States for owner's private data
   const [ownerHabits, setOwnerHabits] = useState<Habit[]>([]);
@@ -82,28 +85,7 @@ export default function OwnerProfileView({ username, initialProfileUser }: Reado
     setIsPublicPreviewMode(searchParams.get('preview') === 'true');
   }, [searchParams]);
 
-  // Fetch data for public preview when preview mode is activated
-  useEffect(() => {
-    if (isPublicPreviewMode && authenticatedUser?.id) {
-      setPublicDataLoading(true);
-      const fetchData = async () => {
-        try {
-          const fetchedPublicActions = await fetchPublicActions(authenticatedUser.id);
-          const fetchedPublicHabits = await fetchPublicHabits(authenticatedUser.id);
-          const fetchedPublicJournalEntries = await fetchJournalEntries(authenticatedUser.id); // Fetch public journal entries
-
-          setPublicActions(fetchedPublicActions);
-          setPublicHabits(fetchedPublicHabits);
-          setPublicJournalEntries(fetchedPublicJournalEntries.filter(entry => entry.is_public)); // Only public entries
-        } catch (error) {
-          console.error("Failed to fetch public preview data:", error);
-        } finally {
-          setPublicDataLoading(false);
-        }
-      };
-      fetchData();
-    }
-  }, [isPublicPreviewMode, authenticatedUser?.id]);
+  // No longer need to fetch public data in this component as it's passed via props
 
   // Fetch owner's private data when not in public preview mode
   useEffect(() => {
@@ -160,18 +142,12 @@ export default function OwnerProfileView({ username, initialProfileUser }: Reado
         </div>
 
         {isPublicPreviewMode ? (
-          publicDataLoading ? (
-            <div className="flex justify-center items-center h-48">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            </div>
-          ) : (
             <PublicPage
               user={profileToDisplay}
               publicActions={publicActions}
               publicHabits={publicHabits}
-              publicJournalEntries={publicJournalEntries} // Pass publicJournalEntries here
+              publicJournalEntries={publicJournalEntries}
             />
-          )
         ) : (
           <>
             <ActionsSection

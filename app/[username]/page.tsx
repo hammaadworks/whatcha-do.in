@@ -1,10 +1,10 @@
 import { notFound } from 'next/navigation';
 import { getUserByUsernameServer } from '@/lib/supabase/user.server';
 import PrivatePage from '@/components/profile/PrivatePage.tsx';
-import { fetchPublicActions } from '@/lib/supabase/actions';
-import { fetchPublicHabits } from '@/lib/supabase/habit';
-import { fetchJournalEntries } from '@/lib/supabase/journal'; // Import fetchJournalEntries
-import { PublicUserDisplay, ActionNode, Habit, JournalEntry } from '@/lib/supabase/types'; // Import JournalEntry
+import { fetchPublicActionsServer } from '@/lib/supabase/actions.server'; // Use server-side actions
+import { fetchPublicHabitsServer } from '@/lib/supabase/habit.server'; // Use server-side habits
+import { fetchPublicJournalEntriesServer } from '@/lib/supabase/journal.server'; // Use server-side journal
+import { PublicUserDisplay, ActionNode, Habit, JournalEntry } from '@/lib/supabase/types';
 
 type ProfilePageProps = {
   params: Promise<{
@@ -28,12 +28,12 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
   // Fetch public actions and habits for this user on the server
   let publicActions: ActionNode[] = [];
   let publicHabits: Habit[] = [];
-  let publicJournalEntries: JournalEntry[] = []; // Initialize
+  let publicJournalEntries: JournalEntry[] = [];
 
   try {
-    publicActions = await fetchPublicActions(user.id);
-    publicHabits = await fetchPublicHabits(user.id);
-    publicJournalEntries = await fetchJournalEntries(user.id); // Fetch public journal entries
+    publicActions = await fetchPublicActionsServer(user.id);
+    publicHabits = await fetchPublicHabitsServer(user.id);
+    publicJournalEntries = await fetchPublicJournalEntriesServer(user.id);
   } catch (error) {
     console.error("Error fetching public data for profile page:", error);
     // Continue with empty arrays if there's an error
@@ -46,7 +46,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
       initialProfileUser={user}
       publicActions={publicActions}
       publicHabits={publicHabits}
-      publicJournalEntries={publicJournalEntries} // Pass publicJournalEntries
+      publicJournalEntries={publicJournalEntries}
     />
   );
 }

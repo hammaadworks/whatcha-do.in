@@ -47,13 +47,27 @@ export function findNodeAndContext(
 }
 
 /**
+ * Helper to recursively check if all children (and their descendants) are completed.
+ * @param node The ActionNode to check its children.
+ * @returns True if all children and their descendants are completed, false otherwise.
+ */
+export function areAllChildrenCompleted(node: ActionNode): boolean {
+  if (!node.children || node.children.length === 0) {
+    return true; // No children, so all children are "completed"
+  }
+  return node.children.every(child => child.completed && areAllChildrenCompleted(child));
+}
+
+
+/**
  * Adds a new action to the tree.
  * @param currentTree The current action tree.
  * @param description The description of the new action.
  * @param parentId Optional ID of the parent action to add the new action as a child.
+ * @param isPublic Optional, whether the new action is public. Defaults to true.
  * @returns A new action tree with the added action.
  */
-export function addActionToTree(currentTree: ActionNode[], description: string, parentId?: string): ActionNode[] {
+export function addActionToTree(currentTree: ActionNode[], description: string, parentId?: string, isPublic: boolean = true): ActionNode[] {
     const addRecursive = (nodes: ActionNode[]): ActionNode[] => {
         // If parentId is not provided, or current level is the target parent, add to this level
         if (!parentId) { // Adding to root
@@ -63,6 +77,7 @@ export function addActionToTree(currentTree: ActionNode[], description: string, 
                     id: uuidv4(),
                     description,
                     completed: false,
+                    is_public: isPublic, // Set is_public
                     children: [],
                     completed_at: undefined
                 }
@@ -80,6 +95,7 @@ export function addActionToTree(currentTree: ActionNode[], description: string, 
                             id: uuidv4(),
                             description,
                             completed: false,
+                            is_public: isPublic, // Set is_public
                             children: [],
                             completed_at: undefined
                         }
@@ -99,9 +115,26 @@ export function addActionToTree(currentTree: ActionNode[], description: string, 
  * Toggles the completed status of an action in the tree.
  * @param currentTree The current action tree.
  * @param id The ID of the action to toggle.
- * @returns A new action tree with the toggled action.
+ * @returns A new action tree with the toggled action, or the original tree if completion is prevented.
  */
 export function toggleActionInTree(currentTree: ActionNode[], id: string): ActionNode[] {
+    const newTree = deepCopyActions(currentTree);
+    const targetContext = findNodeAndContext(newTree, id);
+
+    if (!targetContext) return newTree; // Node not found
+
+    const { node: targetNode } = targetContext;
+
+    // If trying to mark as completed, check if all children are completed
+    if (!targetNode.completed) {
+      if (!areAllChildrenCompleted(targetNode)) {
+        // Prevent marking as completed if sub-items are not done
+        // No toast here as this is a utility function, toast should be in UI layer (useActions hook)
+        return currentTree; // Return original tree to prevent state change
+      }
+    }
+
+    // Proceed with toggling if it's being unchecked, or if it's being checked and all children are complete
     const toggleRecursive = (nodes: ActionNode[]): ActionNode[] => {
       return nodes.map(node => {
         if (node.id === id) {
@@ -117,7 +150,7 @@ export function toggleActionInTree(currentTree: ActionNode[], id: string): Actio
         return node;
       });
     };
-    return toggleRecursive(deepCopyActions(currentTree));
+    return toggleRecursive(newTree);
 }
 
 /**

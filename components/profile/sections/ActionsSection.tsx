@@ -7,6 +7,7 @@ import { AddActionForm } from '@/components/shared/AddActionForm';
 import { CircularProgress } from '@/components/ui/circular-progress';
 import { mockPublicActionsData } from '@/lib/mock-data'; // Import mock data
 import { Skeleton } from '@/components/ui/skeleton';
+import { Check } from 'lucide-react'; // Import Check icon
 
 // Helper to recursively count total and completed actions
 const getOverallCompletionCounts = (nodes: ActionNode[]): { total: number; completed: number } => {
@@ -46,7 +47,7 @@ interface ActionsSectionProps {
   actions: ActionNode[]; // Now required prop
   loading: boolean; // Now required prop
   onActionToggled?: (id: string) => void;
-  onActionAdded?: (description: string, parentId?: string) => void;
+  onActionAdded?: (description: string, parentId?: string, isPublic?: boolean) => void; // Updated signature
   onActionUpdated?: (id: string, newText: string) => void;
   onActionDeleted?: (id: string) => void;
   onActionIndented?: (id: string) => void;
@@ -70,12 +71,12 @@ const ActionsSection: React.FC<ActionsSectionProps> = ({
   onActionMovedDown,
   justCompletedId,
 }) => {
-  const addActionFormRef = useRef<{ focusInput: () => void; clearInput: () => void; isInputFocused: () => boolean; isInputEmpty: () => boolean }>(null);
+  const addActionFormRef = useRef<{ focusInput: () => void; clearInput: () => void; isInputFocused: () => boolean; isInputEmpty: () => boolean; blurInput: () => void; }>(null);
   const [focusedActionId, setFocusedActionId] = useState<string | null>(null);
 
   const displayActions = isOwner
     ? actions
-    : mockPublicActionsData; // This is the correct declaration
+    : mockPublicActionsData;
 
   useEffect(() => {
     if (!isOwner) return;
@@ -86,19 +87,24 @@ const ActionsSection: React.FC<ActionsSectionProps> = ({
         event.preventDefault(); // Prevent browser's default behavior
 
         if (addActionFormRef.current) {
-          if (addActionFormRef.current.isInputFocused()) {
-            if (addActionFormRef.current.isInputEmpty()) {
-              addActionFormRef.current.clearInput();
-              addActionFormRef.current.focusInput(); // Keep focus but clear
+          if (addActionFormRef.current.isInputFocused() && addActionFormRef.current.isInputEmpty()) {
+            // If form is focused and empty, blur it and focus the first action item
+            addActionFormRef.current.blurInput();
+            const flattened = flattenActionTree(displayActions);
+            if (flattened.length > 0) {
+              setFocusedActionId(flattened[0].id); // Focus the first action item
             }
           } else {
+            // Otherwise, focus the form (if not focused, or if not empty)
             addActionFormRef.current.focusInput();
           }
         }
       } else if (event.key === 'Escape' && addActionFormRef.current?.isInputFocused() && addActionFormRef.current?.isInputEmpty()) {
         event.preventDefault();
         addActionFormRef.current.clearInput();
-        const flattened = flattenActionTree(displayActions); // This needs displayActions
+        addActionFormRef.current.blurInput(); // Blur the input
+        // Optional: move focus to the last action item if available
+        const flattened = flattenActionTree(displayActions);
         if (flattened.length > 0) {
           setFocusedActionId(flattened[flattened.length - 1].id);
         }
@@ -114,6 +120,8 @@ const ActionsSection: React.FC<ActionsSectionProps> = ({
 
   const { total: overallTotal, completed: overallCompleted } = getOverallCompletionCounts(displayActions);
   const overallProgressPercentage = overallTotal > 0 ? (overallCompleted / overallTotal) * 100 : 0;
+
+  const isAllComplete = overallTotal > 0 && overallCompleted === overallTotal;
 
   if (loading && isOwner) {
     return (
@@ -132,15 +140,25 @@ const ActionsSection: React.FC<ActionsSectionProps> = ({
         <h2 className="text-2xl font-extrabold flex items-center gap-3">
           Actions
           {overallTotal > 0 && (
-            <CircularProgress
-              progress={overallProgressPercentage}
-              size={36}
-              strokeWidth={3}
-              color="text-primary"
-              bgColor="text-muted-foreground"
-            >
-              <span className="text-xs text-muted-foreground">{overallCompleted}/{overallTotal}</span>
-            </CircularProgress>
+            isAllComplete ? (
+              <div className="relative flex items-center justify-center" style={{ width: 36, height: 36 }}>
+                <Check
+                  size={36}
+                  className="text-primary animate-spin-scale" // Need to define this animation
+                />
+                <span className="absolute text-xs text-muted-foreground">{overallCompleted}/{overallTotal}</span>
+              </div>
+            ) : (
+              <CircularProgress
+                progress={overallProgressPercentage}
+                size={36}
+                strokeWidth={3}
+                color="text-primary"
+                bgColor="text-muted-foreground"
+              >
+                <span className="text-xs text-muted-foreground">{overallCompleted}/{overallTotal}</span>
+              </CircularProgress>
+            )
           )}
         </h2>
       </div>
@@ -164,7 +182,7 @@ const ActionsSection: React.FC<ActionsSectionProps> = ({
           <AddActionForm
             ref={addActionFormRef}
             onSave={(desc) => {
-              onActionAdded?.(desc);
+              onActionAdded?.(desc, undefined, true); // Pass true for isPublic
               addActionFormRef.current?.clearInput();
               addActionFormRef.current?.focusInput();
             }}
@@ -175,7 +193,7 @@ const ActionsSection: React.FC<ActionsSectionProps> = ({
                 setFocusedActionId(flattened[flattened.length - 1].id);
               }
             }}
-            placeholder="Add new action (Ctrl+I / Cmd+I)"
+            placeholder="Ctrl/Cmd+I to focus actions"
             autoFocusOnMount={false}
           />
         </div>

@@ -16,7 +16,7 @@ interface AddActionFormProps {
 }
 
 export const AddActionForm = React.forwardRef<
-  { focusInput: () => void; clearInput: () => void; isInputFocused: () => boolean; isInputEmpty: () => boolean },
+  { focusInput: () => void; clearInput: () => void; isInputFocused: () => boolean; isInputEmpty: () => boolean; blurInput: () => void; },
   AddActionFormProps
 >(({ onSave, onCancel, className, placeholder = "Add a new action...", autoFocusOnMount = true }, ref) => {
   const [description, setDescription] = useState('');
@@ -34,6 +34,9 @@ export const AddActionForm = React.forwardRef<
     },
     isInputEmpty: () => {
       return description === '';
+    },
+    blurInput: () => {
+      inputRef.current?.blur();
     },
   }));
 

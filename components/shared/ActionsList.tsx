@@ -7,7 +7,7 @@ import { ActionNode } from '@/lib/supabase/types'; // Import ActionNode from cen
 interface ActionsListProps {
   actions: ActionNode[]; // Use ActionNode
   onActionToggled?: (id: string) => void;
-  onActionAdded?: (description: string, parentId?: string) => void;
+  onActionAdded?: (description: string, parentId?: string, isPublic?: boolean) => void;
   onActionUpdated?: (id: string, newText: string) => void;
   onActionDeleted?: (id: string) => void;
   onActionIndented?: (id: string) => void;
