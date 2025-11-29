@@ -3,8 +3,9 @@
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import PrivatePage from '@/components/profile/PrivatePage.tsx'; // Corrected import to test the Client Component
-import { User } from '@supabase/supabase-js'; // Import User type
+import PrivatePage from '@/components/profile/PrivatePage.tsx';
+import { User } from '@supabase/supabase-js';
+import { PublicUserDisplay, ActionNode, Habit } from '@/lib/supabase/types'; // Import ActionNode and Habit
 
 // Mock AuthContext and useAuth
 // This allows us to control the values returned by useAuth in our tests
@@ -55,6 +56,13 @@ describe('PrivatePage', () => { // Changed describe block title
     bio: 'Test bio', // Added bio
   };
 
+  const mockPublicUserDisplay: PublicUserDisplay = {
+    id: 'user123',
+    username: mockUsername,
+    bio: 'Test bio',
+    timezone: 'UTC',
+  };
+
   const mockOtherUser: User & { username: string; bio?: string } = { // Add bio as optional
     id: 'otheruser',
     username: 'otheruser',
@@ -82,7 +90,7 @@ describe('PrivatePage', () => { // Changed describe block title
       loading: false,
     });
     // For owner, initialProfileUser should be the authenticated user
-    render(<PrivatePage username={mockUsername} initialProfileUser={mockAuthenticatedUser} />);
+    render(<PrivatePage username={mockUsername} initialProfileUser={mockAuthenticatedUser} publicActions={[]} publicHabits={[]} publicJournalEntries={[]} />);
 
     await waitFor(() => {
       // Check for AppHeader
@@ -108,56 +116,40 @@ describe('PrivatePage', () => { // Changed describe block title
   // Test for loading state
   it('renders loading state when auth is loading', () => {
     mockUseAuth.mockReturnValue({ user: null, loading: true });
-    render(<PrivatePage username={mockUsername} initialProfileUser={null} />); // Pass initialProfileUser as null
+    // When auth is loading, initialProfileUser doesn't matter much as it won't be rendered immediately
+    render(<PrivatePage username={mockUsername} initialProfileUser={mockPublicUserDisplay} publicActions={[]} publicHabits={[]} publicJournalEntries={[]} />);
     expect(screen.getByText(/Loading.../i)).toBeInTheDocument();
   });
 
   // Test for AC: #1 (PublicPage for non-owner)
-  it('renders PublicPage for unauthenticated user (fetched client-side)', async () => {
-    mockFetch.mockResolvedValueOnce(Promise.resolve({
-      ok: true,
-      status: 200,
-      json: async () => ({ id: 'someid', username: mockUsername, bio: 'Public test bio' }),
-    } as Response));
-
-    render(<PrivatePage username={mockUsername} initialProfileUser={null} />); // initialProfileUser is null, so it will fetch
+  it('renders PublicPage for unauthenticated user (data provided by server component)', async () => {
+    mockUseAuth.mockReturnValue({ user: null, loading: false }); // Unauthenticated
+    render(<PrivatePage username={mockUsername} initialProfileUser={mockPublicUserDisplay} publicActions={[]} publicHabits={[]} publicJournalEntries={[]} />); // Initial data is now always provided
 
     await waitFor(() => {
-      expect(screen.getByText(`Public Profile of ${mockUsername}`)).toBeInTheDocument();
+      expect(screen.getByText(`Public Profile for ${mockUsername}`)).toBeInTheDocument();
       // Ensure AppHeader is NOT rendered for public view
       expect(screen.queryByTestId('app-header')).not.toBeInTheDocument();
     });
   });
 
-  it('renders PublicPage for authenticated user viewing another user\'s profile (fetched client-side)', async () => {
+  it('renders PublicPage for authenticated user viewing another user\'s profile (data provided by server component)', async () => {
     mockUseAuth.mockReturnValue({
       user: mockOtherUser,
       loading: false,
     });
-    // Simulate fetch API call for public user data
-    mockFetch.mockResolvedValueOnce(Promise.resolve({
-      ok: true,
-      status: 200,
-      json: async () => ({ id: 'someid', username: mockUsername, bio: 'Public test bio' }),
-    } as Response));
-
-    render(<PrivatePage username={mockUsername} initialProfileUser={null} />); // initialProfileUser is null, so it will fetch
+    render(<PrivatePage username={mockUsername} initialProfileUser={mockPublicUserDisplay} publicActions={[]} publicHabits={[]} publicJournalEntries={[]} />); // Initial data is now always provided
 
     await waitFor(() => {
-      expect(screen.getByText(`Public Profile of ${mockUsername}`)).toBeInTheDocument();
+      expect(screen.getByText(`Public Profile for ${mockUsername}`)).toBeInTheDocument();
       expect(screen.queryByTestId('app-header')).not.toBeInTheDocument();
     });
   });
 
-  it('calls notFound when public user does not exist (client-side fetch)', async () => {
+  it('calls notFound when public user does not exist', async () => {
     mockUseAuth.mockReturnValue({ user: null, loading: false });
-    mockFetch.mockResolvedValueOnce(Promise.resolve({
-      ok: false, // Simulate error or not found
-      status: 404,
-      json: async () => ({ error: 'User not found' }),
-    } as Response));
-
-    render(<PrivatePage username={mockUsername} initialProfileUser={null} />); // initialProfileUser is null, so it will fetch
+    // Simulating initialProfileUser being null from server component
+    render(<PrivatePage username={mockUsername} initialProfileUser={null} publicActions={[]} publicHabits={[]} publicJournalEntries={[]} />);
 
     await waitFor(() => {
         expect(mockedNotFound).toHaveBeenCalled();

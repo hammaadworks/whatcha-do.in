@@ -1,10 +1,9 @@
 // lib/mock-data.ts
 
-import { Habit } from './supabase/types';
-import { Action } from '@/components/shared/ActionsList'; // Import Action interface
-import { addOriginalIndexRecursively } from '@/lib/utils/action-utils'; // Import from new utility
+import { Habit, ActionNode } from './supabase/types'; // Import ActionNode
+import { addOriginalIndexRecursively, ActionNodeWithOriginalIndex } from '@/lib/utils/action-utils'; // Import from new utility
 
-export const mockActionsData: Action[] = addOriginalIndexRecursively([
+export const mockActionsData: ActionNodeWithOriginalIndex[] = addOriginalIndexRecursively([
   { id: "1", description: "Complete project proposal", completed: false, children: [
       { id: "1.1", description: "Outline key sections", completed: false },
       { id: "1.2", description: "Gather data", completed: false },
@@ -91,7 +90,7 @@ export const mockHabitsData: Habit[] = [
   },
 ];
 
-export const mockPublicActionsData: Action[] = addOriginalIndexRecursively([
+export const mockPublicActionsData: ActionNodeWithOriginalIndex[] = addOriginalIndexRecursively([
   { id: "1", description: "Finish the weekly report", completed: false, children: [
       { id: "1.1", description: "Collect sales figures", completed: false },
       { id: "1.2", description: "Summarize marketing efforts", completed: false },

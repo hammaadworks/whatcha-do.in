@@ -5,14 +5,18 @@ import {HabitChipPrivate} from '@/components/habits/HabitChipPrivate';
 import {HabitChipPublic} from '@/components/habits/HabitChipPublic';
 import {mockHabitsData, mockPublicHabitsData} from '@/lib/mock-data';
 import {MovingBorder} from '@/components/ui/moving-border';
-import {Button} from '@/components/ui/button'; // Assuming a Button component exists
+import {Button} from '@/components/ui/button';
+import { Habit } from '@/lib/supabase/types'; // Import Habit
+import { Skeleton } from '@/components/ui/skeleton'; // Import Skeleton
 
 interface HabitsSectionProps {
     isOwner: boolean;
+    habits?: Habit[]; // Add habits prop
+    loading: boolean; // Add loading prop
 }
 
-const HabitsSection: React.FC<HabitsSectionProps> = ({isOwner}) => {
-    const habits = isOwner ? mockHabitsData : mockPublicHabitsData;
+const HabitsSection: React.FC<HabitsSectionProps> = ({isOwner, habits: propHabits, loading}) => {
+    const habits = propHabits ? propHabits : (isOwner ? mockHabitsData : mockPublicHabitsData);
 
     const todayHabits = habits.filter(h => h.pile_state === 'today');
     const yesterdayHabits = habits.filter(h => h.pile_state === 'yesterday');
@@ -26,12 +30,30 @@ const HabitsSection: React.FC<HabitsSectionProps> = ({isOwner}) => {
     const habitsToDisplay = showAllPileHabits ? pileHabits : pileHabits.slice(0, initialVisibleHabits);
     const hasMoreHabits = pileHabits.length > initialVisibleHabits;
 
-    return (<div className="section mb-10">
+    if (loading) {
+        return (
+            <div className="section mb-10">
+                <h2 className="text-2xl font-extrabold border-b border-primary pb-4 mb-6 text-foreground">Habits</h2>
+                <div className="flex flex-wrap gap-2">
+                    <Skeleton className="h-10 w-32" />
+                    <Skeleton className="h-10 w-40" />
+                    <Skeleton className="h-10 w-24" />
+                    <Skeleton className="h-10 w-36" />
+                    <Skeleton className="h-10 w-28" />
+                    <Skeleton className="h-10 w-48" />
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="section mb-10">
             <h2 className="text-2xl font-extrabold border-b border-primary pb-4 mb-6 text-foreground">Habits</h2>
 
-            {isOwner ? (// Owner view with Accordion and Grid for private habits
+            {isOwner ? (
                 <>
-                    <div className="md:hidden flex flex-col gap-4"> {/* Mobile layout */}
+                    {/* Mobile Layout */}
+                    <div className="md:hidden flex flex-col gap-4">
                         {/* Today Column - Mobile */}
                         <div className="relative overflow-hidden rounded-xl shadow">
                             <div className="p-4 bg-background border border-primary rounded-xl z-10 relative">
@@ -44,7 +66,6 @@ const HabitsSection: React.FC<HabitsSectionProps> = ({isOwner}) => {
                                         <p className="text-muted-foreground text-sm">No habits for today.</p>}
                                 </div>
                             </div>
-                            {/* This is the MovingBorder effect overlay */}
                             <div className="absolute inset-0 rounded-[inherit] z-20">
                                 <MovingBorder duration={8000} rx="6" ry="6">
                                     <div
@@ -87,10 +108,10 @@ const HabitsSection: React.FC<HabitsSectionProps> = ({isOwner}) => {
                         </div>
                     </div>
 
-                    <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-2 gap-4"> {/* Grid for desktop */}
+                    {/* Desktop Layout */}
+                    <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-2 gap-4">
                         {/* Today Column */}
                         <div className="relative overflow-hidden rounded-xl shadow">
-                            {/* This is the actual content of the Today box, with its static border */}
                             <div className="p-4 bg-background border border-primary rounded-xl z-10 relative">
                                 <h3 className="text-xl font-semibold mb-4 text-foreground">Today</h3>
                                 <div className="flex flex-wrap gap-2">
@@ -101,12 +122,10 @@ const HabitsSection: React.FC<HabitsSectionProps> = ({isOwner}) => {
                                         <p className="text-muted-foreground text-sm">No habits for today.</p>}
                                 </div>
                             </div>
-                            {/* This is the MovingBorder effect overlay */}
                             <div className="absolute inset-0 rounded-[inherit] z-20">
                                 <MovingBorder duration={8000} rx="6" ry="6">
                                     <div
                                         className="h-1 w-8 bg-[radial-gradient(var(--primary)_60%,transparent_100%)] opacity-100 shadow-[0_0_25px_var(--primary)]"/>
-                                    {/* The red square */}
                                 </MovingBorder>
                             </div>
                         </div>
@@ -137,11 +156,13 @@ const HabitsSection: React.FC<HabitsSectionProps> = ({isOwner}) => {
                             </div>
                         </div>
                     </div>
-                </>) : (// Public view for habits
+                </>) : (
+                // Public view for habits
                 <div className="habit-grid flex flex-wrap gap-4">
                     {habits.filter(h => h.is_public).map((habit) => (<HabitChipPublic key={habit.id} habit={habit}/>))}
                 </div>)}
-        </div>);
+        </div>
+    );
 };
 
 export default HabitsSection;

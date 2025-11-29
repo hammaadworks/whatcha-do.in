@@ -3,10 +3,12 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { User as SupabaseUser, Session } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
+import { LOCAL_STORAGE_USER_PROFILE_CACHE_KEY } from "@/lib/constants";
 
 export interface User extends SupabaseUser {
   username?: string;
   timezone?: string;
+  bio?: string; // Add bio here for consistency with PublicUserDisplay
 }
 
 interface AuthContextType {
@@ -27,7 +29,7 @@ export function AuthProvider({
   const supabase = createClient();
 
   const fetchUserProfile = async (authUser: SupabaseUser): Promise<User> => {
-    const CACHE_KEY = `whatcha_user_profile_${authUser.id}`;
+    const CACHE_KEY = `${LOCAL_STORAGE_USER_PROFILE_CACHE_KEY}_${authUser.id}`;
     
     try {
       // 1. Try to get from cache first
@@ -44,7 +46,7 @@ export function AuthProvider({
       // 2. Fetch from DB if not in cache
       const { data, error } = await supabase
         .from('users')
-        .select('username, timezone')
+        .select('username, timezone, bio') // Select bio as well
         .eq('id', authUser.id)
         .single();
 
@@ -57,13 +59,15 @@ export function AuthProvider({
         ...authUser,
         username: data?.username,
         timezone: data?.timezone,
+        bio: data?.bio, // Add bio to the merged user object
       };
 
       // 3. Save to cache
       localStorage.setItem(CACHE_KEY, JSON.stringify({
           id: authUser.id,
           username: data?.username,
-          timezone: data?.timezone
+          timezone: data?.timezone,
+          bio: data?.bio, // Save bio to cache
       }));
 
       return userWithProfile;
@@ -78,7 +82,7 @@ export function AuthProvider({
     const { data: { session } } = await supabase.auth.getSession();
     if (session?.user) {
       // Clear cache to force a fresh fetch
-      localStorage.removeItem(`whatcha_user_profile_${session.user.id}`);
+      localStorage.removeItem(`${LOCAL_STORAGE_USER_PROFILE_CACHE_KEY}_${session.user.id}`);
       const userWithProfile = await fetchUserProfile(session.user);
       setUser(userWithProfile);
     } else {

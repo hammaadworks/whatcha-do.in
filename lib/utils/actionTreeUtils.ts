@@ -1,0 +1,266 @@
+// lib/utils/actionTreeUtils.ts
+import { v4 as uuidv4 } from 'uuid';
+import { ActionNode } from '@/lib/supabase/types'; // Correct import for ActionNode
+
+/**
+ * Helper function to create a deep copy of the tree to ensure immutability.
+ * @param nodes The array of ActionNode to deep copy.
+ * @returns A deep copy of the ActionNode array.
+ */
+export function deepCopyActions(nodes: ActionNode[]): ActionNode[] {
+  return nodes.map(node => ({
+    ...node,
+    children: node.children ? deepCopyActions(node.children) : []
+  }));
+}
+
+type FindResult = {
+  node: ActionNode;
+  parent: ActionNode | null;
+  siblingsArray: ActionNode[];
+  indexInSiblings: number;
+};
+
+/**
+ * Helper function to find a node and its context (parent, siblings array, index) recursively.
+ * @param nodes The current level of nodes to search.
+ * @param targetId The ID of the node to find.
+ * @param parent The parent node of the current level (for context).
+ * @returns FindResult if found, otherwise null.
+ */
+export function findNodeAndContext(
+  nodes: ActionNode[],
+  targetId: string,
+  parent: ActionNode | null = null
+): FindResult | null {
+  for (let i = 0; i < nodes.length; i++) {
+    const node = nodes[i];
+    if (node.id === targetId) {
+      return { node, parent, siblingsArray: nodes, indexInSiblings: i };
+    }
+    if (node.children && node.children.length > 0) {
+      const found = findNodeAndContext(node.children, targetId, node);
+      if (found) return found;
+    }
+  }
+  return null;
+}
+
+/**
+ * Adds a new action to the tree.
+ * @param currentTree The current action tree.
+ * @param description The description of the new action.
+ * @param parentId Optional ID of the parent action to add the new action as a child.
+ * @returns A new action tree with the added action.
+ */
+export function addActionToTree(currentTree: ActionNode[], description: string, parentId?: string): ActionNode[] {
+    const addRecursive = (nodes: ActionNode[]): ActionNode[] => {
+        // If parentId is not provided, or current level is the target parent, add to this level
+        if (!parentId) { // Adding to root
+            return [
+                ...nodes,
+                {
+                    id: uuidv4(),
+                    description,
+                    completed: false,
+                    children: [],
+                    completed_at: undefined
+                }
+            ];
+        }
+
+        return nodes.map(node => {
+            if (node.id === parentId) {
+                // Found the parent, add child to its children array
+                return {
+                    ...node,
+                    children: [
+                        ...(node.children || []),
+                        {
+                            id: uuidv4(),
+                            description,
+                            completed: false,
+                            children: [],
+                            completed_at: undefined
+                        }
+                    ]
+                };
+            } else if (node.children && node.children.length > 0) {
+                // Recursively search in children
+                return { ...node, children: addRecursive(node.children) };
+            }
+            return node;
+        });
+    };
+    return addRecursive(deepCopyActions(currentTree));
+}
+
+/**
+ * Toggles the completed status of an action in the tree.
+ * @param currentTree The current action tree.
+ * @param id The ID of the action to toggle.
+ * @returns A new action tree with the toggled action.
+ */
+export function toggleActionInTree(currentTree: ActionNode[], id: string): ActionNode[] {
+    const toggleRecursive = (nodes: ActionNode[]): ActionNode[] => {
+      return nodes.map(node => {
+        if (node.id === id) {
+          const newCompleted = !node.completed;
+          return {
+            ...node,
+            completed: newCompleted,
+            completed_at: newCompleted ? new Date().toISOString() : undefined
+          };
+        } else if (node.children && node.children.length > 0) {
+          return { ...node, children: toggleRecursive(node.children) };
+        }
+        return node;
+      });
+    };
+    return toggleRecursive(deepCopyActions(currentTree));
+}
+
+/**
+ * Updates the description of an action in the tree.
+ * @param currentTree The current action tree.
+ * @param id The ID of the action to update.
+ * @param newText The new description for the action.
+ * @returns A new action tree with the updated action.
+ */
+export function updateActionTextInTree(currentTree: ActionNode[], id: string, newText: string): ActionNode[] {
+    const updateRecursive = (nodes: ActionNode[]): ActionNode[] => {
+      return nodes.map(node => {
+        if (node.id === id) {
+          return { ...node, description: newText };
+        } else if (node.children && node.children.length > 0) {
+          return { ...node, children: updateRecursive(node.children) };
+        }
+        return node;
+      });
+    };
+    return updateRecursive(deepCopyActions(currentTree));
+}
+
+/**
+ * Deletes an action from the tree.
+ * @param currentTree The current action tree.
+ * @param id The ID of the action to delete.
+ * @returns A new action tree with the action removed.
+ */
+export function deleteActionFromTree(currentTree: ActionNode[], id: string): ActionNode[] {
+    const deleteRecursive = (nodes: ActionNode[]): ActionNode[] => {
+      const newNodes = nodes.filter(node => node.id !== id);
+      return newNodes.map(node => {
+        if (node.children && node.children.length > 0) {
+          return { ...node, children: deleteRecursive(node.children) };
+        }
+        return node;
+      });
+    };
+    return deleteRecursive(deepCopyActions(currentTree));
+}
+
+/**
+ * Indents an action, making it a child of the preceding sibling.
+ * If there's no preceding sibling, no change occurs.
+ * @param currentTree The current action tree.
+ * @param id The ID of the action to indent.
+ * @returns A new action tree with the action indented.
+ */
+export function indentActionInTree(currentTree: ActionNode[], id: string): ActionNode[] {
+    const newTree = deepCopyActions(currentTree);
+    const targetContext = findNodeAndContext(newTree, id);
+
+    if (!targetContext) return newTree;
+    if (targetContext.indexInSiblings === 0) return newTree; // Cannot indent first sibling
+
+    const { node: targetNode, siblingsArray, indexInSiblings } = targetContext;
+    const previousSibling = siblingsArray[indexInSiblings - 1];
+
+    if (!previousSibling) return newTree; 
+
+    siblingsArray.splice(indexInSiblings, 1);
+    previousSibling.children = [...(previousSibling.children || []), targetNode];
+
+    return newTree;
+}
+
+/**
+ * Outdents an action, making it a sibling of its current parent.
+ * Inserts it right after the parent. If it's a top-level node, no change occurs.
+ * @param currentTree The current action tree.
+ * @param id The ID of the action to outdent.
+ * @returns A new action tree with the action outdented.
+ */
+export function outdentActionInTree(currentTree: ActionNode[], id: string): ActionNode[] {
+    const newTree = deepCopyActions(currentTree);
+    const targetContext = findNodeAndContext(newTree, id);
+
+    if (!targetContext || !targetContext.parent) return newTree; // Node not found or already top-level
+
+    const { node: targetNode, parent, siblingsArray, indexInSiblings } = targetContext;
+    
+    siblingsArray.splice(indexInSiblings, 1); // Remove from parent's children
+
+    const parentContext = findNodeAndContext(newTree, parent.id);
+
+    if (parentContext) {
+      // Insert targetNode right after its former parent
+      parentContext.siblingsArray.splice(parentContext.indexInSiblings + 1, 0, targetNode);
+    } else {
+      // Parent was a top-level node, insert targetNode into the main array
+      const parentIndexInRoot = newTree.findIndex(node => node.id === parent.id);
+      if (parentIndexInRoot !== -1) {
+        newTree.splice(parentIndexInRoot + 1, 0, targetNode);
+      } else {
+        // Fallback: Add to root if parent not found (shouldn't happen with findNodeAndContext)
+        newTree.push(targetNode);
+      }
+    }
+
+    return newTree;
+}
+
+/**
+ * Moves an action up in its sibling list.
+ * If it's already the first sibling, no change occurs.
+ * @param currentTree The current action tree.
+ * @param id The ID of the action to move up.
+ * @returns A new action tree with the action moved up.
+ */
+export function moveActionUpInTree(currentTree: ActionNode[], id: string): ActionNode[] {
+    const newTree = deepCopyActions(currentTree);
+    const targetContext = findNodeAndContext(newTree, id);
+
+    if (!targetContext) return newTree;
+    const { node: targetNode, siblingsArray, indexInSiblings } = targetContext;
+
+    if (indexInSiblings === 0) return newTree; // Cannot move up if it's the first sibling
+
+    siblingsArray.splice(indexInSiblings, 1); // Remove targetNode
+    siblingsArray.splice(indexInSiblings - 1, 0, targetNode); // Insert one position before
+
+    return newTree;
+}
+
+/**
+ * Moves an action down in its sibling list.
+ * If it's already the last sibling, no change occurs.
+ * @param currentTree The current action tree.
+ * @param id The ID of the action to move down.
+ * @returns A new action tree with the action moved down.
+ */
+export function moveActionDownInTree(currentTree: ActionNode[], id: string): ActionNode[] {
+    const newTree = deepCopyActions(currentTree);
+    const targetContext = findNodeAndContext(newTree, id);
+
+    if (!targetContext) return newTree;
+    const { node: targetNode, siblingsArray, indexInSiblings } = targetContext;
+
+    if (indexInSiblings === siblingsArray.length - 1) return newTree; // Cannot move down if it's the last sibling
+
+    siblingsArray.splice(indexInSiblings, 1); // Remove targetNode
+    siblingsArray.splice(indexInSiblings + 1, 0, targetNode); // Insert one position after
+
+    return newTree;
+}

@@ -1,5 +1,6 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { RESERVED_USERNAMES } from "@/lib/constants";
 import { createClient } from '@supabase/supabase-js'
 
 export async function proxy(request: NextRequest) {
@@ -74,7 +75,7 @@ export async function proxy(request: NextRequest) {
 
   if (usernameMatch) {
     const username = usernameMatch[1]
-    const reservedRoutes = ['auth', 'dashboard', 'journal', 'grace-period', 'api', 'profile', 'not-found', 'logins', 'favicon.ico']
+    const reservedRoutes = RESERVED_USERNAMES;
     
     if (reservedRoutes.includes(username)) {
       return supabaseResponse

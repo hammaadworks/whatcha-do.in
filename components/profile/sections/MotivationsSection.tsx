@@ -3,12 +3,26 @@
 import React from 'react';
 import InsightsTrigger from '@/components/shared/InsightsTrigger';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton'; // Import Skeleton
 
 interface MotivationsSectionProps {
   username: string;
+  isOwner: boolean;
+  loading: boolean; // Add loading prop
 }
 
-const MotivationsSection: React.FC<MotivationsSectionProps> = ({ username }) => {
+const MotivationsSection: React.FC<MotivationsSectionProps> = ({ username, isOwner, loading }) => {
+  const motivationalQuote = "The journey of a thousand miles begins with a single step."; // Example quote
+
+  if (loading) {
+    return (
+      <div className="section mb-10">
+        <h2 className="text-2xl font-extrabold border-b border-primary pb-4 mb-6 text-foreground">Motivation</h2>
+        <Skeleton className="h-24 w-full" />
+      </div>
+    );
+  }
+
   return (
     <div className="section mb-10">
       <div className="flex justify-between items-center border-b border-primary pb-4 mb-6">

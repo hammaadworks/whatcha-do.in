@@ -5,13 +5,14 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { ChevronDown, Plus, Trash2, Edit2, X, Check } from 'lucide-react';
-import { Action, ActionsList } from './ActionsList';
+import { ActionsList } from './ActionsList';
 import { CircularProgress } from '@/components/ui/circular-progress';
 import { AddActionForm } from './AddActionForm';
 import { Input } from "@/components/ui/input";
+import { ActionNode } from '@/lib/supabase/types'; // Import ActionNode
 
 interface ActionItemProps {
-  action: Action;
+  action: ActionNode; // Use ActionNode
   onActionToggled?: (id: string) => void;
   onActionAdded?: (description: string, parentId?: string) => void;
   onActionUpdated?: (id: string, newText: string) => void;
@@ -22,9 +23,12 @@ interface ActionItemProps {
   onActionMovedDown?: (id: string) => void; // New prop
   justCompletedId?: string | null;
   level: number;
+  focusedActionId: string | null; // New prop
+  setFocusedActionId: (id: string | null) => void; // New prop
+  flattenedActions: ActionNode[]; // New prop
 }
 
-const getCompletionCounts = (action: Action): { total: number; completed: number } => {
+const getCompletionCounts = (action: ActionNode): { total: number; completed: number } => { // Use ActionNode
   if (!action.children || action.children.length === 0) {
     return { total: 0, completed: 0 };
   }
@@ -32,7 +36,7 @@ const getCompletionCounts = (action: Action): { total: number; completed: number
   let total = 0;
   let completed = 0;
 
-  action.children.forEach(child => {
+  action.children.forEach((child: ActionNode) => { // Type child explicitly
     total++;
     if (child.completed) {
       completed++;
@@ -42,18 +46,21 @@ const getCompletionCounts = (action: Action): { total: number; completed: number
   return { total, completed };
 };
 
-export const ActionItem: React.FC<ActionItemProps> = ({ 
-  action, 
-  onActionToggled, 
-  onActionAdded, 
+export const ActionItem: React.FC<ActionItemProps> = ({
+  action,
+  onActionToggled,
+  onActionAdded,
   onActionUpdated,
   onActionDeleted,
   onActionIndented,
   onActionOutdented,
   onActionMovedUp,
   onActionMovedDown,
-  justCompletedId, 
-  level 
+  justCompletedId,
+  level,
+  focusedActionId,
+  setFocusedActionId,
+  flattenedActions
 }) => {
   const [isExpanded, setIsExpanded] = useState(true);
   const [isAddingSubItem, setIsAddingSubItem] = useState(false);
@@ -72,6 +79,14 @@ export const ActionItem: React.FC<ActionItemProps> = ({
       editInputRef.current.focus();
     }
   }, [isEditing]);
+
+  // Effect to focus the current item if its ID matches focusedActionId
+  useEffect(() => {
+    if (divRef.current && focusedActionId === action.id) {
+      divRef.current.focus();
+    }
+  }, [focusedActionId, action.id]);
+
 
   const handleEditSave = () => {
     if (editText.trim()) {
@@ -114,9 +129,20 @@ export const ActionItem: React.FC<ActionItemProps> = ({
           divRef.current?.focus();
         }
       }
+    } else if (e.key === 'ArrowUp') { // ArrowUp for navigation
+      e.preventDefault();
+      const currentIndex = flattenedActions.findIndex(a => a.id === action.id);
+      if (currentIndex > 0) {
+        setFocusedActionId?.(flattenedActions[currentIndex - 1].id);
+      }
+    } else if (e.key === 'ArrowDown') { // ArrowDown for navigation
+      e.preventDefault();
+      const currentIndex = flattenedActions.findIndex(a => a.id === action.id);
+      if (currentIndex < flattenedActions.length - 1) {
+        setFocusedActionId?.(flattenedActions[currentIndex + 1].id);
+      }
     }
   };
-
   return (
     <div key={action.id} className="mb-2">
       <div
@@ -249,8 +275,15 @@ export const ActionItem: React.FC<ActionItemProps> = ({
             onActionAdded={onActionAdded}
             onActionUpdated={onActionUpdated}
             onActionDeleted={onActionDeleted}
+            onActionIndented={onActionIndented}
+            onActionOutdented={onActionOutdented}
+            onActionMovedUp={onActionMovedUp}
+            onActionMovedDown={onActionMovedDown}
             justCompletedId={justCompletedId}
             level={level + 1}
+            focusedActionId={focusedActionId}
+            setFocusedActionId={setFocusedActionId}
+            flattenedActions={flattenedActions}
           />
         </div>
       )}

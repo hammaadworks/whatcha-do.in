@@ -1,7 +1,10 @@
 import { notFound } from 'next/navigation';
 import { getUserByUsernameServer } from '@/lib/supabase/user.server';
-import { PublicUserDisplay } from '@/lib/supabase/types'; // Correct import for PublicUserDisplay
-import PrivatePage from '@/components/profile/PrivatePage.tsx'; // Import the new client component
+import PrivatePage from '@/components/profile/PrivatePage.tsx';
+import { fetchPublicActions } from '@/lib/supabase/actions';
+import { fetchPublicHabits } from '@/lib/supabase/habit';
+import { fetchJournalEntries } from '@/lib/supabase/journal'; // Import fetchJournalEntries
+import { PublicUserDisplay, ActionNode, Habit, JournalEntry } from '@/lib/supabase/types'; // Import JournalEntry
 
 type ProfilePageProps = {
   params: Promise<{
@@ -12,22 +15,38 @@ type ProfilePageProps = {
 export default async function ProfilePage({ params }: ProfilePageProps) {
   const { username } = await params;
 
-  // If Next.js is re-running this page for its notFound() flow,
-  // we immediately stop and call notFound() again without hitting the database.
   if (username === 'not-found') {
     notFound();
   }
 
-  const user: PublicUserDisplay | null = await getUserByUsernameServer(username); // Fetch user data on server
+  const user: PublicUserDisplay | null = await getUserByUsernameServer(username);
 
   if (!user) {
-    // If user does not exist, Next.js will render the not-found page
-    // This handles the /xyz expected: user not found scenario.
     notFound();
   }
 
-  // Pass the fetched user data to the Client Component
+  // Fetch public actions and habits for this user on the server
+  let publicActions: ActionNode[] = [];
+  let publicHabits: Habit[] = [];
+  let publicJournalEntries: JournalEntry[] = []; // Initialize
+
+  try {
+    publicActions = await fetchPublicActions(user.id);
+    publicHabits = await fetchPublicHabits(user.id);
+    publicJournalEntries = await fetchJournalEntries(user.id); // Fetch public journal entries
+  } catch (error) {
+    console.error("Error fetching public data for profile page:", error);
+    // Continue with empty arrays if there's an error
+  }
+
+
   return (
-    <PrivatePage username={username} initialProfileUser={user} />
+    <PrivatePage
+      username={username}
+      initialProfileUser={user}
+      publicActions={publicActions}
+      publicHabits={publicHabits}
+      publicJournalEntries={publicJournalEntries} // Pass publicJournalEntries
+    />
   );
 }

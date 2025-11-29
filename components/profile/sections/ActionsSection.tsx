@@ -1,12 +1,12 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { ActionsList, Action } from '@/components/shared/ActionsList';
+import { ActionsList } from '@/components/shared/ActionsList';
+import { ActionNode } from '@/lib/supabase/types'; // Correct import for ActionNode
 import { AddActionForm } from '@/components/shared/AddActionForm';
-import { useActions } from '@/hooks/useActions';
-import { mockPublicActionsData } from '@/lib/mock-data';
-import { ActionNode } from '@/lib/supabase/actions';
-import { CircularProgress } from '@/components/ui/circular-progress'; // Import CircularProgress
+import { CircularProgress } from '@/components/ui/circular-progress';
+import { mockPublicActionsData } from '@/lib/mock-data'; // Import mock data
+import { Skeleton } from '@/components/ui/skeleton';
 
 // Helper to recursively count total and completed actions
 const getOverallCompletionCounts = (nodes: ActionNode[]): { total: number; completed: number } => {
@@ -29,30 +29,53 @@ const getOverallCompletionCounts = (nodes: ActionNode[]): { total: number; compl
   return { total, completed };
 };
 
+// Flatten the action tree for easier linear navigation
+const flattenActionTree = (nodes: ActionNode[]): ActionNode[] => {
+  let flattened: ActionNode[] = [];
+  nodes.forEach(node => {
+    flattened.push(node);
+    if (node.children && node.children.length > 0) {
+      flattened = flattened.concat(flattenActionTree(node.children));
+    }
+  });
+  return flattened;
+};
+
 interface ActionsSectionProps {
   isOwner: boolean;
-  actions?: Action[];
-  timezone?: string;
+  actions: ActionNode[]; // Now required prop
+  loading: boolean; // Now required prop
   onActionToggled?: (id: string) => void;
   onActionAdded?: (description: string, parentId?: string) => void;
+  onActionUpdated?: (id: string, newText: string) => void;
+  onActionDeleted?: (id: string) => void;
+  onActionIndented?: (id: string) => void;
+  onActionOutdented?: (id: string) => void;
+  onActionMovedUp?: (id: string) => void;
+  onActionMovedDown?: (id: string) => void;
   justCompletedId?: string | null;
 }
 
-const ActionsSection: React.FC<ActionsSectionProps> = ({ isOwner, timezone, actions: propActions }) => {
-  const {
-    actions: hookActions,
-    loading: hookLoading,
-    addAction,
-    toggleAction,
-    updateActionText,
-    deleteAction,
-    indentAction,
-    outdentAction,
-    moveActionUp,
-    moveActionDown
-  } = useActions(isOwner, timezone);
-
+const ActionsSection: React.FC<ActionsSectionProps> = ({
+  isOwner,
+  actions,
+  loading,
+  onActionToggled,
+  onActionAdded,
+  onActionUpdated,
+  onActionDeleted,
+  onActionIndented,
+  onActionOutdented,
+  onActionMovedUp,
+  onActionMovedDown,
+  justCompletedId,
+}) => {
   const addActionFormRef = useRef<{ focusInput: () => void; clearInput: () => void; isInputFocused: () => boolean; isInputEmpty: () => boolean }>(null);
+  const [focusedActionId, setFocusedActionId] = useState<string | null>(null);
+
+  const displayActions = isOwner
+    ? actions
+    : mockPublicActionsData; // This is the correct declaration
 
   useEffect(() => {
     if (!isOwner) return;
@@ -68,10 +91,16 @@ const ActionsSection: React.FC<ActionsSectionProps> = ({ isOwner, timezone, acti
               addActionFormRef.current.clearInput();
               addActionFormRef.current.focusInput(); // Keep focus but clear
             }
-            // If input is focused and not empty, let the user type
           } else {
             addActionFormRef.current.focusInput();
           }
+        }
+      } else if (event.key === 'Escape' && addActionFormRef.current?.isInputFocused() && addActionFormRef.current?.isInputEmpty()) {
+        event.preventDefault();
+        addActionFormRef.current.clearInput();
+        const flattened = flattenActionTree(displayActions); // This needs displayActions
+        if (flattened.length > 0) {
+          setFocusedActionId(flattened[flattened.length - 1].id);
         }
       }
     };
@@ -81,18 +110,20 @@ const ActionsSection: React.FC<ActionsSectionProps> = ({ isOwner, timezone, acti
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isOwner]);
-
-  const displayActions = isOwner
-    ? hookActions
-    : (propActions as ActionNode[]) || (mockPublicActionsData as unknown as ActionNode[]);
+  }, [isOwner, displayActions]); // displayActions is now a proper dependency
 
   const { total: overallTotal, completed: overallCompleted } = getOverallCompletionCounts(displayActions);
   const overallProgressPercentage = overallTotal > 0 ? (overallCompleted / overallTotal) * 100 : 0;
 
-
-  if (hookLoading && isOwner) {
-    return <div className="p-4 text-center">Loading actions...</div>;
+  if (loading && isOwner) {
+    return (
+      <div className="p-4 space-y-3">
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-10 w-11/12" />
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-10 w-10/12" />
+      </div>
+    );
   }
 
   return (
@@ -103,7 +134,7 @@ const ActionsSection: React.FC<ActionsSectionProps> = ({ isOwner, timezone, acti
           {overallTotal > 0 && (
             <CircularProgress
               progress={overallProgressPercentage}
-              size={36} // Slightly smaller than individual items' circular progress
+              size={36}
               strokeWidth={3}
               color="text-primary"
               bgColor="text-muted-foreground"
@@ -115,29 +146,37 @@ const ActionsSection: React.FC<ActionsSectionProps> = ({ isOwner, timezone, acti
       </div>
       <ActionsList
         actions={displayActions}
-        onActionToggled={isOwner ? toggleAction : undefined}
-        onActionAdded={isOwner ? addAction : undefined}
-        onActionUpdated={isOwner ? updateActionText : undefined}
-        onActionDeleted={isOwner ? deleteAction : undefined}
-        onActionIndented={isOwner ? indentAction : undefined}
-        onActionOutdented={isOwner ? outdentAction : undefined}
-        onActionMovedUp={isOwner ? moveActionUp : undefined}
-        onActionMovedDown={isOwner ? moveActionDown : undefined}
+        onActionToggled={isOwner ? onActionToggled : undefined}
+        onActionAdded={isOwner ? onActionAdded : undefined}
+        onActionUpdated={isOwner ? onActionUpdated : undefined}
+        onActionDeleted={isOwner ? onActionDeleted : undefined}
+        onActionIndented={isOwner ? onActionIndented : undefined}
+        onActionOutdented={isOwner ? onActionOutdented : undefined}
+        onActionMovedUp={isOwner ? onActionMovedUp : undefined}
+        onActionMovedDown={isOwner ? onActionMovedDown : undefined}
+        justCompletedId={justCompletedId}
+        focusedActionId={focusedActionId}
+        setFocusedActionId={setFocusedActionId}
+        flattenedActions={flattenActionTree(displayActions)}
       />
       {isOwner && (
         <div className="mt-4">
           <AddActionForm
             ref={addActionFormRef}
             onSave={(desc) => {
-              addAction(desc);
+              onActionAdded?.(desc);
               addActionFormRef.current?.clearInput();
-              addActionFormRef.current?.focusInput(); // Keep focus after saving
+              addActionFormRef.current?.focusInput();
             }}
             onCancel={() => {
               addActionFormRef.current?.clearInput();
+              const flattened = flattenActionTree(displayActions);
+              if (flattened.length > 0) {
+                setFocusedActionId(flattened[flattened.length - 1].id);
+              }
             }}
             placeholder="Add new action (Ctrl+I / Cmd+I)"
-            autoFocusOnMount={false} // Prevent auto-focus on initial render
+            autoFocusOnMount={false}
           />
         </div>
       )}
@@ -146,3 +185,4 @@ const ActionsSection: React.FC<ActionsSectionProps> = ({ isOwner, timezone, acti
 };
 
 export default ActionsSection;
+

@@ -2,18 +2,10 @@
 
 import { cn } from "@/lib/utils";
 import { ActionItem } from "./ActionItem";
-
-export interface Action {
-  id: string;
-  description: string;
-  completed: boolean;
-  children?: Action[]; 
-  originalIndex?: number;
-  completed_at?: string; // Added for Next Day Clearing
-}
+import { ActionNode } from '@/lib/supabase/types'; // Import ActionNode from centralized types
 
 interface ActionsListProps {
-  actions: Action[];
+  actions: ActionNode[]; // Use ActionNode
   onActionToggled?: (id: string) => void;
   onActionAdded?: (description: string, parentId?: string) => void;
   onActionUpdated?: (id: string, newText: string) => void;
@@ -24,6 +16,9 @@ interface ActionsListProps {
   onActionMovedDown?: (id: string) => void;
   justCompletedId?: string | null;
   level?: number;
+  focusedActionId: string | null;
+  setFocusedActionId: (id: string | null) => void;
+  flattenedActions: ActionNode[];
 }
 
 export const ActionsList: React.FC<ActionsListProps> = ({ 
@@ -37,7 +32,10 @@ export const ActionsList: React.FC<ActionsListProps> = ({
   onActionMovedUp,
   onActionMovedDown,
   justCompletedId, 
-  level = 0 
+  level = 0,
+  focusedActionId,
+  setFocusedActionId,
+  flattenedActions
 }) => {
   return (
     <div className={cn("grid grid-cols-1 gap-y-2")}>
@@ -55,6 +53,9 @@ export const ActionsList: React.FC<ActionsListProps> = ({
           onActionMovedDown={onActionMovedDown}
           justCompletedId={justCompletedId}
           level={level}
+          focusedActionId={focusedActionId}
+          setFocusedActionId={setFocusedActionId}
+          flattenedActions={flattenedActions}
         />
       ))}
     </div>

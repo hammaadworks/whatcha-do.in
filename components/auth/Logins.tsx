@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Mail, ArrowRight, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
+import { DEFAULT_POST_LOGIN_REDIRECT } from "@/lib/constants";
 import { MagicCard } from "@/components/ui/magic-card";
 import { ShimmerButton } from "@/components/ui/shimmer-button";
 import { BlurFade } from "@/components/ui/blur-fade";
@@ -35,7 +36,7 @@ export default function Logins() {
     const { data, error } = await supabase.auth.signInWithOtp({
       email,
       options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback?next=/me`,
+          emailRedirectTo: `${window.location.origin}/auth/callback?next=${DEFAULT_POST_LOGIN_REDIRECT}`,
       },
     });
 

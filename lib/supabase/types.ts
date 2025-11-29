@@ -45,3 +45,12 @@ export interface PublicProfile extends PublicUserDisplay {
     todos: Todo[];
     journal_entries: JournalEntry[];
 }
+
+export interface ActionNode {
+  id: string;
+  description: string;
+  completed: boolean;
+  is_public?: boolean; // Add is_public flag
+  completed_at?: string; // ISO timestamp
+  children?: ActionNode[];
+}
