@@ -138,16 +138,15 @@ export default function Logins() {
               </div>
             )}
           </div>
+            <div className="mt-8 text-center text-xs text-muted-foreground">
+                <p>
+                    By clicking continue, you agree to our{" "}
+                    <a href="#" className="underline hover:text-primary">Terms of Service</a> and{" "}
+                    <a href="#" className="underline hover:text-primary">Privacy Policy</a>.
+                </p>
+            </div>
         </MagicCard>
       </BlurFade>
-      
-      <div className="mt-8 text-center text-xs text-muted-foreground">
-        <p>
-          By clicking continue, you agree to our{" "}
-          <a href="#" className="underline hover:text-primary">Terms of Service</a> and{" "}
-          <a href="#" className="underline hover:text-primary">Privacy Policy</a>.
-        </p>
-      </div>
     </div>
   );
 }
