@@ -57,7 +57,7 @@ export default function Logins() {
           className="w-full max-w-md overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800 shadow-2xl"
           gradientColor="#88888822"
         >
-          <div className="flex flex-col p-8 md:p-10">
+          <div className="flex flex-col p-4 md:p-6">
             <div className="text-center mb-8">
               <div className="mx-auto mb-6 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
                 <Mail className="h-6 w-6 text-primary" />
@@ -77,7 +77,8 @@ export default function Logins() {
                     Email
                   </Label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                    <div className="absolute left-9 top-1/2 -translate-y-1/2 h-5 w-px bg-gray-300 dark:bg-gray-700" /> {/* Delimiter */}
                     <Input
                       type="email"
                       id="email"
@@ -85,7 +86,7 @@ export default function Logins() {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
-                      className="pl-10 h-11 bg-background/50 border-input focus:ring-2 focus:ring-primary/50 transition-all"
+                      className="pl-12 h-11 bg-background/50 border-input focus:ring-2 focus:ring-primary/50 transition-all"
                       disabled={loading}
                     />
                   </div>
@@ -97,6 +98,7 @@ export default function Logins() {
                   className="w-full h-12 text-base font-medium"
                   background="var(--primary)"
                   shimmerColor="rgba(255, 255, 255, 0.4)"
+                  style={{ color: "hsl(var(--foreground))" }}
                 >
                   {loading ? (
                     <span className="flex items-center gap-2">

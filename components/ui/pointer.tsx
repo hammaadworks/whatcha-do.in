@@ -31,39 +31,31 @@ export function Pointer({
 
   useEffect(() => {
     if (typeof window !== "undefined" && containerRef.current) {
-      // Get the parent element directly from the ref
-      const parentElement = containerRef.current.parentElement
+      const handleMouseMove = (e: MouseEvent) => {
+        x.set(e.clientX)
+        y.set(e.clientY)
+      }
 
-      if (parentElement) {
-        // Add cursor-none to parent
-        parentElement.style.cursor = "none"
+      const handleMouseEnter = () => {
+        setIsActive(true)
+        document.body.classList.add("hide-native-cursor")
+      }
 
-        // Add event listeners to parent
-        const handleMouseMove = (e: MouseEvent) => {
-          x.set(e.clientX)
-          y.set(e.clientY)
-        }
+      const handleMouseLeave = () => {
+        setIsActive(false)
+        document.body.classList.remove("hide-native-cursor")
+      }
+      
+      // Attach event listeners to the window to ensure global coverage
+      window.addEventListener("mousemove", handleMouseMove)
+      window.addEventListener("mouseenter", handleMouseEnter) // Use mouseenter/mouseleave on window for global active state
+      window.addEventListener("mouseleave", handleMouseLeave)
 
-        const handleMouseEnter = (e: MouseEvent) => {
-          x.set(e.clientX)
-          y.set(e.clientY)
-          setIsActive(true)
-        }
-
-        const handleMouseLeave = () => {
-          setIsActive(false)
-        }
-
-        parentElement.addEventListener("mousemove", handleMouseMove)
-        parentElement.addEventListener("mouseenter", handleMouseEnter)
-        parentElement.addEventListener("mouseleave", handleMouseLeave)
-
-        return () => {
-          parentElement.style.cursor = ""
-          parentElement.removeEventListener("mousemove", handleMouseMove)
-          parentElement.removeEventListener("mouseenter", handleMouseEnter)
-          parentElement.removeEventListener("mouseleave", handleMouseLeave)
-        }
+      return () => {
+        document.body.classList.remove("hide-native-cursor")
+        window.removeEventListener("mousemove", handleMouseMove)
+        window.removeEventListener("mouseenter", handleMouseEnter)
+        window.removeEventListener("mouseleave", handleMouseLeave)
       }
     }
   }, [x, y])
