@@ -57,16 +57,16 @@ export function BeforeAfterSection() {
                     <Terminal className="min-h-[300px] border-primary/50 bg-primary/10 shadow-lg">
                          <TypingAnimation delay={200}>&gt; run_whatcha_doin.sh</TypingAnimation>
                          <AnimatedSpan delay={800} className="text-green-500">
-                            <span>SUCCESS: tiny_habit.execute() -> +10 Identity XP.</span>
+                            <span>SUCCESS: tiny_habit.execute() -&gt; +10 Identity XP.</span>
                          </AnimatedSpan>
                          <AnimatedSpan delay={1800} className="text-green-500">
                             <span>INFO: Two-Day Rule: Streak rescued. Consistency engine active.</span>
                          </AnimatedSpan>
                          <AnimatedSpan delay={2800} className="text-blue-500">
-                            <span>ACTION: chip.drag_drop_done() -> Brain-friendly productivity.</span>
+                            <span>ACTION: chip.drag_drop_done() -&gt; Brain-friendly productivity.</span>
                          </AnimatedSpan>
                          <AnimatedSpan delay={3800} className="text-muted-foreground">
-                            <span>LOG: auto_journal.update() -> Growth documented.</span>
+                            <span>LOG: auto_journal.update() -&gt; Growth documented.</span>
                          </AnimatedSpan>
                          <TypingAnimation delay={4800} className="text-primary font-bold">
                             &gt; System Optimized. Identity: DISCIPLINED. _
