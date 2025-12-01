@@ -9,7 +9,7 @@ import { Terminal, TypingAnimation, AnimatedSpan } from "@/components/ui/termina
 
 export function HeroSection() {
   return (
-    <section className="relative min-h-[90vh] w-full overflow-hidden bg-background pt-24 pb-32 px-4">
+    <section className="relative w-full overflow-hidden bg-background pt-8 pb-32 px-4 md:pt-12">
       <div className="z-10 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center max-w-7xl mx-auto">
         
         {/* Left Column: Text & CTA */}
@@ -65,32 +65,30 @@ export function HeroSection() {
         <div className="w-full max-w-lg mx-auto lg:ml-auto lg:mr-0">
              <BlurFade delay={0.6} inView className="w-full">
                  <Terminal className="min-h-[350px] shadow-2xl border-border/50 bg-card/80 backdrop-blur-md">
-                    <TypingAnimation delay={500}>&gt; user.status</TypingAnimation>
+                    <TypingAnimation delay={500}>&gt; run daily_review</TypingAnimation>
                     
-                    <AnimatedSpan delay={1200} className="text-amber-500">
-                      <span>⚠ Current Status: "Ambitious Underachiever"</span>
+                    <AnimatedSpan delay={1200} className="text-muted-foreground">
+                      <span>Checking "Morning Run"...</span>
                     </AnimatedSpan>
                     
-                    <TypingAnimation delay={2000}>
-                       &gt; whatcha_doin.init()
-                    </TypingAnimation>
-
-                    <AnimatedSpan delay={2800} className="text-muted-foreground">
-                      <span>✔ Two-Day Rule: ACTIVE.</span>
-                      <br/>
-                      <span>✔ Action Chips: READY.</span>
+                    <AnimatedSpan delay={1800} className="text-green-500">
+                      <span>✔ COMPLETE. Streak: 12 days 🔥</span>
+                    </AnimatedSpan>
+                    
+                    <AnimatedSpan delay={2500} className="text-muted-foreground">
+                        <span>Checking "Read 10 Pages"...</span>
                     </AnimatedSpan>
 
-                    <TypingAnimation delay={3800}>
-                       &gt; log_habit "Recite Surah Fath"
-                    </TypingAnimation>
-
-                    <AnimatedSpan delay={4800} className="text-green-500">
-                      <span>✔ Streak preserved! (+1 Identity XP)</span>
+                    <AnimatedSpan delay={3200} className="text-amber-500">
+                      <span>⚠ MISSED (Yesterday). Two-Day Rule Active!</span>
                     </AnimatedSpan>
 
-                    <TypingAnimation delay={5800} className="text-primary font-bold">
-                       &gt; Identity upgrading... 1% complete. _
+                    <TypingAnimation delay={4200} className="text-red-500 font-bold">
+                       &gt; ALERT: Must complete TODAY to save streak.
+                    </TypingAnimation>
+                    
+                    <TypingAnimation delay={5500} className="text-primary font-bold">
+                       &gt; Initiating "Get Back on Track" sequence... _
                     </TypingAnimation>
                  </Terminal>
             </BlurFade>
