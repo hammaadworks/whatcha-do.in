@@ -6,7 +6,7 @@ import { BeforeAfterSection } from "@/components/landing/BeforeAfterSection";
 import { PsychologySection } from "@/components/landing/PsychologySection";
 import { FeaturesSection } from "@/components/landing/FeaturesSection";
 import { CTASection } from "@/components/landing/CTASection";
-import { DotPattern } from "@/components/ui/dot-pattern";
+import { FlickeringGrid } from "@/components/ui/flickering-grid";
 import { cn } from "@/lib/utils";
 import type { Metadata } from 'next';
 
@@ -18,19 +18,25 @@ export const metadata: Metadata = {
 export default function LandingPage() {
   return (
     <div className="relative min-h-screen w-full overflow-hidden bg-background text-foreground font-mono selection:bg-primary selection:text-primary-foreground">
-      <DotPattern
-        className={cn(
-          "[mask-image:radial-gradient(1200px_circle_at_center,white,transparent)]",
-          "opacity-50"
-        )}
+      <FlickeringGrid
+        className="z-0 absolute inset-0 size-full"
+        squareSize={4}
+        gridGap={6}
+        color="#6B7280"
+        maxOpacity={0.1}
+        flickerChance={0.1}
+        height={800}
+        width={800}
       />
-      <HeroSection />
-      <ProblemSection />
-      <BackstorySection />
-      <BeforeAfterSection />
-      <PsychologySection />
-      <FeaturesSection />
-      <CTASection />
+      <div className="relative z-10">
+        <HeroSection />
+        <ProblemSection />
+        <BackstorySection />
+        <BeforeAfterSection />
+        <PsychologySection />
+        <FeaturesSection />
+        <CTASection />
+      </div>
     </div>
   );
 }
