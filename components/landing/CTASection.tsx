@@ -25,7 +25,7 @@ export function CTASection() {
         <BlurFade delay={0.6} inView>
             <div className="flex flex-col items-center gap-4 sm:flex-row">
                 <Link href="/logins">
-                    <ShimmerButton className="shadow-2xl">
+                    <ShimmerButton className="shadow-2xl" background="var(--primary)">
                         <span className="whitespace-pre-wrap text-center text-xl font-medium leading-none tracking-tight text-white dark:from-white dark:to-slate-900/10">
                             Start Building Your Identity
                         </span>
