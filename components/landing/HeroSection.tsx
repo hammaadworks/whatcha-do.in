@@ -10,10 +10,10 @@ import { Terminal, TypingAnimation, AnimatedSpan } from "@/components/ui/termina
 export function HeroSection() {
   return (
     <section className="relative w-full overflow-hidden bg-background pt-8 pb-32 px-4 md:pt-12">
-      <div className="z-10 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center max-w-7xl mx-auto">
+      <div className="z-10 grid grid-cols-1 lg:grid-cols-2 gap-12 items-start max-w-7xl mx-auto">
         
         {/* Left Column: Text & CTA */}
-        <div className="flex flex-col items-start text-left space-y-8">
+        <div className="flex flex-col items-start text-left space-y-8 lg:pt-8">
             <BlurFade delay={0.2} inView>
                 <Link href="/me">
                     <div className="group inline-flex items-center rounded-full border border-border bg-background/50 backdrop-blur-sm px-4 py-1.5 text-sm font-medium text-muted-foreground shadow-sm transition-colors hover:bg-secondary/50 hover:border-primary/50">
@@ -22,7 +22,7 @@ export function HeroSection() {
                               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
                               <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
                             </span>
-                            Inspired by Phineas & Ferb
+                            Never be stuck on &quot;Whatcha Doin&quot;?
                             <span className="hidden sm:inline-flex items-center rounded-md bg-primary/10 px-2 py-0.5 text-xs font-bold text-primary ring-1 ring-inset ring-primary/20">
                                 beta v1
                             </span>
@@ -72,34 +72,38 @@ export function HeroSection() {
         </div>
 
         {/* Right Column: Interactive Terminal */}
-        <div className="w-full max-w-lg mx-auto lg:ml-auto lg:mr-0">
+        <div className="w-full max-w-lg mx-auto lg:ml-auto lg:mr-0 lg:-mt-4">
              <BlurFade delay={0.6} inView className="w-full">
                  <Terminal className="min-h-[350px] shadow-2xl border-border/50 bg-card/80 backdrop-blur-md">
-                    <TypingAnimation delay={500}>&gt; run daily_review</TypingAnimation>
+                    <TypingAnimation delay={500}>&gt; init identity_toolkit</TypingAnimation>
                     
                     <AnimatedSpan delay={1200} className="text-muted-foreground">
-                      <span>Checking "Morning Run"...</span>
-                    </AnimatedSpan>
-                    
-                    <AnimatedSpan delay={1800} className="text-green-500">
-                      <span>✔ COMPLETE. Streak: 12 days 🔥</span>
-                    </AnimatedSpan>
-                    
-                    <AnimatedSpan delay={2500} className="text-muted-foreground">
-                        <span>Checking "Read 10 Pages"...</span>
+                      <span>Loading modules...</span>
                     </AnimatedSpan>
 
-                    <AnimatedSpan delay={3200} className="text-amber-500">
-                      <span>⚠ MISSED (Yesterday). Two-Day Rule Active!</span>
+                    <TypingAnimation delay={2000}>
+                       &gt; create_action "Launch MVP" --priority=high
+                    </TypingAnimation>
+
+                    <AnimatedSpan delay={2800} className="text-green-500">
+                      <span>✔ Action created. (Focus Mode ON)</span>
                     </AnimatedSpan>
 
-                    <TypingAnimation delay={4200} className="text-red-500 font-bold">
-                       &gt; ALERT: Must complete TODAY to save streak.
+                    <TypingAnimation delay={3800}>
+                       &gt; log_habit "Deep Work" --duration=4h
                     </TypingAnimation>
-                    
-                    <TypingAnimation delay={5500} className="text-primary font-bold">
-                       &gt; Initiating "Get Back on Track" sequence... _
+
+                    <AnimatedSpan delay={4800} className="text-green-500">
+                      <span>✔ Habit logged. Streak: 8 days 🔥</span>
+                    </AnimatedSpan>
+
+                    <TypingAnimation delay={5800}>
+                       &gt; view_journal --today
                     </TypingAnimation>
+
+                    <AnimatedSpan delay={6800} className="text-primary">
+                      <span>✔ Journal updated with 2 completed items.</span>
+                    </AnimatedSpan>
                  </Terminal>
             </BlurFade>
         </div>
