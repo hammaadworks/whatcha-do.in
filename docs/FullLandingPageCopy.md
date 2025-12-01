@@ -4,41 +4,37 @@
 
 **"So... whatcha doin'?"**
 
-Become the person you always kept imagining!
-This app stacks up **Identity × Discipline × Consistency**, one habit at a
+The app that helps you become the person you keep imagining --- by
+stacking **Identity × Discipline × Consistency**, one tiny action at a
 time.
 
-Inspired by the iconic Phineas & Ferb question that always expects
-greatness.
+> "Small actions, done consistently, turn ambition into identity."
 
-> "Small actions, done consistently, with discipline, turn ambitions into identity."
-
-**CTA:** Start Building Your Identity
+**CTA:** Start Your Identity Run
 
 ## Problem Section
 
-**For the Lazy Ambitious Underachiver**
-because ambitions isn't your problem - your system routine is.
+**Ambition isn't your problem --- your system is.**
 
-You're not unmotivated nor lazy. You just lack discipline and a clear path. You're just stuck in the loop:
+You're not unmotivated. You're just stuck in the "ambitious
+underachiever" loop:
 
--   Big goals → overwhelming\
--   One broken streak → vibe gone\
--   Too many distractions → no emotional connection\
--   Waiting for the sweet perfect moment → it never starts
+-   Big goals → Overwhelming
+-   One broken streak → vibe gone
+-   Too many apps → no emotional connection
+-   Waiting for the perfect moment → never starts
 
-whatcha-doin resets the whole game by helping you build identity, not pressure.
+whatcha-doin resets the whole game by helping you build **identity**, not
+pressure.
 
 > "Identity drives habits. Habits drive identity. We make the loop work
 > for you."
-
-cta: Redfine yourself
 
 ## Backstory Section
 
 **Born from an iconic question.**
 
-Every episode, Isabella walks up with that curious smile and asks:\
+Every episode, Isabella walks up with that curious smile and asks:
 **"Whatcha doin'?"**
 
 Phineas always had an answer --- not because he was perfect but because
@@ -56,16 +52,16 @@ building --- even if it's tiny.
 
 ### Before
 
--   Overthinking → no action\
--   Streak breaks → momentum gone\
--   Big goals → burnout\
+-   Overthinking → no action
+-   Streak breaks → momentum gone
+-   Big goals → burnout
 -   Productivity apps → too complex
 
 ### After
 
--   Tiny habits → daily identity XP\
--   Two-Day Rule → consistency made human\
--   Action chips → calm visual clarity\
+-   Tiny habits → daily identity XP
+-   Two-Day Rule → consistency made human
+-   Action chips → calm visual clarity
 -   Journaling → auto-documented growth
 
 You go from "trying to be disciplined" to *being* a disciplined person.
@@ -129,13 +125,13 @@ Quotes that actually hit.
 
 **It's build-your-identity o'clock.**
 
-You've imagined the best version of you long enough.\
+You've imagined the best version of you long enough.
 Here's the simplest way to start --- today, in the tiniest way.
 
-Identity is built daily.\
+Identity is built daily.
 Today is ready when you are.
 
 **CTA:** Start Building Your Identity
 
-> "A year from now, they'll ask how you did it.\
+> "A year from now, they'll ask how you did it.
 > You'll say: 'I just didn't miss two days.'"
