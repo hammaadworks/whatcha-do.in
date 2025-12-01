@@ -2,6 +2,9 @@
 
 import { BlurFade } from "@/components/ui/blur-fade";
 import { Check, X, Zap, AlertTriangle, Layers, PlayCircle } from "lucide-react";
+import Link from "next/link";
+import { CoolMode } from "@/components/ui/cool-mode";
+import { ShimmerButton } from "@/components/ui/shimmer-button";
 
 const problems = [
   {
@@ -16,13 +19,13 @@ const problems = [
   },
   {
     icon: X,
-    title: "Too many apps → no emotional connection",
-    description: "Too many apps → no emotional connection",
+    title: "Too many distractions → no emotional connection",
+    description: "Too many distractions → no emotional connection",
   },
   {
     icon: PlayCircle,
-    title: "Waiting for the perfect moment → never starts",
-    description: "Waiting for the perfect moment → never starts",
+    title: "Waiting for the sweet perfect moment → it never starts.",
+    description: "Waiting for the sweet perfect moment → it never starts.",
   },
 ];
 
@@ -33,13 +36,13 @@ export function ProblemSection() {
         <div className="text-center space-y-4">
           <BlurFade delay={0.2} inView>
             <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-5xl">
-              Ambition isn&apos;t your problem — <br />
-              <span className="text-primary">your system is.</span>
+              For the Lazy Ambitious Underachiver <br />
+              <span className="text-primary">because ambitions isn&apos;t your problem - your system routine is.</span>
             </h2>
           </BlurFade>
           <BlurFade delay={0.3} inView>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              You&apos;re not unmotivated. You&apos;re just stuck in the &quot;ambitious underachiever&quot; loop:
+              You&apos;re not unmotivated nor lazy. You just lack discipline and a clear path. You&apos;re just stuck in the loop:
             </p>
           </BlurFade>
         </div>
@@ -64,11 +67,22 @@ export function ProblemSection() {
         <BlurFade delay={0.8} inView>
           <div className="text-center max-w-3xl mx-auto space-y-6">
             <p className="text-2xl font-medium text-foreground">
-              whatcha-doin resets the whole game by helping you build <span className="text-primary font-bold">identity</span>, not pressure.
+              whatcha-doin resets the whole game by helping you build <span className="text-primary font-bold">identity</span> not pressure.
             </p>
             <blockquote className="border-l-4 border-primary pl-6 py-2 text-lg italic text-muted-foreground text-left mx-auto max-w-xl bg-secondary/10 rounded-r-lg">
               &quot;Identity drives habits. Habits drive identity. We make the loop work for you.&quot;
             </blockquote>
+            <div className="flex flex-col items-center gap-4 mt-8">
+                <Link href="/me">
+                    <CoolMode>
+                        <ShimmerButton className="shadow-2xl" background="var(--primary)">
+                            <span className="whitespace-pre-wrap text-center text-base font-medium leading-none tracking-tight text-white dark:from-white dark:to-slate-900/10 lg:text-lg">
+                                Redefine Yourself
+                            </span>
+                        </ShimmerButton>
+                    </CoolMode>
+                </Link>
+            </div>
           </div>
         </BlurFade>
       </div>

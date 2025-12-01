@@ -3,32 +3,30 @@
 ## Hero Section
 
 **"So... whatcha doin'?"**
+Become the person you always kept imagining!
 
-The app that helps you become the person you keep imagining --- by
-stacking **Identity × Discipline × Consistency**, one tiny action at a
-time.
+This app stacks up **Identity × Discipline × Consistency**, one habit at a time.
 
-> "Small actions, done consistently, turn ambition into identity."
+Inspired by the iconic Phineas & Ferb question that always expects greatness.
 
-**CTA:** Start Your Identity Run
+> "Small actions, done consistently, with discipline, turn ambitions into identity."
+
+**CTA:** Start Building Your Identity
 
 ## Problem Section
-
-**Ambition isn't your problem --- your system is.**
-
-You're not unmotivated. You're just stuck in the "ambitious
-underachiever" loop:
-
--   Big goals → Overwhelming
+**For the Lazy Ambitious Underachiver**
+because ambitions isn't your problem - your system routine is.
+You're not unmotivated nor lazy. You just lack discipline and a clear path. You're just stuck in the loop:
+-   Big goals → overwhelming
 -   One broken streak → vibe gone
--   Too many apps → no emotional connection
--   Waiting for the perfect moment → never starts
+-   Too many distractions → no emotional connection
+-   Waiting for the sweet perfect moment → it never starts.
 
-whatcha-doin resets the whole game by helping you build **identity**, not
-pressure.
+whatcha-doin resets the whole game by helping you build **identity** not pressure.
 
-> "Identity drives habits. Habits drive identity. We make the loop work
-> for you."
+> "Identity drives habits. Habits drive identity. We make the loop work for you."
+
+**CTA:** Redefine Yourself
 
 ## Backstory Section
 
