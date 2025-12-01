@@ -29,19 +29,23 @@ export function BeforeAfterSection() {
             <BlurFade delay={0.4} inView>
                 <div className="space-y-4">
                     <h3 className="text-xl font-bold text-destructive text-center">Before</h3>
-                    <Terminal className="min-h-[300px] border-destructive/30 bg-destructive/5 shadow-lg">
-                         <AnimatedSpan delay={500} className="text-destructive">
-                            <span>✖ [ERROR] Process &apos;Overthinking&apos; caused loop timeout.</span>
+                    <Terminal className="min-h-[300px] border-destructive/50 bg-destructive/10 shadow-lg">
+                         <TypingAnimation delay={200}>&gt; run_old_system.sh</TypingAnimation>
+                         <AnimatedSpan delay={800} className="text-red-500">
+                            <span>ERROR: Goal (Big) out of scope. Exception: Overwhelmed.</span>
                          </AnimatedSpan>
-                         <AnimatedSpan delay={1500} className="text-destructive/80">
-                            <span>⚠ [WARN] Streak broke at day 3. Momentum lost.</span>
+                         <AnimatedSpan delay={1800} className="text-red-500/80">
+                            <span>WARNING: Streak-breaker detected. Vibe.exe terminated.</span>
                          </AnimatedSpan>
-                         <AnimatedSpan delay={2500} className="text-destructive/80">
-                            <span>⚠ [WARN] Goal buffer overflow: &quot;Big Goals&quot; too large for memory.</span>
+                         <AnimatedSpan delay={2800} className="text-red-500/80">
+                            <span>FAILURE: System too complex. User input: "Wait for perfect moment."</span>
                          </AnimatedSpan>
-                         <AnimatedSpan delay={3500} className="text-muted-foreground">
-                            <span>&gt; System crash. Rebooting in procrastination mode...</span>
+                         <AnimatedSpan delay={3800} className="text-red-500">
+                            <span>CRITICAL: Procrastination loop initiated. Status: Stuck.</span>
                          </AnimatedSpan>
+                         <TypingAnimation delay={4800} className="text-destructive font-bold">
+                            &gt; System Halt. Identity: FRAGMENTED. _
+                         </TypingAnimation>
                     </Terminal>
                 </div>
             </BlurFade>
@@ -50,18 +54,22 @@ export function BeforeAfterSection() {
             <BlurFade delay={0.5} inView>
                 <div className="space-y-4">
                      <h3 className="text-xl font-bold text-primary text-center">After</h3>
-                    <Terminal className="min-h-[300px] border-primary/30 bg-primary/5 shadow-lg">
-                         <AnimatedSpan delay={500} className="text-green-500">
-                            <span>✔ [SUCCESS] Tiny habit executed (+10 Identity XP).</span>
+                    <Terminal className="min-h-[300px] border-primary/50 bg-primary/10 shadow-lg">
+                         <TypingAnimation delay={200}>&gt; run_whatcha_doin.sh</TypingAnimation>
+                         <AnimatedSpan delay={800} className="text-green-500">
+                            <span>SUCCESS: tiny_habit.execute() -> +10 Identity XP.</span>
                          </AnimatedSpan>
-                         <AnimatedSpan delay={1500} className="text-green-500">
-                            <span>✔ [INFO] Two-Day Rule active: Streak preserved.</span>
+                         <AnimatedSpan delay={1800} className="text-green-500">
+                            <span>INFO: Two-Day Rule: Streak rescued. Consistency engine active.</span>
                          </AnimatedSpan>
-                         <AnimatedSpan delay={2500} className="text-green-500">
-                            <span>✔ [SUCCESS] Action Chip deployed. Visual clarity: 100%.</span>
+                         <AnimatedSpan delay={2800} className="text-blue-500">
+                            <span>ACTION: chip.drag_drop_done() -> Brain-friendly productivity.</span>
                          </AnimatedSpan>
-                         <TypingAnimation delay={3500} className="text-primary font-bold">
-                            &gt; Auto-journaling growth... Done.
+                         <AnimatedSpan delay={3800} className="text-muted-foreground">
+                            <span>LOG: auto_journal.update() -> Growth documented.</span>
+                         </AnimatedSpan>
+                         <TypingAnimation delay={4800} className="text-primary font-bold">
+                            &gt; System Optimized. Identity: DISCIPLINED. _
                          </TypingAnimation>
                     </Terminal>
                 </div>

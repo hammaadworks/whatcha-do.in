@@ -51,7 +51,7 @@ export default function Logins() {
   };
 
   return (
-    <div className="flex w-full flex-col items-center justify-center p-2 pb-0">
+    <div className="flex w-full flex-col items-center p-2 pb-0">
       <BlurFade delay={0.25} inView>
         <MagicCard
           className="w-full max-w-md overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800 shadow-2xl"
@@ -95,10 +95,9 @@ export default function Logins() {
                 <ShimmerButton
                   type="submit"
                   disabled={loading}
-                  className="w-full h-12 text-base font-medium"
+                  className="w-full h-12 text-base font-medium text-white" // Explicitly setting text-white
                   background="var(--primary)"
-                  shimmerColor="rgba(255, 255, 255, 0.4)"
-                  style={{ color: "hsl(var(--primary-foreground))" }}
+                  shimmerColor="rgba(255, 255, 0.4)"
                 >
                   {loading ? (
                     <span className="flex items-center gap-2">
