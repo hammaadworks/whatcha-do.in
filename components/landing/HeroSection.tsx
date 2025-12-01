@@ -15,11 +15,21 @@ export function HeroSection() {
         {/* Left Column: Text & CTA */}
         <div className="flex flex-col items-start text-left space-y-8">
             <BlurFade delay={0.2} inView>
-                <div className="inline-flex items-center rounded-full border border-border bg-background/50 backdrop-blur-sm px-4 py-1.5 text-sm font-medium text-muted-foreground shadow-sm">
-                    <span className="flex items-center gap-1">
-                         Inspired by Phineas & Ferb <ChevronRight className="h-3 w-3" />
-                    </span>
-                </div>
+                <Link href="/me">
+                    <div className="group inline-flex items-center rounded-full border border-border bg-background/50 backdrop-blur-sm px-4 py-1.5 text-sm font-medium text-muted-foreground shadow-sm transition-colors hover:bg-secondary/50 hover:border-primary/50">
+                        <span className="flex items-center gap-2">
+                            <span className="relative flex h-2 w-2">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                              <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+                            </span>
+                            Inspired by Phineas & Ferb
+                            <span className="hidden sm:inline-flex items-center rounded-md bg-primary/10 px-2 py-0.5 text-xs font-bold text-primary ring-1 ring-inset ring-primary/20">
+                                beta v1
+                            </span>
+                            <ChevronRight className="h-3 w-3 transition-transform group-hover:translate-x-1" />
+                        </span>
+                    </div>
+                </Link>
             </BlurFade>
 
             <BlurFade delay={0.4} inView>
