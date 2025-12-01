@@ -10,15 +10,16 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Mail, Phone, ExternalLink, X, Github, Linkedin, MessageCircle } from "lucide-react";
+import { Mail, Phone, ExternalLink, X, Github, Linkedin, MessageCircle, Bug } from "lucide-react"; // Added Bug icon
 import Link from "next/link";
 
 interface ContactSupportModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onOpenFeedback: () => void; // New prop for interlinking
 }
 
-const ContactSupportModal: React.FC<ContactSupportModalProps> = ({ isOpen, onClose }) => {
+const ContactSupportModal: React.FC<ContactSupportModalProps> = ({ isOpen, onClose, onOpenFeedback }) => {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px]">
@@ -35,7 +36,7 @@ const ContactSupportModal: React.FC<ContactSupportModalProps> = ({ isOpen, onClo
               hammaadworks@gmail.com
             </Link>
           </div>
-          <p className="font-semibold mt-2">Find me on:</p>
+          <p className="font-semibold mt-2 text-center">Find me on:</p> {/* Added text-center */}
           <div className="grid grid-cols-2 gap-2 text-sm">
             <div className="flex items-center space-x-2">
               <MessageCircle className="h-4 w-4 text-muted-foreground" />
@@ -67,7 +68,7 @@ const ContactSupportModal: React.FC<ContactSupportModalProps> = ({ isOpen, onClo
                 ProductHunt
               </Link>
             </div>
-            <div className="flex items-center space-x-2 col-span-2">
+            <div className="flex items-center space-x-2"> {/* Removed col-span-2 */}
               <ExternalLink className="h-4 w-4 text-muted-foreground" />
               <Link href="https://www.hammaadworks.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
                 Website (Coming Soon)
@@ -75,8 +76,11 @@ const ContactSupportModal: React.FC<ContactSupportModalProps> = ({ isOpen, onClo
             </div>
           </div>
         </div>
-        <DialogFooter>
-          <Button onClick={onClose}>Close</Button>
+        <DialogFooter className="flex-col sm:flex-row sm:justify-between items-center sm:items-end"> {/* Adjusted for interlinking button */}
+            <Button onClick={onOpenFeedback} variant="outline" className="w-full sm:w-auto"> {/* Interlink button */}
+                <Bug className="h-4 w-4 mr-2" /> Send Feedback
+            </Button>
+            <Button onClick={onClose} className="w-full sm:w-auto">Close</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

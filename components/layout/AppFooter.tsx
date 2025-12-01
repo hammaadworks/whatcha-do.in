@@ -1,10 +1,11 @@
 'use client';
 
 import React, { useState } from 'react';
-import {usePWAInstall} from '@/hooks/usePWAInstall';
+import { usePWAInstall } from '@/hooks/usePWAInstall';
 import ContactSupportModal from '@/components/shared/ContactSupportModal'; // Import the new modal component
 import FeedbackModal from '@/components/shared/FeedbackModal'; // Import the feedback modal
 import { PWAInstallModal } from '@/components/shared/PWAInstallModal'; // Import the reusable PWA install modal
+import { LifeBuoy, Bug, Download } from 'lucide-react'; // Import icons
 
 const AppFooter = () => {
     const {
@@ -52,21 +53,31 @@ const AppFooter = () => {
     return (<footer className="text-center p-4 bg-card border-t border-card-border text-muted-foreground text-sm">
             &copy; {new Date().getFullYear()} whatcha-doin. All rights reserved.
 
-            <span className="mx-2">|</span>
-            <button onClick={() => setIsContactModalOpen(true)} className="text-primary hover:underline focus:outline-none">
-                Contact Support
-            </button>
-            <span className="mx-2">|</span>
-            <button onClick={() => setIsFeedbackModalOpen(true)} className="text-primary hover:underline focus:outline-none">
-                Send Feedback / Report Bug
-            </button>
-            <>
-                <span className="mx-2">|</span>
-                {renderPWAInstallUI()}
-            </>
+            <div className="flex items-center justify-center gap-x-4 mt-2">
+                <button onClick={() => setIsContactModalOpen(true)} className="flex items-center gap-x-1 text-primary hover:underline focus:outline-none text-sm">
+                    <LifeBuoy className="h-4 w-4" />
+                    <span>Contact Support</span>
+                </button>
+                <button onClick={() => setIsFeedbackModalOpen(true)} className="flex items-center gap-x-1 text-primary hover:underline focus:outline-none text-sm">
+                    <Bug className="h-4 w-4" />
+                    <span>Send Feedback / Report Bug</span>
+                </button>
+                <div className="flex items-center gap-x-1 text-primary hover:underline focus:outline-none text-sm">
+                    <Download className="h-4 w-4" />
+                    {renderPWAInstallUI()}
+                </div>
+            </div>
 
-            <ContactSupportModal isOpen={isContactModalOpen} onClose={() => setIsContactModalOpen(false)} />
-            <FeedbackModal isOpen={isFeedbackModalOpen} onClose={() => setIsFeedbackModalOpen(false)} />
+            <ContactSupportModal
+                isOpen={isContactModalOpen}
+                onClose={() => setIsContactModalOpen(false)}
+                onOpenFeedback={() => { setIsContactModalOpen(false); setIsFeedbackModalOpen(true); }}
+            />
+            <FeedbackModal
+                isOpen={isFeedbackModalOpen}
+                onClose={() => setIsFeedbackModalOpen(false)}
+                onOpenContact={() => { setIsFeedbackModalOpen(false); setIsContactModalOpen(true); }}
+            />
             <PWAInstallModal
                 show={showInstallMessage}
                 message={installMessage}

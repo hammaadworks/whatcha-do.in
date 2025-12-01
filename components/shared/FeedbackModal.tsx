@@ -32,10 +32,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
+import { LifeBuoy } from "lucide-react"; // Import LifeBuoy icon
 
 interface FeedbackModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onOpenContact: () => void; // New prop for interlinking
 }
 
 const formSchema = z.object({
@@ -52,7 +54,7 @@ const formSchema = z.object({
   }),
 });
 
-const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose }) => {
+const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose, onOpenContact }) => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -175,11 +177,14 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose }) => {
               )}
             />
 
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={onClose} disabled={isLoading}>
+            <DialogFooter className="flex-col sm:flex-row sm:justify-end items-center sm:items-end"> {/* Adjusted for interlinking button */}
+              <Button onClick={onOpenContact} variant="outline" className="w-full sm:w-auto"> {/* Interlink button */}
+                  <LifeBuoy className="h-4 w-4 mr-2" /> Contact Support
+              </Button>
+              <Button type="button" variant="outline" onClick={onClose} disabled={isLoading} className="w-full sm:w-auto mt-2 sm:mt-0">
                 Cancel
               </Button>
-              <Button type="submit" disabled={isLoading}>
+              <Button type="submit" disabled={isLoading} className="w-full sm:w-auto mt-2 sm:mt-0">
                 {isLoading ? "Sending..." : "Send Feedback"}
               </Button>
             </DialogFooter>
