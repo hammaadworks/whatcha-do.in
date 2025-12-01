@@ -51,7 +51,7 @@ export function HeroSection() {
 
             <BlurFade delay={0.8} inView>
                 <div className="flex flex-col sm:flex-row gap-4 mt-2">
-                    <Link href="/logins">
+                    <Link href="/me">
                         <ShimmerButton className="shadow-2xl" background="var(--primary)">
                             <span className="whitespace-pre-wrap text-center text-base font-medium leading-none tracking-tight text-white dark:from-white dark:to-slate-900/10 lg:text-lg">
                                 Start Your Identity Run
