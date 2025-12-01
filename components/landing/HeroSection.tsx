@@ -6,10 +6,11 @@ import { cn } from "@/lib/utils";
 import { RetroGrid } from "@/components/ui/retro-grid";
 import { ShimmerButton } from "@/components/ui/shimmer-button";
 import { BlurFade } from "@/components/ui/blur-fade";
+import { Terminal, TypingAnimation, AnimatedSpan } from "@/components/ui/terminal";
 
 export function HeroSection() {
   return (
-    <section className="relative flex min-h-[90vh] w-full flex-col items-center justify-center overflow-hidden bg-background">
+    <section className="relative flex min-h-[90vh] w-full flex-col items-center justify-center overflow-hidden bg-background pt-12 pb-24">
       <div className="z-10 flex max-w-5xl flex-col items-center justify-center gap-6 px-4 text-center">
         <BlurFade delay={0.2} inView>
           <div className="flex items-center justify-center">
@@ -37,7 +38,7 @@ export function HeroSection() {
         </BlurFade>
 
         <BlurFade delay={0.8} inView>
-          <div className="flex flex-col items-center gap-4 sm:flex-row">
+          <div className="flex flex-col items-center gap-4 sm:flex-row mb-12">
             <Link href="/logins">
               <ShimmerButton className="shadow-2xl">
                 <span className="whitespace-pre-wrap text-center text-sm font-medium leading-none tracking-tight text-white dark:from-white dark:to-slate-900/10 lg:text-lg">
@@ -48,10 +49,30 @@ export function HeroSection() {
           </div>
         </BlurFade>
         
-        <BlurFade delay={1.0} inView>
-            <p className="mt-8 text-sm text-muted-foreground italic">
-                "Small actions, done consistently, turn ambition into identity."
-            </p>
+        <BlurFade delay={1.0} inView className="w-full max-w-2xl mx-auto">
+             <Terminal>
+                <TypingAnimation>&gt; initializing identity_protocol...</TypingAnimation>
+                
+                <AnimatedSpan delay={1500} className="text-green-500">
+                  <span>✔ Identity Core Loaded.</span>
+                </AnimatedSpan>
+                
+                <AnimatedSpan delay={2000} className="text-green-500">
+                  <span>✔ Daily Habits Sync: ACTIVE.</span>
+                </AnimatedSpan>
+
+                <TypingAnimation delay={2500} className="text-muted-foreground">
+                  &gt; scanning for excuses...
+                </TypingAnimation>
+            
+                <AnimatedSpan delay={3500} className="text-red-500">
+                  <span>✖ 0 excuses found. Discipline mode engaged.</span>
+                </AnimatedSpan>
+
+                <TypingAnimation delay={4500} className="text-primary font-bold">
+                   &gt; Ready to build? (Y/n) _
+                </TypingAnimation>
+             </Terminal>
         </BlurFade>
       </div>
 

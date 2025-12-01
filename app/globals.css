@@ -44,144 +44,95 @@
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
   --animate-orbit: orbit calc(var(--duration)*1s) linear infinite;
-
   @keyframes orbit {
-    0% {
-      transform: rotate(calc(var(--angle) * 1deg)) translateY(calc(var(--radius) * 1px)) rotate(calc(var(--angle) * -1deg));
+  0% {
+    transform: rotate(calc(var(--angle) * 1deg)) translateY(calc(var(--radius) * 1px)) rotate(calc(var(--angle) * -1deg));
     }
-    100% {
-      transform: rotate(calc(var(--angle) * 1deg + 360deg)) translateY(calc(var(--radius) * 1px)) rotate(calc((var(--angle) * -1deg) - 360deg));
+  100% {
+    transform: rotate(calc(var(--angle) * 1deg + 360deg)) translateY(calc(var(--radius) * 1px)) rotate(calc((var(--angle) * -1deg) - 360deg));
     }
   }
+}
 
-  --animate-shine: shine var(--duration) infinite linear
-;
-  @keyframes shine {
-  0% {
-    background-position: 0% 0%;}
-  50% {
-    background-position: 100% 100%;}
-  to {
-    background-position: 0% 0%;}}}
-
-/* Zenith Theme (Light Mode) - HSL Values */
+/* Zenith Theme (Light Mode) */
 :root {
   --radius: 0.625rem;
+  --background: #FFFFFF; /* --bg */
+  --foreground: #212529; /* --fg */
+  --card: #F8F9FA; /* --card */
+  --card-foreground: #212529; /* Derived from --fg */
+  --popover: #FFFFFF; /* Similar to --bg */
+  --popover-foreground: #212529; /* Similar to --fg */
+  --primary: #FF6B6B; /* --primary */
+  --primary-foreground: #FFFFFF; /* --primary-fg */
+  --secondary: #F1F3F5; /* --secondary-bg */
+  --secondary-foreground: #495057; /* --secondary-fg */
+  --muted: #F1F3F5; /* Similar to --secondary-bg */
+  --muted-foreground: #495057; /* --muted-fg */
+  --accent: #FF6B6B; /* Using primary for accent */
+  --accent-foreground: #FFFFFF; /* Using primary-fg for accent-fg */
+  --destructive: #DC3545; /* Example: A red for destructive actions */
+  --border: #DEE2E6; /* --card-border */
+  --input: #DEE2E6; /* Similar to --card-border */
+  --ring: #FF6B6B; /* Primary color for ring */
+  --chart-1: #FF6B6B;
+  --chart-2: #FF8E53;
+  --chart-3: #4ECDC4;
+  --chart-4: #81D4FA;
+  --chart-5: #FFCA28;
+  --sidebar: #FFFFFF;
+  --sidebar-foreground: #212529;
+  --sidebar-primary: #FF6B6B;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #F1F3F5;
+  --sidebar-accent-foreground: #495057;
+  --sidebar-border: #DEE2E6;
+  --sidebar-ring: #FF6B6B;
 
-  /* Base Colors */
-  --background: 0 0% 100%; /* #FFFFFF */
-  --foreground: 210 11% 15%; /* #212529 */
-
-  /* Component Colors */
-  --card: 210 14% 98%; /* #F8F9FA */
-  --card-foreground: 210 11% 15%; /* #212529 */
-  --popover: 0 0% 100%; /* #FFFFFF */
-  --popover-foreground: 210 11% 15%; /* #212529 */
-
-  /* Primary - #FF6B6B */
-  --primary: 0 100% 71%; 
-  --primary-foreground: 0 0% 100%; /* #FFFFFF */
-
-  /* Secondary - #F1F3F5 */
-  --secondary: 210 17% 95%; 
-  --secondary-foreground: 210 10% 23%; /* #495057 */
-
-  /* Muted - #F1F3F5 */
-  --muted: 210 17% 95%; 
-  --muted-foreground: 210 10% 23%; /* #495057 */
-
-  /* Accent - #FF6B6B */
-  --accent: 0 100% 71%; 
-  --accent-foreground: 0 0% 100%; /* #FFFFFF */
-
-  /* Destructive - #DC3545 */
-  --destructive: 354 70% 54%; 
-  --destructive-foreground: 0 0% 100%; /* #FFFFFF */
-
-  /* Borders & Inputs */
-  --border: 210 14% 89%; /* #DEE2E6 */
-  --input: 210 14% 98%; /* #F8F9FA */
-  --ring: 0 100% 71%; /* #FF6B6B */
-
-  /* Charts - Kept as Hex/HSL Mix where appropriate or approximated */
-  --chart-1: 0 100% 71%;
-  --chart-2: 21 100% 66%;
-  --chart-3: 176 57% 55%;
-  --chart-4: 200 91% 74%;
-  --chart-5: 45 100% 58%;
-
-  /* Sidebar */
-  --sidebar: 0 0% 100%;
-  --sidebar-foreground: 210 11% 15%;
-  --sidebar-primary: 0 100% 71%;
-  --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 210 17% 95%;
-  --sidebar-accent-foreground: 210 10% 23%;
-  --sidebar-border: 210 14% 89%;
-  --sidebar-ring: 0 100% 71%;
-
-  /* UX Theme Specifics */
+  /* Custom variables for themes */
   --gradient-primary: linear-gradient(45deg, #FF6B6B, #FF8E53);
   --chip-background: #F1F3F5;
   --chip-foreground: #212529;
   --chip-border: #DEE2E6;
+  --primary-dark-variant: hsl(var(--primary-hsl) / 0.8);
 }
 
-/* Monolith Theme (Dark Mode) - HSL Values */
+/* Monolith Theme (Dark Mode) */
 .dark {
-  /* Base Colors */
-  --background: 0 0% 9%; /* #161616 */
-  --foreground: 0 0% 88%; /* #E0E0E0 */
+  --background: #161616; /* --bg */
+  --foreground: #E0E0E0; /* --fg */
+  --card: #222222; /* --card */
+  --card-foreground: #E0E0E0; /* Derived from --fg */
+  --popover: #161616; /* Similar to --bg */
+  --popover-foreground: #E0E0E0; /* Similar to --fg */
+  --primary: #00F5A0; /* --primary */
+  --primary-foreground: #000000; /* --primary-fg */
+  --secondary: #2a2a2a; /* --secondary-bg */
+  --secondary-foreground: #CCCCCC; /* --secondary-fg */
+  --muted: #2a2a2a; /* Similar to --secondary-bg */
+  --muted-foreground: #CCCCCC; /* --muted-fg */
+  --accent: #00F5A0; /* Using primary for accent */
+  --accent-foreground: #000000; /* Using primary-fg for accent-fg */
+  --destructive: #FF4757; /* Original bright red for destructive actions */
+  --destructive-foreground: hsl(0 0% 100%); /* Revert to white text */
+  --border: #3A3A3A; /* --card-border */
+  --input: #3A3A3A; /* Similar to --card-border */
+  --ring: #00F5A0; /* Primary color for ring */
+  --chart-1: #00F5A0;
+  --chart-2: #00D2B8;
+  --chart-3: #8B5CF6;
+  --chart-4: #EC4899;
+  --chart-5: #F97316;
+  --sidebar: #222222;
+  --sidebar-foreground: #E0E0E0;
+  --sidebar-primary: #00F5A0;
+  --sidebar-primary-foreground: #000000;
+  --sidebar-accent: #2a2a2a;
+  --sidebar-accent-foreground: #CCCCCC;
+  --sidebar-border: #3A3A3A;
+  --sidebar-ring: #00F5A0;
 
-  /* Component Colors */
-  --card: 0 0% 13%; /* #222222 */
-  --card-foreground: 0 0% 88%; /* #E0E0E0 */
-  --popover: 0 0% 9%; /* #161616 */
-  --popover-foreground: 0 0% 88%; /* #E0E0E0 */
-
-  /* Primary - #00F5A0 */
-  --primary: 159 100% 48%; 
-  --primary-foreground: 0 0% 0%; /* #000000 */
-
-  /* Secondary - #2a2a2a */
-  --secondary: 0 0% 16%; 
-  --secondary-foreground: 0 0% 80%; /* #CCCCCC */
-
-  /* Muted - #2a2a2a */
-  --muted: 0 0% 16%; 
-  --muted-foreground: 0 0% 60%; /* #999999 */
-
-  /* Accent - #00F5A0 */
-  --accent: 159 100% 48%; 
-  --accent-foreground: 0 0% 0%; /* #000000 */
-
-  /* Destructive - #FF4757 */
-  --destructive: 355 100% 64%; 
-  --destructive-foreground: 0 0% 100%; /* #FFFFFF */
-
-  /* Borders & Inputs */
-  --border: 0 0% 23%; /* #3A3A3A */
-  --input: 0 0% 13%; /* #222222 */
-  --ring: 159 100% 48%; /* #00F5A0 */
-
-  /* Charts */
-  --chart-1: 159 100% 48%;
-  --chart-2: 173 100% 41%;
-  --chart-3: 258 90% 66%;
-  --chart-4: 330 81% 60%;
-  --chart-5: 28 94% 53%;
-
-  /* Sidebar */
-  --sidebar: 0 0% 13%;
-  --sidebar-foreground: 0 0% 88%;
-  --sidebar-primary: 159 100% 48%;
-  --sidebar-primary-foreground: 0 0% 0%;
-  --sidebar-accent: 0 0% 16%;
-  --sidebar-accent-foreground: 0 0% 80%;
-  --sidebar-border: 0 0% 23%;
-  --sidebar-ring: 159 100% 48%;
-
-  /* UX Theme Specifics */
+  /* Custom variables for themes */
   --gradient-primary: linear-gradient(45deg, #00F5A0, #00D2B8);
   --chip-background: #222222;
   --chip-foreground: #E0E0E0;
@@ -195,6 +146,18 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Keyframe Animations for Motivational Quote Card */
+@keyframes pulse-glow {
+    0% { box-shadow: 0 0 10px var(--primary); }
+    50% { box-shadow: 0 0 25px var(--primary), 0 0 50px rgba(255,255,255,0.1); }
+    100% { box-shadow: 0 0 10px var(--primary); }
+}
+
+@keyframes rotate-light {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 
 /* Custom Utility for Glassmorphic Cards */
