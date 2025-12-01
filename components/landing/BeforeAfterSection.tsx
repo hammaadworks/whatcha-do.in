@@ -1,27 +1,14 @@
 "use client";
 
 import { BlurFade } from "@/components/ui/blur-fade";
-import { Check, X } from "lucide-react";
-import { cn } from "@/lib/utils";
-
-const beforeItems = [
-  "Overthinking → no action",
-  "Streak breaks → momentum gone",
-  "Big goals → burnout",
-  "Productivity apps → too complex",
-];
-
-const afterItems = [
-  "Tiny habits → daily identity XP",
-  "Two-Day Rule → consistency made human",
-  "Action chips → calm visual clarity",
-  "Journaling → auto-documented growth",
-];
+import { Terminal, TypingAnimation, AnimatedSpan } from "@/components/ui/terminal";
 
 export function BeforeAfterSection() {
   return (
-    <section className="py-24 px-4 w-full bg-secondary/30">
-      <div className="max-w-5xl mx-auto space-y-12">
+    <section className="py-24 px-4 w-full bg-secondary/20 border-t border-border/40">
+      <div className="max-w-6xl mx-auto space-y-16">
+        
+        {/* Header */}
         <div className="text-center space-y-4">
           <BlurFade delay={0.2} inView>
             <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-5xl">
@@ -30,48 +17,56 @@ export function BeforeAfterSection() {
           </BlurFade>
           <BlurFade delay={0.3} inView>
              <p className="text-xl text-muted-foreground">
-               You go from "trying to be disciplined" to <span className="text-foreground font-bold italic">being</span> a disciplined person.
+               You go from &quot;trying to be disciplined&quot; to <span className="text-foreground font-bold italic">being</span> a disciplined person.
              </p>
           </BlurFade>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Before Card */}
+        {/* Comparison Terminals */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
+            
+            {/* Before Terminal */}
             <BlurFade delay={0.4} inView>
-                <div className="h-full p-8 rounded-3xl bg-background border border-destructive/20 shadow-sm relative overflow-hidden group">
-                    <div className="absolute top-0 left-0 w-1 h-full bg-destructive/50 group-hover:bg-destructive transition-colors" />
-                    <h3 className="text-2xl font-bold text-destructive mb-8 flex items-center gap-2">
-                        <X className="w-6 h-6" /> Before
-                    </h3>
-                    <ul className="space-y-6">
-                        {beforeItems.map((item, i) => (
-                            <li key={i} className="flex items-center gap-3 text-muted-foreground text-lg">
-                                <div className="h-2 w-2 rounded-full bg-destructive/40" />
-                                {item}
-                            </li>
-                        ))}
-                    </ul>
+                <div className="space-y-4">
+                    <h3 className="text-xl font-bold text-destructive text-center">Before</h3>
+                    <Terminal className="min-h-[300px] border-destructive/30 bg-destructive/5 shadow-lg">
+                         <AnimatedSpan delay={500} className="text-destructive">
+                            <span>✖ [ERROR] Process &apos;Overthinking&apos; caused loop timeout.</span>
+                         </AnimatedSpan>
+                         <AnimatedSpan delay={1500} className="text-destructive/80">
+                            <span>⚠ [WARN] Streak broke at day 3. Momentum lost.</span>
+                         </AnimatedSpan>
+                         <AnimatedSpan delay={2500} className="text-destructive/80">
+                            <span>⚠ [WARN] Goal buffer overflow: &quot;Big Goals&quot; too large for memory.</span>
+                         </AnimatedSpan>
+                         <AnimatedSpan delay={3500} className="text-muted-foreground">
+                            <span>&gt; System crash. Rebooting in procrastination mode...</span>
+                         </AnimatedSpan>
+                    </Terminal>
                 </div>
             </BlurFade>
 
-            {/* After Card */}
+            {/* After Terminal */}
             <BlurFade delay={0.5} inView>
-                <div className="h-full p-8 rounded-3xl bg-background border border-primary/20 shadow-xl relative overflow-hidden group">
-                     <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                    <div className="absolute top-0 left-0 w-1 h-full bg-primary group-hover:shadow-[0_0_20px_rgba(var(--primary),0.5)]" />
-                    <h3 className="text-2xl font-bold text-primary mb-8 flex items-center gap-2 relative z-10">
-                        <Check className="w-6 h-6" /> After
-                    </h3>
-                    <ul className="space-y-6 relative z-10">
-                        {afterItems.map((item, i) => (
-                            <li key={i} className="flex items-center gap-3 text-foreground font-medium text-lg">
-                                <div className="h-2 w-2 rounded-full bg-primary" />
-                                {item}
-                            </li>
-                        ))}
-                    </ul>
+                <div className="space-y-4">
+                     <h3 className="text-xl font-bold text-primary text-center">After</h3>
+                    <Terminal className="min-h-[300px] border-primary/30 bg-primary/5 shadow-lg">
+                         <AnimatedSpan delay={500} className="text-green-500">
+                            <span>✔ [SUCCESS] Tiny habit executed (+10 Identity XP).</span>
+                         </AnimatedSpan>
+                         <AnimatedSpan delay={1500} className="text-green-500">
+                            <span>✔ [INFO] Two-Day Rule active: Streak preserved.</span>
+                         </AnimatedSpan>
+                         <AnimatedSpan delay={2500} className="text-green-500">
+                            <span>✔ [SUCCESS] Action Chip deployed. Visual clarity: 100%.</span>
+                         </AnimatedSpan>
+                         <TypingAnimation delay={3500} className="text-primary font-bold">
+                            &gt; Auto-journaling growth... Done.
+                         </TypingAnimation>
+                    </Terminal>
                 </div>
             </BlurFade>
+
         </div>
       </div>
     </section>
