@@ -7,7 +7,6 @@ import { PsychologySection } from "@/components/landing/PsychologySection";
 import { FeaturesSection } from "@/components/landing/FeaturesSection";
 import { CTASection } from "@/components/landing/CTASection";
 import { FlickeringGrid } from "@/components/ui/flickering-grid";
-import { Pointer } from "@/components/ui/pointer";
 import { cn } from "@/lib/utils";
 import type { Metadata } from 'next';
 
@@ -19,7 +18,6 @@ export const metadata: Metadata = {
 export default function LandingPage() {
   return (
     <div className="relative min-h-screen w-full overflow-hidden bg-background text-foreground font-mono selection:bg-primary selection:text-primary-foreground">
-      <Pointer className="fill-primary stroke-none" />
       <FlickeringGrid
         className="z-0 absolute inset-0 size-full"
         squareSize={4}
