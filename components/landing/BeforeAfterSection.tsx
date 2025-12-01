@@ -5,7 +5,7 @@ import { Terminal, TypingAnimation, AnimatedSpan } from "@/components/ui/termina
 
 export function BeforeAfterSection() {
   return (
-    <section className="py-24 px-4 w-full bg-secondary/20 border-t border-border/40">
+    <section className="py-24 px-4 w-full bg-background/80 backdrop-blur-sm border-t border-border/40">
       <div className="max-w-6xl mx-auto space-y-16">
         
         {/* Header */}
