@@ -22,7 +22,7 @@ export function HeroSection() {
                               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
                               <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
                             </span>
-                            Check out who you are
+                            I know what we&apos;re gonna do today
                             <span className="hidden sm:inline-flex items-center rounded-md bg-primary/10 px-2 py-0.5 text-xs font-bold text-primary ring-1 ring-inset ring-primary/20">
                                 beta v1
                             </span>
