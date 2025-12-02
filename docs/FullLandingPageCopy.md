@@ -2,7 +2,7 @@
 
 ## Hero Section
 
-**"So... whatcha doin'?"**
+**"So... whatcha doin?"**
 Become the person you always kept imagining!
 
 This app stacks up **Identity × Discipline × Consistency**, one habit at a time.
@@ -22,7 +22,7 @@ You're not unmotivated nor lazy. You just lack discipline and a clear path. You'
 -   Too many distractions → no emotional connection
 -   Waiting for the sweet perfect moment → it never starts.
 
-whatcha-doin resets the whole game by helping you build **identity** not pressure.
+whatcha-doin resets the whole game by helping you build **identity** with _discipline_ and _consistency_.
 
 > "Identity drives habits. Habits drive identity. We make the loop work for you."
 
@@ -35,11 +35,11 @@ whatcha-doin resets the whole game by helping you build **identity** not pressur
 Every episode, Isabella walks up with that curious smile and asks:
 **"Whatcha doin'?"**
 
-Phineas always had an answer --- not because he was perfect but because
+Phineas always had an answer, not because he was perfect but because
 he always had *something* cooking.
 
 whatcha-doin captures that same spark: curious, creative, always
-building --- even if it's tiny.
+building, even if it's tiny.
 
 > "Your life is a series. Your habits are the episodes. Your identity is
 > the arc."

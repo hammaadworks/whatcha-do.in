@@ -98,7 +98,7 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose, onOpenCo
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] p-4">
         <DialogHeader>
           <DialogTitle>Send Feedback / Report Bug</DialogTitle>
           <DialogDescription>

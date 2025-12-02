@@ -22,7 +22,7 @@ interface ContactSupportModalProps {
 const ContactSupportModal: React.FC<ContactSupportModalProps> = ({ isOpen, onClose, onOpenFeedback }) => {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] p-4">
         <DialogHeader>
           <DialogTitle>Contact Support</DialogTitle>
           <DialogDescription>
