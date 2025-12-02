@@ -43,8 +43,8 @@ interface FeedbackModalProps {
 const formSchema = z.object({
   message: z.string().min(10, {
     message: "Message must be at least 10 characters.",
-  }).max(500, {
-    message: "Message must not be longer than 500 characters.",
+  }).max(420, {
+    message: "Message must not be longer than 420 characters.",
   }),
   contactMethod: z.enum(["email", "whatsapp", "link"], {
     required_error: "Please select a contact method.",
@@ -52,6 +52,35 @@ const formSchema = z.object({
   contactDetail: z.string().min(1, {
     message: "Please provide contact details.",
   }),
+}).superRefine((data, ctx) => {
+  if (data.contactMethod === "email") {
+    if (!z.string().email().safeParse(data.contactDetail).success) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Invalid email address.",
+        path: ["contactDetail"],
+      });
+    }
+  } else if (data.contactMethod === "whatsapp") {
+    // Basic WhatsApp number validation (e.g., +1234567890, 123-456-7890, 1234567890)
+    // This regex allows for an optional leading '+' and then digits, spaces, hyphens, or parentheses.
+    const whatsappRegex = /^\+?[0-9\s\-()]{7,20}$/; 
+    if (!whatsappRegex.test(data.contactDetail)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Invalid WhatsApp number format. Please include country code if applicable (e.g., +1234567890).",
+        path: ["contactDetail"],
+      });
+    }
+  } else if (data.contactMethod === "link") {
+    if (data.contactDetail.length < 5) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Link must be at least 5 characters.",
+        path: ["contactDetail"],
+      });
+    }
+  }
 });
 
 const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose, onOpenContact }) => {
@@ -67,15 +96,14 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose, onOpenCo
   const [isLoading, setIsLoading] = useState(false);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    setIsLoading(true);
-    try {
-      const response = await fetch("/api/feedback", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(values),
-      });
+                setIsLoading(true);
+              try {
+                const response = await fetch("/api/feedback", {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify(values),      });
 
       if (!response.ok) {
         throw new Error("Failed to send feedback.");
@@ -83,14 +111,14 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose, onOpenCo
 
       const result = await response.json();
       if (result.success) {
-        toast.success("Feedback sent successfully!");
+        toast.success("Great! Your feedback is in. We value your input.");
         form.reset();
         onClose();
       } else {
-        toast.error(result.error || "Failed to send feedback.");
+        toast.error("Uh oh! We couldn't send your feedback. Please try again.");
       }
     } catch (error: any) {
-      toast.error(error.message || "An unexpected error occurred.");
+      toast.error("Oops! Something unexpected happened. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -98,7 +126,7 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose, onOpenCo
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px] p-4">
+      <DialogContent className="sm:max-w-[425px] p-4 max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Send Feedback / Report Bug</DialogTitle>
           <DialogDescription>
@@ -116,8 +144,14 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose, onOpenCo
                   <FormControl>
                     <Textarea
                       placeholder="Describe your feedback or bug here..."
-                      className="resize-y min-h-[100px]"
+                      rows={1}
+                      maxLength={420}
                       {...field}
+                      onInput={(e) => {
+                        const target = e.target as HTMLTextAreaElement;
+                        target.style.height = 'auto';
+                        target.style.height = target.scrollHeight + 'px';
+                      }}
                     />
                   </FormControl>
                   <FormDescription>
@@ -178,14 +212,14 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose, onOpenCo
             />
 
             <DialogFooter className="flex-col sm:flex-row sm:justify-end items-center sm:items-end"> {/* Adjusted for interlinking button */}
-              <Button onClick={onOpenContact} variant="outline" className="w-full sm:w-auto"> {/* Interlink button */}
-                  <LifeBuoy className="h-4 w-4 mr-2" /> Contact Support
-              </Button>
-              <Button type="button" variant="outline" onClick={onClose} disabled={isLoading} className="w-full sm:w-auto mt-2 sm:mt-0">
-                Cancel
-              </Button>
               <Button type="submit" disabled={isLoading} className="w-full sm:w-auto mt-2 sm:mt-0">
                 {isLoading ? "Sending..." : "Send Feedback"}
+              </Button>
+              <Button onClick={onOpenContact} variant="outline" className="w-full sm:w-auto mt-2 sm:mt-0 sm:ml-2"> {/* Interlink button */}
+                  <LifeBuoy className="h-4 w-4 mr-2" /> Contact Support
+              </Button>
+              <Button type="button" variant="outline" onClick={onClose} disabled={isLoading} className="w-full sm:w-auto mt-2 sm:mt-0 sm:ml-2">
+                Cancel
               </Button>
             </DialogFooter>
           </form>

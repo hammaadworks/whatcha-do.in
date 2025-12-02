@@ -58,10 +58,12 @@ const AppFooter = () => {
                     <LifeBuoy className="h-4 w-4" />
                     <span>Contact Support</span>
                 </button>
+                <span className="text-muted-foreground">|</span>
                 <button onClick={() => setIsFeedbackModalOpen(true)} className="flex items-center gap-x-1 text-primary hover:underline focus:outline-none text-sm">
                     <Bug className="h-4 w-4" />
                     <span>Send Feedback / Report Bug</span>
                 </button>
+                <span className="text-muted-foreground">|</span>
                 <div className="flex items-center gap-x-1 text-primary hover:underline focus:outline-none text-sm">
                     <Download className="h-4 w-4" />
                     {renderPWAInstallUI()}

@@ -55,22 +55,21 @@ const AppHeader = () => {
                 <div className={cn(
                     "pointer-events-auto flex items-center justify-between rounded-full transition-all duration-500 ease-in-out backdrop-blur-md w-[calc(100%-2rem)] max-w-5xl mt-4 border border-border/50",
                     isScrolled 
-                        ? "px-4 py-2 bg-background/80 shadow-lg" 
-                        : "px-6 py-3 bg-background/60 shadow-md"
-                )}>
+                                                ? "px-4 py-1 sm:px-4 sm:py-2 bg-background/80 shadow-lg"
+                                                : "px-6 py-1.5 sm:px-6 sm:py-3 bg-background/60 shadow-md"                )}>
                     <div className="flex items-center space-x-2">
-                        <Link href="/" className="flex items-center space-x-3 group">
+                        <Link href="/" className="flex items-center space-x-2 group">
                             <div className="relative overflow-hidden rounded-full p-1 transition-transform group-hover:scale-110">
                                 <img src={logoSrc} alt="Whatcha Doin' Logo" className="h-8 w-auto"/>
                             </div>
                             <span className="text-muted-foreground/50">|</span>
-                            <span className="text-lg font-bold tracking-tight text-foreground/90 transition-opacity duration-300">
+                            <span className="text-base sm:text-lg font-bold tracking-tight text-foreground/90 transition-opacity duration-300 whitespace-nowrap">
                                 whatcha-doin
                             </span>
                         </Link>
                     </div>
 
-                    <div className="flex items-center space-x-2 md:space-x-4">
+                    <div className="flex items-center space-x-3 sm:space-x-4">
                         <AnimatedThemeToggler/>
                         
                         {user && (
@@ -91,18 +90,16 @@ const AppHeader = () => {
                             />
                         ) : (
                             <Link href="/logins">
-                                <button
-                                    className={cn(
-                                        "relative inline-flex h-9 items-center justify-center rounded-full px-4 text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50",
-                                        pathname === '/logins' 
-                                            ? "bg-primary text-primary-foreground shadow-md" 
-                                            : "bg-secondary text-secondary-foreground hover:bg-primary hover:text-primary-foreground"
-                                    )}
-                                >
-                                    <KeyRound className="mr-2 h-4 w-4" strokeWidth={2.5}/>
-                                    <span>Login</span>
-                                </button>
-                            </Link>
+                                                                <button
+                                                                    className={cn(
+                                                                        "relative inline-flex h-9 items-center justify-center rounded-full text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50",
+                                                                        "w-9 sm:w-auto px-0 sm:px-4", // Make it square on mobile, auto width & px-4 on sm+
+                                                                        "bg-primary text-primary-foreground shadow-md hover:opacity-80" // Always primary themed
+                                                                    )}
+                                                                >
+                                                                    <KeyRound className="h-4 w-4 sm:mr-2" strokeWidth={2.5}/>
+                                                                    <span className="sr-only sm:not-sr-only">Login</span>
+                                                                </button>                            </Link>
                         )}
                     </div>
                 </div>

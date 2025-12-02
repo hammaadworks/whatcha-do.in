@@ -60,13 +60,19 @@ export default function Logins() {
           <div className="flex flex-col p-4 md:p-6">
             <div className="text-center mb-8">
               <div className="mx-auto mb-6 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-                <Mail className="h-6 w-6 text-primary" />
+                {isSuccess ? (
+                  <CheckCircle2 className="h-6 w-6 text-primary" />
+                ) : (
+                  <Mail className="h-6 w-6 text-primary" />
+                )}
               </div>
               <h1 className="text-3xl font-bold tracking-tight text-foreground">
-                Welcome Back
+                {isSuccess ? "Check Your Inbox" : "Welcome Back"}
               </h1>
               <p className="mt-2 text-sm text-muted-foreground">
-                Your journey to consistency starts here. Enter your email to begin.
+                {isSuccess
+                  ? "We've sent a secure magic link to your email."
+                  : "Your journey to consistency starts here. Enter your email to begin."}
               </p>
             </div>
 
@@ -95,7 +101,7 @@ export default function Logins() {
                 <ShimmerButton
                   type="submit"
                   disabled={loading}
-                  className="w-full h-12 text-base font-medium text-white" // Explicitly setting text-white
+                  className="w-full h-12 text-base font-medium" // Removed explicit text-white
                   background="var(--primary)"
                   shimmerColor="rgba(255, 255, 0.4)"
                 >

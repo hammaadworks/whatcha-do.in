@@ -1,9 +1,17 @@
-import React from "react"
+"use client"
 
 import { cn } from "@/lib/utils"
+import React from "react"
 
-export interface OrbitingCirclesProps
-  extends React.HTMLAttributes<HTMLDivElement> {
+export function OrbitingCircles({
+  className,
+  children,
+  reverse,
+  duration = 20,
+  delay = 10,
+  radius = 50,
+  path = true,
+}: {
   className?: string
   children?: React.ReactNode
   reverse?: boolean
@@ -11,22 +19,7 @@ export interface OrbitingCirclesProps
   delay?: number
   radius?: number
   path?: boolean
-  iconSize?: number
-  speed?: number
-}
-
-export function OrbitingCircles({
-  className,
-  children,
-  reverse,
-  duration = 20,
-  radius = 160,
-  path = true,
-  iconSize = 30,
-  speed = 1,
-  ...props
-}: OrbitingCirclesProps) {
-  const calculatedDuration = duration / speed
+}) {
   return (
     <>
       {path && (
@@ -41,32 +34,27 @@ export function OrbitingCircles({
             cy="50%"
             r={radius}
             fill="none"
+            strokeDasharray={"4 4"}
           />
         </svg>
       )}
-      {React.Children.map(children, (child, index) => {
-        const angle = (360 / React.Children.count(children)) * index
-        return (
-          <div
-            style={
-              {
-                "--duration": calculatedDuration,
-                "--radius": radius,
-                "--angle": angle,
-                "--icon-size": `${iconSize}px`,
-              } as React.CSSProperties
-            }
-            className={cn(
-              `animate-orbit absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex size-[var(--icon-size)] transform-gpu items-center justify-center rounded-full`,
-              { "[animation-direction:reverse]": reverse },
-              className
-            )}
-            {...props}
-          >
-            {child}
-          </div>
-        )
-      })}
+
+      <div
+        style={
+          {
+            "--duration": duration,
+            "--radius": radius,
+            "--delay": -delay,
+          } as React.CSSProperties
+        }
+        className={cn(
+          "absolute flex size-full transform-gpu items-center justify-center rounded-full",
+          reverse ? "animate-orbit-reverse" : "animate-orbit",
+          className
+        )}
+      >
+        {children}
+      </div>
     </>
   )
 }

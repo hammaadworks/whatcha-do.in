@@ -7,6 +7,15 @@ import { CalendarDays, LayoutGrid, Sliders, BookOpen, User, Lightbulb, CheckCirc
 import { AnimatedSpan, Terminal, TypingAnimation } from "@/components/ui/terminal";
 import { cn } from "@/lib/utils";
 
+import { Safari } from "@/components/ui/safari";
+import { ProfileMockup } from "@/components/landing/ProfileMockup";
+import { TwoDayRuleMockup } from "@/components/landing/TwoDayRuleMockup";
+import { ActionChipsMockup } from "@/components/landing/ActionChipsMockup";
+import { IntensitySliderMockup } from "@/components/landing/IntensitySliderMockup";
+import { AutoJournalFeedMockup } from "@/components/landing/AutoJournalFeedMockup";
+import { MotivationalWidgetMockup } from "@/components/landing/MotivationalWidgetMockup";
+import { ConsistentIdentityMockup } from "@/components/landing/ConsistentIdentityMockup";
+
 // Combined items for the Features Showcase
 const showcaseItems = [
     {
@@ -15,9 +24,10 @@ const showcaseItems = [
       icon: <User className="h-4 w-4 text-neutral-500" />,
       className: "md:col-span-2 lg:col-span-3 bg-card border-border/50 lg:min-h-[18rem]", // Prominent placement
       header: (
-          <div className="flex flex-1 w-full h-full min-h-[6rem] rounded-xl bg-gradient-to-br from-neutral-200 to-neutral-100 dark:from-neutral-900 dark:to-neutral-800 border border-border items-center justify-center p-4">
-              <User className="w-16 h-16 text-primary" />
-              {/* Optional: Add a subtle animation of a profile UI */}
+          <div className="flex flex-1 w-full h-full rounded-xl bg-gradient-to-br from-neutral-200 to-neutral-100 dark:from-neutral-900 dark:to-neutral-800 border border-border">
+              <Safari className="w-full h-full">
+                <ProfileMockup />
+              </Safari>
           </div>
       ),
     },
@@ -27,8 +37,8 @@ const showcaseItems = [
       icon: <CalendarDays className="h-4 w-4 text-neutral-500" />,
       className: "md:col-span-1 lg:col-span-2 bg-card border-border/50 lg:min-h-[12rem]",
       header: (
-          <div className="flex flex-1 w-full h-full min-h-[6rem] rounded-xl bg-gradient-to-br from-neutral-200 to-neutral-100 dark:from-neutral-900 dark:to-neutral-800 border border-border items-center justify-center p-4">
-              <CalendarDays className="w-16 h-16 text-primary" />
+          <div className="flex flex-1 w-full h-full rounded-xl bg-gradient-to-br from-neutral-200 to-neutral-100 dark:from-neutral-900 dark:to-neutral-800 border border-border">
+              <TwoDayRuleMockup />
           </div>
       ),
     },
@@ -38,8 +48,8 @@ const showcaseItems = [
       icon: <LayoutGrid className="h-4 w-4 text-neutral-500" />,
       className: "md:col-span-1 lg:col-span-1 bg-card border-border/50 lg:min-h-[12rem]",
       header: (
-          <div className="flex flex-1 w-full h-full min-h-[6rem] rounded-xl bg-gradient-to-br from-neutral-200 to-neutral-100 dark:from-neutral-900 dark:to-neutral-800 border border-border items-center justify-center p-4">
-              <LayoutGrid className="w-16 h-16 text-primary" />
+          <div className="flex flex-1 w-full h-full rounded-xl bg-gradient-to-br from-neutral-200 to-neutral-100 dark:from-neutral-900 dark:to-neutral-800 border border-border">
+              <ActionChipsMockup />
           </div>
       ),
     },
@@ -49,8 +59,8 @@ const showcaseItems = [
       icon: <Sliders className="h-4 w-4 text-neutral-500" />,
       className: "md:col-span-2 lg:col-span-1 bg-card border-border/50 lg:min-h-[12rem]",
       header: (
-          <div className="flex flex-1 w-full h-full min-h-[6rem] rounded-xl bg-gradient-to-br from-neutral-200 to-neutral-100 dark:from-neutral-900 dark:to-neutral-800 border border-border items-center justify-center p-4">
-              <Sliders className="w-16 h-16 text-primary" />
+          <div className="flex flex-1 w-full h-full rounded-xl bg-gradient-to-br from-neutral-200 to-neutral-100 dark:from-neutral-900 dark:to-neutral-800 border border-border">
+              <IntensitySliderMockup />
           </div>
       ),
     },
@@ -60,8 +70,8 @@ const showcaseItems = [
       icon: <BookOpen className="h-4 w-4 text-neutral-500" />,
       className: "md:col-span-1 lg:col-span-2 bg-card border-border/50 lg:min-h-[12rem]",
       header: (
-          <div className="flex flex-1 w-full h-full min-h-[6rem] rounded-xl bg-gradient-to-br from-neutral-200 to-neutral-100 dark:from-neutral-900 dark:to-neutral-800 border border-border items-center justify-center p-4">
-              <BookOpen className="w-16 h-16 text-primary" />
+          <div className="flex flex-1 w-full h-full rounded-xl bg-gradient-to-br from-neutral-200 to-neutral-100 dark:from-neutral-900 dark:to-neutral-800 border border-border">
+              <AutoJournalFeedMockup />
           </div>
       ),
     },
@@ -71,8 +81,8 @@ const showcaseItems = [
       icon: <Lightbulb className="h-4 w-4 text-neutral-500" />,
       className: "md:col-span-1 lg:col-span-1 bg-card border-border/50 lg:min-h-[12rem]",
       header: (
-          <div className="flex flex-1 w-full h-full min-h-[6rem] rounded-xl bg-gradient-to-br from-neutral-200 to-neutral-100 dark:from-neutral-900 dark:to-neutral-800 border border-border items-center justify-center p-4">
-              <Lightbulb className="w-16 h-16 text-primary" />
+          <div className="flex flex-1 w-full h-full rounded-xl bg-gradient-to-br from-neutral-200 to-neutral-100 dark:from-neutral-900 dark:to-neutral-800 border border-border">
+              <MotivationalWidgetMockup />
           </div>
       ),
     },
@@ -82,12 +92,12 @@ const showcaseItems = [
       icon: <CheckCircle className="h-4 w-4 text-neutral-500" />,
       className: "md:col-span-2 lg:col-span-3 bg-card border-border/50 lg:min-h-[12rem]",
       header: (
-          <div className="flex flex-1 w-full h-full min-h-[6rem] rounded-xl bg-gradient-to-br from-neutral-200 to-neutral-100 dark:from-neutral-900 dark:to-neutral-800 border border-border items-center justify-center p-4">
-              <CheckCircle className="w-16 h-16 text-primary" />
+          <div className="flex flex-1 w-full h-full rounded-xl bg-gradient-to-br from-neutral-200 to-neutral-100 dark:from-neutral-900 dark:to-neutral-800 border border-border">
+              <ConsistentIdentityMockup />
           </div>
       ),
     },
-];
+]
 
 export function FeaturesShowcaseSection() {
   return (

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 import { toZonedTime } from 'date-fns-tz';
 import { ShineBorder } from '@/components/ui/shine-border';
+import { motion, AnimatePresence } from "framer-motion";
 
 interface UserClockProps {
   timezone: string;
@@ -44,6 +45,8 @@ const getConsistentTimeZoneName = (ianaTimezone: string, date: Date): string => 
 export const UserClock: React.FC<UserClockProps> = ({ timezone, className }) => {
   const [timeString, setTimeString] = useState<string>('');
   const [diffInfo, setDiffInfo] = useState<{ text: string; isSame: boolean }>({ text: '', isSame: true });
+  const [showDate, setShowDate] = useState<boolean>(false); // New state for showing date
+  const [displayDateContent, setDisplayDateContent] = useState<string>(''); // New state for formatted date
 
   useEffect(() => {
     const updateTime = () => {
@@ -76,6 +79,13 @@ export const UserClock: React.FC<UserClockProps> = ({ timezone, className }) => 
         
         // Combine as "Mon, 10:34 PM IST"
         setTimeString(`${weekday}, ${timeOnly} ${timeZoneAbbr}`);
+
+        // Format date for display
+        setDisplayDateContent(new Intl.DateTimeFormat('en-US', {
+          day: '2-digit',
+          month: 'long',
+          year: 'numeric'
+        }).format(now));
 
         // 2. Calculate the difference relative to the viewer's local time
         const localTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -121,14 +131,22 @@ export const UserClock: React.FC<UserClockProps> = ({ timezone, className }) => 
     return () => clearInterval(interval);
   }, [timezone]);
 
+  const handleClick = () => {
+    setShowDate(true);
+    setTimeout(() => {
+      setShowDate(false);
+    }, 2000); // Revert after 2 seconds
+  };
+
   if (!timeString) return null;
 
   return (
     <div className={cn("flex flex-col items-end", className)}>
       {/* Main Pill Wrapper - This is the element that gets the border and background */}
       <div
-        className="relative inline-flex items-center gap-2 px-3 py-1 rounded-full border border-transparent bg-background/80 backdrop-blur-sm text-xs font-medium text-muted-foreground shadow-sm hover:bg-accent/50 transition-colors cursor-default select-none"
+        className="relative inline-flex items-center gap-2 px-3 py-1 rounded-full border border-transparent bg-background/80 backdrop-blur-sm text-xs font-medium text-muted-foreground shadow-sm hover:bg-accent/50 transition-colors cursor-pointer select-none"
         title={`Current time in ${timezone}`}
+        onClick={handleClick}
       >
         {/* ShineBorder as an absolute overlay within this relative div */}
         <ShineBorder
@@ -144,7 +162,31 @@ export const UserClock: React.FC<UserClockProps> = ({ timezone, className }) => 
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75 duration-[3000ms]"></span>
             <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
           </span>
-          <span className="font-mono tracking-tight">{timeString}</span>
+          <AnimatePresence mode="wait"> {/* Use AnimatePresence to manage exit/enter animations */}
+            {showDate ? (
+              <motion.span
+                key="date" // Unique key for date content
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                transition={{ duration: 0.2 }}
+                className="font-mono tracking-tight"
+              >
+                {displayDateContent}
+              </motion.span>
+            ) : (
+              <motion.span
+                key="time" // Unique key for time content
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                transition={{ duration: 0.2 }}
+                className="font-mono tracking-tight"
+              >
+                {timeString}
+              </motion.span>
+            )}
+          </AnimatePresence>
         </span>
       </div>
       

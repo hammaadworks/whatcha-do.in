@@ -12,16 +12,6 @@ interface LarkResponse {
 }
 
 /**
- * Formats a message for Lark with environment and timestamp information.
- */
-function formatLarkMessage(message: string): string {
-  const env = process.env.NODE_ENV || 'development';
-  const timestamp = new Date().toISOString();
-  const prefix = process.env.LARK_MESSAGE_PREFIX || '';
-  return `${prefix}\n[${env}] [${timestamp}] ${message}`;
-}
-
-/**
  * Sends a message to a Lark webhook with improved error handling and retry logic.
  * @param message The message to send
  * @param retryCount Optional number of retries (default: 2)
@@ -48,11 +38,24 @@ export async function sendLarkMessage(
     return false;
   }
 
-  const formattedMessage = formatLarkMessage(message);
   const payload = {
-    msg_type: 'text',
-    content: {
-      text: `yay-alert: ${formattedMessage}`,
+    msg_type: 'interactive',
+    card: {
+      header: {
+        title: {
+          content: "New Feedback/Bug Report",
+          tag: "plain_text",
+        },
+      },
+      elements: [
+        {
+          tag: "div",
+          text: {
+            content: message,
+            tag: "lark_md",
+          },
+        },
+      ],
     },
   };
 
@@ -92,12 +95,12 @@ export async function sendLarkMessage(
 
       logger.error(
         { attempt, maxRetries, errorMessage },
-        `Lark message ${isLastAttempt ? 'failed' : 'attempt failed'}`,
+        `Lark message ${isLastAttempt ? 'failed' : 'attempt failed'} `,
       );
 
       if (isLastAttempt) {
         logger.error({
-          message: formattedMessage,
+          message: message, // Use the message directly for logging as well
           error: errorMessage,
         }, 'All Lark message attempts failed');
         return false;

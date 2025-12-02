@@ -8,6 +8,7 @@ import AppFooter from "@/components/layout/AppFooter";
 import { createServerSideClient } from '@/lib/supabase/server';
 import logger from '@/lib/logger/server'; // Import the server logger
 import { Pointer } from "@/components/ui/pointer";
+import { Toaster } from "sonner";
 
 const geistSans = Geist({
     variable: "--font-geist-sans", subsets: ["latin"],
@@ -111,13 +112,19 @@ export default async function RootLayout({children,}: Readonly<{ children: React
         <body
             className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}
         >
-        <Pointer className="fill-primary stroke-none" />
+        <Pointer className="fill-primary" />
         <AuthProvider>
             <AppHeader/>
-            <main className="flex-grow flex justify-center px-2 md:px-4 lg:px-8 pt-16">
+            <main className="flex-grow flex justify-center px-2 md:px-4 lg:px-8 pt-16 pb-4">
                 {children}
             </main>
             <AppFooter/>
+            <Toaster
+              position="top-center"
+              closeButton
+              richColors
+              theme="system"
+            />
         </AuthProvider>
         </body>
         </html>);

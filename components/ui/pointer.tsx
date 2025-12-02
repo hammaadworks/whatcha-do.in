@@ -7,7 +7,7 @@ import {
   useMotionValue,
 } from "motion/react"
 
-import { cn } from "@/lib/utils"
+import { cn, isTouchDevice } from "@/lib/utils"
 
 /**
  * A custom pointer component that displays an animated cursor.
@@ -29,6 +29,10 @@ export function Pointer({
 
   useEffect(() => {
     if (typeof window !== "undefined") {
+      if (isTouchDevice()) {
+        return // Do not apply custom cursor logic on touch devices
+      }
+
       // Add global cursor hiding class
       document.body.classList.add("hide-native-cursor")
 
@@ -47,6 +51,10 @@ export function Pointer({
       }
     }
   }, [x, y]) // Dependencies are just motion values
+
+  if (typeof window !== "undefined" && isTouchDevice()) {
+    return null // Do not render custom pointer on touch devices
+  }
 
   return (
     // Always render the motion.div for the pointer, AnimatePresence is not needed if always rendered.
@@ -79,7 +87,7 @@ export function Pointer({
           width="24"
           xmlns="http://www.w3.org/2000/svg"
           className={cn(
-            "rotate-[-70deg] stroke-white text-black", // Default pointer is black with white stroke, text-black makes it black.
+            "rotate-[-70deg] stroke-[rgb(var(--cursor-stroke))] text-[rgb(var(--cursor-border))] ",
             className
           )}
         >

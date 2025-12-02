@@ -95,7 +95,8 @@
   --chip-foreground: #212529;
   --chip-border: #DEE2E6;
   --primary-dark-variant: hsl(var(--primary-hsl) / 0.8);
-}
+  --cursor-border: 255 255 255; /* White for light mode */
+  --cursor-stroke: 255 255 255; /* White for light mode */}
 
 /* Monolith Theme (Dark Mode) */
 .dark {
@@ -137,7 +138,8 @@
   --chip-background: #222222;
   --chip-foreground: #E0E0E0;
   --chip-border: #444444;
-}
+  --cursor-border: 0 0 0; /* Black for dark mode */
+  --cursor-stroke: 0 0 0; /* Black for dark mode */}
 
 @layer base {
   * {
@@ -169,3 +171,5 @@
 .hide-native-cursor, .hide-native-cursor * {
   cursor: none !important;
 }
+
+

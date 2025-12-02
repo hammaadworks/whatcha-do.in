@@ -64,7 +64,7 @@ const ContactSupportModal: React.FC<ContactSupportModalProps> = ({ isOpen, onClo
             </div>
             <div className="flex items-center space-x-2">
               <ExternalLink className="h-4 w-4 text-muted-foreground" />
-              <Link href="https://www.producthunt.com/@hammaadw" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+              <Link href="https://www.producthunt.com/@hammaadworks" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
                 ProductHunt
               </Link>
             </div>
