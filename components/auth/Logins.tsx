@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Mail, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
+import { Mail, CheckCircle2, AlertCircle, Loader2, MailOpen, ExternalLink } from "lucide-react";
 import { DEFAULT_POST_LOGIN_REDIRECT } from "@/lib/constants";
 import { Button } from "@/components/ui/button"; // Import the Button component
 import { MagicCard } from "@/components/ui/magic-card";
@@ -13,6 +13,43 @@ import { BlurFade } from "@/components/ui/blur-fade";
 
 const isValidEmail = (email: string) => {
   return /\S+@\S+\.\S+/.test(email);
+};
+
+const openMailClient = (client: 'gmail' | 'outlook' | 'yahoo' | 'generic', userEmail: string) => {
+  let appUrl: string | null = null;
+  let webUrl: string | null = null;
+
+  switch (client) {
+    case 'gmail':
+      appUrl = 'googlegmail:///';
+      webUrl = userEmail ? `https://mail.google.com/mail/u/0/?authuser=${userEmail}` : 'https://mail.google.com/';
+      break;
+    case 'outlook':
+      appUrl = 'ms-outlook://';
+      webUrl = 'https://outlook.live.com/mail/';
+      break;
+    case 'yahoo':
+      webUrl = 'https://mail.yahoo.com/';
+      break;
+    case 'generic':
+        // Attempt to open the default mail client for composing a new email, but no direct inbox opening
+        // This is not ideal for opening inbox, but is a fallback for generic mail client opening
+        window.open('mailto:', '_blank');
+        return;
+  }
+
+  // Try to open the app first on mobile
+  if (appUrl && (/(android|iphone|ipad|ipod)/i.test(navigator.userAgent) || window.innerWidth <= 768)) {
+    const handleAppOpen = setTimeout(() => {
+      if (webUrl) window.open(webUrl, '_blank');
+    }, 1000); // 1 second fallback
+
+    window.location.href = appUrl; // Attempt to open app
+    // Clear timeout if app opens and page navigation occurs
+    window.addEventListener('blur', () => clearTimeout(handleAppOpen));
+  } else if (webUrl) {
+    window.open(webUrl, '_blank');
+  }
 };
 
 export default function Logins() {
@@ -71,9 +108,14 @@ export default function Logins() {
                 {isSuccess ? "Check Your Inbox" : "Welcome Back"}
               </h1>
               <p className="mt-2 text-sm text-muted-foreground">
-                {isSuccess
-                  ? "We've sent a secure magic link to <span className=\"font-medium text-foreground\">{email}</span>"
-                  : "Your journey to disciplined consistency starts here!"}
+                {isSuccess ? (
+                  <>
+                    We&apos;ve sent a secure magic link to{" "}
+                    <span className="font-medium text-foreground">{email}</span>
+                  </>
+                ) : (
+                  "Your journey to disciplined consistency starts here!"
+                )}
               </p>
             </div>
 
@@ -120,8 +162,41 @@ export default function Logins() {
               <div className="flex flex-col items-center space-y-4 animate-in fade-in zoom-in duration-500">
                 <div className="text-center space-y-2">
                   <p className="text-muted-foreground max-w-[250px] mx-auto">
-                    Click the link in your email to instantly access your dashboard and continue building your identity.
+                    Click the login link in mail to continue building your identity.
                   </p>
+                </div>
+                <div className="flex flex-col gap-3 w-full max-w-sm">
+                    <ShimmerButton
+                        onClick={() => openMailClient('gmail', email)}
+                        className="w-full h-12 text-base font-medium"
+                        background="var(--primary)"
+                        shimmerColor="rgba(255, 255, 0.4)"
+                    >
+                        <MailOpen className="h-5 w-5 mr-2" /> Open Gmail
+                    </ShimmerButton>
+                    <div className="flex justify-center gap-2">
+                        <Button
+                            variant="outline"
+                            onClick={() => openMailClient('outlook', email)}
+                            className="flex-1 h-10 text-sm"
+                        >
+                            <Mail className="h-4 w-4 mr-2" /> Outlook
+                        </Button>
+                        <Button
+                            variant="outline"
+                            onClick={() => openMailClient('yahoo', email)}
+                            className="flex-1 h-10 text-sm"
+                        >
+                            <Mail className="h-4 w-4 mr-2" /> Yahoo Mail
+                        </Button>
+                        <Button
+                            variant="outline"
+                            onClick={() => openMailClient('generic', email)}
+                            className="flex-1 h-10 text-sm"
+                        >
+                            <ExternalLink className="h-4 w-4 mr-2" /> Other
+                        </Button>
+                    </div>
                 </div>
                 <Button
                   onClick={() => setIsSuccess(false)}
