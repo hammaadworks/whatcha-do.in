@@ -10,7 +10,6 @@ import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import {
     Form,
     FormControl,
@@ -29,9 +28,6 @@ const profileSchema = z.object({
         .min(3, "Username must be at least 3 characters")
         .max(30, "Username must be less than 30 characters")
         .regex(/^[a-zA-Z0-9_-]+$/, "Username can only contain letters, numbers, underscores, and hyphens"),
-    bio: z.string()
-        .max(160, "Bio must be less than 160 characters")
-        .optional(),
 });
 
 type ProfileFormValues = z.infer<typeof profileSchema>;
@@ -47,7 +43,6 @@ export function EditProfileForm() {
         resolver: zodResolver(profileSchema),
         defaultValues: {
             username: '',
-            bio: '',
         },
         mode: 'onChange',
     });
@@ -57,7 +52,6 @@ export function EditProfileForm() {
         if (user) {
             form.reset({
                 username: user.username || '',
-                bio: user.bio || '',
             });
         }
     }, [user, form]);
@@ -113,7 +107,6 @@ export function EditProfileForm() {
         try {
             const { error } = await updateUserProfile(user.id, {
                 username: data.username,
-                bio: data.bio || '',
             });
 
             if (error) {
@@ -166,28 +159,7 @@ export function EditProfileForm() {
                                 </div>
                             </div>
                             <FormDescription>
-                                Your public profile URL: whatcha-doin.com/{field.value || 'username'}
-                            </FormDescription>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-
-                <FormField
-                    control={form.control}
-                    name="bio"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Bio</FormLabel>
-                            <FormControl>
-                                <Textarea 
-                                    placeholder="Tell us a little about yourself" 
-                                    className="resize-none"
-                                    {...field} 
-                                />
-                            </FormControl>
-                            <FormDescription>
-                                {field.value?.length || 0}/160 characters
+                                This will be your unique handle on the platform.
                             </FormDescription>
                             <FormMessage />
                         </FormItem>

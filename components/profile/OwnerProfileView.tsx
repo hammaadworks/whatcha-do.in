@@ -16,6 +16,7 @@ import { PublicPage } from '@/components/profile/PublicPage';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 import { fetchOwnerHabits } from '@/lib/supabase/habit';
 import { fetchPublicActions } from '@/lib/supabase/actions';
 import { fetchJournalEntries } from '@/lib/supabase/journal'; // Import fetchJournalEntries
@@ -33,7 +34,7 @@ interface OwnerProfileViewProps {
 export default function OwnerProfileView({ username, initialProfileUser, publicActions, publicHabits, publicJournalEntries, privateCount = 0 }: Readonly<OwnerProfileViewProps>) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { user: authenticatedUser } = useAuth();
+  const { user: authenticatedUser, refreshUser } = useAuth();
 
   const [optimisticTimezone, setOptimisticTimezone] = useState<string | null>(null);
   const [isPublicPreviewMode, setIsPublicPreviewMode] = useState(false);
@@ -79,6 +80,25 @@ export default function OwnerProfileView({ username, initialProfileUser, publicA
         console.error("Failed to update timezone", error);
         setOptimisticTimezone(null);
       }
+    }
+  };
+
+  const handleBioUpdate = async (newBio: string) => {
+    if (!authenticatedUser?.id) return;
+
+    try {
+      const { error } = await updateUserProfile(authenticatedUser.id, {
+        bio: newBio,
+      });
+
+      if (error) throw error;
+
+      toast.success('Bio updated successfully');
+      await refreshUser();
+    } catch (error) {
+      console.error('Failed to update bio:', error);
+      toast.error('Failed to update bio');
+      throw error;
     }
   };
 
@@ -133,6 +153,7 @@ export default function OwnerProfileView({ username, initialProfileUser, publicA
         isOwner={true}
         timezone={optimisticTimezone || profileToDisplay.timezone}
         onTimezoneChange={handleTimezoneChange}
+        onBioUpdate={handleBioUpdate}
       >
         <div className="flex items-center space-x-2 my-4 justify-end">
           <Label htmlFor="public-preview-mode">Public Preview</Label>
