@@ -10,7 +10,7 @@ import JournalSection from '@/components/profile/sections/JournalSection';
 import MotivationsSection from '@/components/profile/sections/MotivationsSection';
 import { useActions } from '@/hooks/useActions';
 import { useAuth } from '@/hooks/useAuth';
-import { updateUserTimezone } from '@/lib/supabase/user.client';
+import { updateUserTimezone, updateUserProfile } from '@/lib/supabase/user.client';
 import { User } from '@/hooks/useAuth';
 import { PublicPage } from '@/components/profile/PublicPage';
 import { Switch } from '@/components/ui/switch';

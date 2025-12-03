@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
+import rehypeHighlight from 'rehype-highlight';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { Edit, Columns, Eye } from 'lucide-react';
@@ -82,7 +83,7 @@ export function MarkdownEditor({ value, onChange, className, placeholder, readOn
 
         {viewMode === 'preview' && (
           <div className="w-full h-full overflow-auto p-4 prose dark:prose-invert max-w-none">
-            <ReactMarkdown>{value || (readOnly ? '*No entry for this day.*' : '*No content*')}</ReactMarkdown>
+            <ReactMarkdown rehypePlugins={[rehypeHighlight]}>{value || (readOnly ? '*No entry for this day.*' : '*No content*')}</ReactMarkdown>
           </div>
         )}
 
@@ -97,7 +98,7 @@ export function MarkdownEditor({ value, onChange, className, placeholder, readOn
               />
             </div>
             <div className="w-1/2 h-full overflow-auto p-4 prose dark:prose-invert max-w-none bg-muted/10">
-              <ReactMarkdown>{value || '*No content*'}</ReactMarkdown>
+              <ReactMarkdown rehypePlugins={[rehypeHighlight]}>{value || '*No content*'}</ReactMarkdown>
             </div>
           </div>
         )}

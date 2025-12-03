@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
+import rehypeHighlight from 'rehype-highlight';
 import { MovingBorder } from '@/components/ui/moving-border';
 import { UserClock } from './UserClock';
 import { MarkdownEditor } from '@/components/journal/MarkdownEditor';
@@ -77,7 +78,7 @@ const ProfileLayout: React.FC<ProfileLayoutProps> = ({ username, bio, isOwner, t
                     ) : (
                         <div className="relative flex justify-center">
                              <div className="bio text-lg text-muted-foreground text-center leading-relaxed prose dark:prose-invert max-w-none">
-                                <ReactMarkdown>{bioContent}</ReactMarkdown>
+                                <ReactMarkdown rehypePlugins={[rehypeHighlight]}>{bioContent}</ReactMarkdown>
                             </div>
                             {isOwner && onBioUpdate && (
                                 <Button
