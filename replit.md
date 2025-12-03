@@ -52,7 +52,7 @@ NEXT_PUBLIC_DEV_MODE_ENABLED=false  # true = mock auth, false = real Supabase au
 2. Magic link sent to email via Supabase
 3. User clicks link, redirected to `/auth/callback`
 4. Callback exchanges code for session
-5. User redirected to `/dashboard`
+5. User redirected to `/me`
 
 #### Development Mode (Mock)
 1. Mock session automatically injected on app load

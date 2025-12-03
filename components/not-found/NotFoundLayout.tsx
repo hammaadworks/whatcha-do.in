@@ -31,7 +31,7 @@ const NotFoundLayout: React.FC<NotFoundLayoutProps> = ({
 
     // Default values now depend on isLoggedIn
     const resolvedSecondaryLinkText = secondaryLinkText ?? (isLoggedIn ? "Dashboard" : "Login");
-    const resolvedSecondaryLinkHref = secondaryLinkHref ?? (isLoggedIn && user?.username ? `/${user.username}` : "/login");
+    const resolvedSecondaryLinkHref = secondaryLinkHref ?? (isLoggedIn && user?.username ? `/${user.username}` : "/me");
     const ResolvedSecondaryLinkIcon = SecondaryLinkIconProp ?? (isLoggedIn ? Layers : LogIn);
 
     useEffect(() => {
@@ -43,7 +43,7 @@ const NotFoundLayout: React.FC<NotFoundLayoutProps> = ({
         return () => clearInterval(interval); // Cleanup on unmount
     }, []);
 
-    return (<div className="relative bg-background px-4 py-2 font-mono">
+    return (<div className="relative bg-background px-4 py-2 font-mono flex flex-grow items-center justify-center">
         <div className="flex w-full max-w-md flex-col items-center">
             <div className="mb-2 flex items-baseline font-mono">
                 <span className="font-bold text-8xl text-primary md:text-9xl">4</span>

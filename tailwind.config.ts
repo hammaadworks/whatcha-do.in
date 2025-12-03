@@ -19,6 +19,10 @@ const config = {
       },
     },
     extend: {
+      fontFamily: {
+        sans: ["var(--font-geist-sans)"],
+        mono: ["var(--font-geist-mono)"],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -70,15 +74,28 @@ const config = {
         },
         orbit: {
           "0%": {
-            transform: "rotate(0deg) translateY(calc(var(--radius) * -1)) rotate(0deg)",
+            transform: "translate(-50%, -50%) rotate(var(--angle)) translateY(calc(var(--radius) * -1)) rotate(calc(var(--angle) * -1))",
           },
           "100%": {
-            transform: "rotate(360deg) translateY(calc(var(--radius) * -1)) rotate(-360deg)",
+            transform: "translate(-50%, -50%) rotate(calc(var(--angle) + 360deg)) translateY(calc(var(--radius) * -1)) rotate(calc((var(--angle) * -1) - 360deg))",
           },
         },
         shine: {
           '0%': { backgroundPosition: '200% 0' },
           '100%': { backgroundPosition: '-200% 0' },
+        },
+        "spin-scale": {
+          "0%": { transform: "rotate(0deg) scale(0.5)", opacity: "0" },
+          "70%": { transform: "rotate(360deg) scale(1.2)", opacity: "1" },
+          "100%": { transform: "rotate(360deg) scale(1)", opacity: "1" },
+        },
+        grid: {
+          "0%": { transform: "translateY(-50%)" },
+          "100%": { transform: "translateY(0)" },
+        },
+        "move-right-fade": {
+          "0%": { transform: "translateX(0)", opacity: "1" },
+          "100%": { transform: "translateX(5px)", opacity: "0" },
         },
       },
       animation: {
@@ -86,6 +103,9 @@ const config = {
         "accordion-up": "accordion-up 0.2s ease-out",
         orbit: "orbit var(--duration) linear infinite",
         shine: 'shine var(--duration) linear infinite',
+        "spin-scale": "spin-scale 0.5s ease-out forwards",
+        grid: "grid 15s linear infinite",
+        "move-right-fade": "move-right-fade 1.5s ease-in-out infinite",
       },
     },
   },

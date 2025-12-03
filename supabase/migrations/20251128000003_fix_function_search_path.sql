@@ -1,0 +1,9 @@
+
+-- Fix: Set search_path for update_updated_at_column function to improve security and stability.
+CREATE OR REPLACE FUNCTION public.update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = now();
+    RETURN NEW;
+END;
+$$ language 'plpgsql' SET search_path = public;

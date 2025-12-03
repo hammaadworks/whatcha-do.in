@@ -1,117 +1,104 @@
-// hooks/useActions.ts
-"use client";
+'use client';
 
-import {useState} from 'react';
-import {Action} from '@/components/shared/ActionsList';
-import {mockActionsData} from '@/lib/mock-data';
+import { useState, useCallback, useEffect } from 'react';
+import { fetchActions, updateActions } from '@/lib/supabase/actions';
+import { ActionNode } from '@/lib/supabase/types'; // Correct import for ActionNode
+import { useAuth } from './useAuth';
+import { toast } from 'react-hot-toast'; // Kept for error reporting in save()
+import {
+  addActionToTree,
+  toggleActionInTree,
+  updateActionTextInTree,
+  deleteActionFromTree,
+  indentActionInTree,
+  outdentActionInTree,
+  moveActionUpInTree,
+  moveActionDownInTree,
+  toggleActionPrivacyInTree, // Import new utility
+} from '@/lib/utils/actionTreeUtils';
 
-export const useActions = () => {
-    const [actions, setActions] = useState<Action[]>(() => {
-        return [...mockActionsData].sort((a, b) => {
-            if (a.completed && !b.completed) return 1;
-            if (!a.completed && b.completed) return -1;
-            return a.originalIndex - b.originalIndex;
-        });
-    });
-    const [justCompletedId, setJustCompletedId] = useState<string | null>(null);
+export const useActions = (isOwner: boolean, timezone?: string) => {
+  const { user } = useAuth();
+  const [actions, setActions] = useState<ActionNode[]>([]);
+  const [loading, setLoading] = useState(false);
 
-    // TODO: Replace with a call to fetch actions from Supabase
-    const getActions = async () => {
-        // For now, we are using mock data
-        return actions;
-    };
+  // Fetch initial data
+  useEffect(() => {
+    if (isOwner && user) {
+      setLoading(true);
+      fetchActions(user.id, timezone || 'UTC')
+        .then(setActions)
+        .catch(err => console.error("Failed to fetch actions:", err))
+        .finally(() => setLoading(false));
+    }
+  }, [isOwner, user, timezone]);
 
-    const sortActions = (actionsToSort: Action[]) => {
-        return [...actionsToSort].sort((a, b) => {
-            if (a.completed && !b.completed) return 1;
-            if (!a.completed && b.completed) return -1;
-            return a.originalIndex - b.originalIndex;
-        });
-    };
+  // Central save function with optimistic update
+  const save = useCallback(async (newTree: ActionNode[]) => {
+    setActions(newTree); // Optimistic update
+    if (isOwner && user) {
+      try {
+        await updateActions(user.id, newTree);
+      } catch (error) {
+        console.error("Failed to persist actions:", error);
+        toast.error("Failed to save actions. Please try again.");
+        // In a real app, we might trigger a toast or revert state here
+      }
+    }
+  }, [isOwner, user]);
 
-    // TODO: Replace with a call to toggle an action in Supabase
-    const toggleAction = (id: string) => {
-        let actionToHighlight: Action | undefined;
+  const addAction = (description: string, parentId?: string, isPublic: boolean = true) => {
+    save(addActionToTree(actions, description, parentId, isPublic));
+  };
 
-        const checkParentCompletion = (children: Action[] | undefined): boolean => {
-            if (!children || children.length === 0) {
-                return false;
-            }
-            return children.every(child => child.completed);
-        };
+  const toggleAction = (id: string) => {
+    const newActionsTree = toggleActionInTree(actions, id);
+    if (newActionsTree === actions) { // Check if the tree changed or was prevented
+      toast.error("Complete all sub-actions first!");
+      return;
+    }
+    save(newActionsTree);
+  };
 
-        const toggleActionAndFind = (currentActions: Action[]): Action[] => {
-            return currentActions.map(action => {
-                let currentAction = {...action};
+  const updateActionText = (id: string, newText: string) => {
+    save(updateActionTextInTree(actions, id, newText));
+  };
 
-                if (currentAction.id === id) {
-                    currentAction.completed = !currentAction.completed;
-                    if (currentAction.children) {
-                        currentAction.children = currentAction.children.map(child => ({
-                            ...child,
-                            completed: currentAction.completed
-                        }));
-                    }
-                    actionToHighlight = currentAction;
-                } else if (currentAction.children && currentAction.children.length > 0) {
-                    currentAction.children = toggleActionAndFind(currentAction.children);
-                    const allChildrenCompleted = checkParentCompletion(currentAction.children);
-                    if (currentAction.completed !== allChildrenCompleted) {
-                        currentAction.completed = allChildrenCompleted;
-                    }
-                }
+  const deleteAction = (id: string) => {
+    save(deleteActionFromTree(actions, id));
+  };
 
-                if (!actionToHighlight && currentAction.children && currentAction.children.some(child => child.id === id)) {
-                    actionToHighlight = currentAction.children.find(child => child.id === id);
-                }
+  const indentAction = (id: string) => {
+    save(indentActionInTree(actions, id));
+  };
 
-                return currentAction;
-            });
-        };
+  const outdentAction = (id: string) => {
+    save(outdentActionInTree(actions, id));
+  };
 
-        setActions(currentActions => {
-            const updatedActions = toggleActionAndFind(currentActions);
+  const moveActionUp = (id: string) => {
+    save(moveActionUpInTree(actions, id));
+  };
 
-            if (actionToHighlight && actionToHighlight.completed) {
-                setJustCompletedId(id);
-                setTimeout(() => {
-                    setJustCompletedId(null);
-                    setActions(prev => sortActions(prev));
-                }, 500);
-            } else {
-                return sortActions(updatedActions);
-            }
-            return updatedActions;
-        });
-    };
+  const moveActionDown = (id: string) => {
+    save(moveActionDownInTree(actions, id));
+  };
 
-    // TODO: Replace with a call to add an action in Supabase
-    const addAction = (description: string, parentId?: string) => {
-        const newAction: Action = {
-            id: Date.now().toString(), description, completed: false, originalIndex: actions.length, children: [],
-        };
+  const toggleActionPrivacy = (id: string) => {
+    save(toggleActionPrivacyInTree(actions, id));
+  };
 
-        if (parentId) {
-            setActions(currentActions => {
-                const addToAction = (current: Action[]): Action[] => {
-                    return current.map(action => {
-                        if (action.id === parentId) {
-                            return {...action, children: [...(action.children || []), newAction]};
-                        }
-                        if (action.children && action.children.length > 0) {
-                            return {...action, children: addToAction(action.children)};
-                        }
-                        return action;
-                    });
-                };
-                return addToAction(currentActions);
-            });
-        } else {
-            setActions(currentActions => [...currentActions, newAction]);
-        }
-    };
-
-    return {
-        actions, justCompletedId, toggleAction, addAction,
-    };
+  return {
+    actions,
+    loading,
+    addAction,
+    toggleAction,
+    updateActionText,
+    deleteAction,
+    indentAction,
+    outdentAction,
+    moveActionUp,
+    moveActionDown,
+    toggleActionPrivacy, // Return new handler
+  };
 };

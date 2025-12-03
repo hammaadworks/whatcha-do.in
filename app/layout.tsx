@@ -7,6 +7,14 @@ import AppHeader from "@/components/layout/AppHeader";
 import AppFooter from "@/components/layout/AppFooter";
 import { createServerSideClient } from '@/lib/supabase/server';
 import logger from '@/lib/logger/server'; // Import the server logger
+import { Pointer } from "@/components/ui/pointer";
+import { Toaster } from "sonner";
+import {
+    DOMAIN_URL,
+    AUTHOR_NAME,
+    WEBSITE_URL,
+    AUTHOR_TWITTER_HANDLE
+} from "@/lib/constants";
 
 const geistSans = Geist({
     variable: "--font-geist-sans", subsets: ["latin"],
@@ -17,20 +25,20 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-    metadataBase: new URL("https://whatcha-doin.hammaadworks.com"),
+    metadataBase: new URL(DOMAIN_URL),
     title: {
         default: "whatcha-doin | Building Consistency, One Habit at a Time", template: "%s | whatcha-doin",
     },
     description: "whatcha-doin helps you build consistency and achieve your goals by tracking habits, visualizing progress, and connecting with a supportive community. Building consistency one habit at a time.",
     applicationName: "whatcha-doin",
-    creator: "hammaadworks",
-    publisher: "hammaadworks",
+    creator: AUTHOR_NAME,
+    publisher: AUTHOR_NAME,
     keywords: ["habit tracker", "habit building", "consistency", "goal setting", "productivity", "personal growth", "wellness", "community",],
-    authors: [{name: "hammaadworks", url: "https://github.com/hammaadworks"}],
+    authors: [{name: AUTHOR_NAME, url: WEBSITE_URL}],
     openGraph: {
         title: "whatcha-doin | Building Consistency, One Habit at a Time",
         description: "whatcha-doin helps you build consistency and achieve your goals by tracking habits, visualizing progress, and connecting with a supportive community. Building consistency one habit at a time.",
-        url: "https://whatcha-doin.hammaadworks.com",
+        url: DOMAIN_URL,
         siteName: "whatcha-doin",
         images: [{
             url: "/favicons/light/logo-full.png", // Primary logo for OpenGraph
@@ -46,7 +54,7 @@ export const metadata: Metadata = {
         card: "summary_large_image",
         title: "whatcha-doin | Building Consistency, One Habit at a Time",
         description: "whatcha-doin helps you build consistency and achieve your goals by tracking habits, visualizing progress, and connecting with a supportive community. Building consistency one habit at a time.",
-        creator: "@hammaadworks",
+        creator: AUTHOR_TWITTER_HANDLE,
         images: ["/favicons/light/logo-full.png", // Primary logo for Twitter
             "/favicons/dark/logo-full.png", // Alternative logo for Twitter
         ],
@@ -64,27 +72,12 @@ export const metadata: Metadata = {
     manifest: "/manifest.json",
 };
 
+import { KeyboardShortcutsProvider } from '@/components/shared/KeyboardShortcutsProvider'; // New import
+
+// ... other imports ...
+
 export default async function RootLayout({children,}: Readonly<{ children: React.ReactNode; }>) {
-    const log = logger.child({ function: 'RootLayout' });
-    log.info('Fetching user session in RootLayout');
-
-    const supabase = await createServerSideClient();
-    const { data: { session }, error } = await supabase.auth.getSession();
-
-    if (error) {
-        log.error({ err: error }, 'Error fetching session in RootLayout');
-    }
-
-    let initialUser = null;
-    if (session?.user) {
-        initialUser = {
-            ...session.user,
-            username: session.user.user_metadata?.username || session.user.email?.split('@')[0],
-        };
-        log.info({ userId: initialUser.id, username: initialUser.username }, 'Session found for user');
-    } else {
-        log.info('No active session found');
-    }
+    // ... existing async function content ...
 
     return (<html lang="en">
         <head>
@@ -94,14 +87,22 @@ export default async function RootLayout({children,}: Readonly<{ children: React
         <body
             className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}
         >
-        <AuthProvider initialUser={initialUser}>
-            <AppHeader/>
-            <main className="flex-grow flex items-center justify-center px-2 md:px-4 lg:px-8">
-                {children}
-            </main>
-            <AppFooter/>
-        </AuthProvider>
+        <Pointer className="fill-primary" />
+        <KeyboardShortcutsProvider> {/* New wrapper */}
+            <AuthProvider>
+                <AppHeader/>
+                <main className="flex-grow flex justify-center px-2 md:px-4 lg:px-8 pt-16 lg:pt-32 pb-4">
+                    {children}
+                </main>
+                <AppFooter/>
+                <Toaster
+                  position="top-center"
+                  closeButton
+                  richColors
+                  theme="system"
+                />
+            </AuthProvider>
+        </KeyboardShortcutsProvider> {/* New wrapper */}
         </body>
         </html>);
 }
-

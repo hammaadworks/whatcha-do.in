@@ -91,7 +91,7 @@ This approach accelerates development by leveraging established best practices a
 | Email Service | Rely on Supabase Auth's built-in email | N/A | User Management (authentication) | Frugality, simplicity, Supabase Auth handles core requirement for MVP; defer dedicated service for future needs. |
 | Deployment Target | Vercel | N/A | All epics | Optimized for Next.js, generous free tier for MVP, seamless integration with GitHub for CI/CD (GitHub Actions). |
 | Search Solution | Deferred | N/A | Journal | PRD updated to remove search requirement (FR-5.8); journal navigation is via date picker only for MVP. |
-| Background Jobs | Hybrid: Client-side trigger + Supabase Database Functions (PostgreSQL) | N/A | Habit Management, Grace Period | Client-side (Next.js) triggers Grace Period on app open/logins for local timezone. Supabase Database Functions (PostgreSQL) enforce "Two-Day Rule" and validate state changes server-side, handling multi-day absences and ensuring data integrity. Grace screen appears once per day, and this is the most frugal/cleanest solution for MVP. |
+| Background Jobs | Hybrid: Client-side trigger + Supabase Database Functions (PostgreSQL) | N/A | Habit Management, Grace Period, Action Clearing | Client-side (Next.js) triggers Grace Period on app open/logins for local timezone, and handles "Next Day Clearing" for Actions. Supabase Database Functions (PostgreSQL) enforce "Two-Day Rule" and validate state changes server-side, handling multi-day absences and ensuring data integrity. Grace screen appears once per day, and this is the most frugal/cleanest solution for MVP. |
 | Error Handling Strategy | User-facing: Inline/Toast/Error Page; Internal: Sentry (frontend), Supabase logs (backend), Lark webhook (critical alerts) | N/A | All epics | Aligns with UX principles, ensures proactive monitoring, and leverages cost-effective solutions. |
 | Logging Approach | Structured logging with standard levels; Supabase logs (backend), Sentry (frontend), Lark webhook (critical alerts) | N/A | All epics | Ensures maintainability, debuggability, and centralized visibility of application health. |
 | Date/Time Handling | Store UTC in DB, transmit ISO 8601 UTC strings, client converts for local display/input, server-side calculations use UTC with user's stored timezone. | N/A | All epics | Ensures data integrity, avoids timezone bugs, provides correct local user experience, and maintains server as source of truth. |
@@ -147,8 +147,11 @@ This approach accelerates development by leveraging established best practices a
 
 *   **Storage (Supabase PostgreSQL):** All dates and times will be stored in **UTC (Coordinated Universal Time)** using PostgreSQL's `TIMESTAMP WITH TIME ZONE` type.
 *   **Transmission (API/Functions):** Dates and times will always be transmitted as **ISO 8601 strings** (e.g., `2025-11-12T10:30:00Z`).
-*   **Client-Side (Next.js Frontend):** The frontend will detect the user's local timezone, convert UTC times from the database to the user's local timezone for display, and convert user input back to UTC ISO 8601 strings for transmission.
-*   **Calculations (Supabase Functions/PostgreSQL):** All core logic and calculations will be performed server-side using **UTC timestamps**, considering the user's stored timezone offset (user's preferred timezone will be stored in their profile).
+*   **Timezone Strategy:**
+    *   **User Preference:** Users will be able to explicitly select their preferred timezone (stored in the `users` table).
+    *   **Logic Execution:** Core logic like "Next Day Clearing" and "Daily State Change" will respect this *stored* timezone preference. This ensures that if a user travels or uses a different device, their "Identity Day" remains consistent with their chosen setting, rather than fluctuating with the browser's system time.
+    *   **Fallback:** If no preference is set, the system will default to the browser's detected timezone (client-side) or UTC (server-side default).
+*   **Calculations (Supabase Functions/PostgreSQL):** All core logic and calculations will be performed server-side using **UTC timestamps**, considering the user's stored timezone offset.
 
 ### Testing Strategy
 
@@ -187,7 +190,18 @@ The data architecture will be built upon **Supabase PostgreSQL**, leveraging its
     *   `duration_value`: Duration value recorded (FR-5.1.5).
     *   `duration_unit`: Duration unit recorded (FR-5.1.5).
     *   `notes`: Free-form text notes for this completion (FR-5.1.5).
-*   **Todos:** Will store one-off task details (e.g., `todo_id`, `user_id`, `parent_todo_id` for sub-todos, `description`, `is_public`, `is_completed`, `created_at`).
+*   **Actions (Formerly Todos):** Will store action items using a **JSONB** column to support unlimited nesting.
+    *   `id`: Unique identifier for the root action container (or individual action if we treat roots as rows).
+    *   `user_id`: Foreign key to `users`. **UNIQUE constraint**.
+    *   `data`: A **JSONB** column storing the entire action tree structure. Each node in the JSON tree will contain:
+        *   `id`: Unique ID for the node.
+        *   `description`: Description.
+        *   `completed`: Boolean status.
+        *   `is_public`: Boolean status indicating if the action is public or private. This flag is propagated through the tree based on specific privacy rules ("Private Parent -> Private Child", "Public Child -> Public Parent").
+        *   `completed_at`: Timestamp of completion (critical for "Next Day Clearing" logic).
+        *   `children`: Array of sub-action nodes (recursive).
+    *   `created_at`, `updated_at`.
+    *   *Rationale:* JSONB is chosen to perfectly fit the "unlimited nesting" requirement and allows for fetching the entire user's action tree in a single query, which is efficient for this specific use case. The "Next Day Clearing" logic will be handled by parsing this JSON structure (client-side or server-side function) to filter out items where `completed` is true AND `completed_at` is before the start of the current day (in the user's timezone). Cleared items are eligible for display in the **Grace Period Summary** (Habits System) before being finally archived/hidden. The `is_public` flag ensures that only designated actions (and their relevant parent containers) are exposed in public views, with privacy propagation rules enforced by client-side utilities.
 *   **Journal Entries:** Will store daily reflections and aggregated notes from completed items (e.g., `entry_id`, `user_id`, `entry_date`, `content`, `is_public`, `created_at`).
 *   **Relationships:** Foreign keys will establish relationships between users and their habits, todos, and journal entries. Sub-todos will have a self-referencing relationship.
 
@@ -240,6 +254,9 @@ The security architecture for 'whatcha-doin' will be built upon the robust featu
 *   **Authorization (Row Level Security - RLS):** Strict separation between public and private data will be enforced using **PostgreSQL Row Level Security (RLS)** (NFR-2.2). RLS policies will be defined to ensure:
     *   Users can only access and modify their own private data.
     *   Public data is accessible to all, but only modifiable by the owner.
+    *   For the `public.actions` table, RLS policies will ensure that:
+        *   An authenticated user can always view and modify their entire action tree.
+        *   Unauthenticated users or other authenticated users can only view actions within a tree that are explicitly marked `is_public: true`.
     *   Unauthorized access to private information is prevented at the database level.
     *   **Development Note on RLS:** During development with Supabase authentication bypassed (ADR 016), RLS policies relying on `auth.uid()` or `auth.role()` will need to be temporarily adjusted or temporarily set to permissive mode for the hardcoded `user_id` to allow direct table interactions. A dedicated development policy using `check_dev_mode_enabled()` function is recommended.
 *   **Data Encryption:** Supabase PostgreSQL inherently provides encryption at rest for data stored in the database. Data in transit will be secured using **TLS/SSL** for all communication between the client, Vercel, and Supabase.

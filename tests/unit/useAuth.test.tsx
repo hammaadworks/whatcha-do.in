@@ -17,13 +17,30 @@ const MOCK_USER: User = {
 
 describe('useAuth Hook', () => {
   // Wrapper component to provide the AuthContextProvider
-  const createWrapper = (initialUser?: User | null) => {
+  const createWrapper = () => {
     return function Wrapper({ children }: { children: React.ReactNode }) {
-      return <AuthProvider initialUser={initialUser}>{children}</AuthProvider>;
+      return <AuthProvider>{children}</AuthProvider>;
     };
   };
 
   beforeEach(() => {
+    // Mock Supabase client and its methods
+    jest.mock('@/lib/supabase/client', () => ({
+      createClient: jest.fn(() => ({
+        auth: {
+          getSession: jest.fn(() => Promise.resolve({ data: { session: null }, error: null })),
+          onAuthStateChange: jest.fn(() => ({ data: { subscription: { unsubscribe: jest.fn() } } })),
+        },
+        from: jest.fn(() => ({
+          select: jest.fn(() => ({
+            eq: jest.fn(() => ({
+              single: jest.fn(() => Promise.resolve({ data: null, error: null })),
+            })),
+          })),
+        })),
+      })),
+    }));
+
     // Reset environment variable before each test
     delete process.env.NEXT_PUBLIC_DEV_MODE_ENABLED;
     jest.useFakeTimers();
@@ -33,71 +50,149 @@ describe('useAuth Hook', () => {
     jest.useRealTimers();
   });
 
-  it('should return initial loading state as true', () => {
+  it('should return initial loading state as true and then false with null user', async () => {
     const { result } = renderHook(() => useAuth(), { wrapper: createWrapper() });
-    jest.runAllTimers();
+
     expect(result.current.loading).toBe(true);
     expect(result.current.user).toBeNull();
-  });
 
-  it('should inject mock user when NEXT_PUBLIC_DEV_MODE_ENABLED is true', async () => {
-    process.env.NEXT_PUBLIC_DEV_MODE_ENABLED = 'true';
-
-    const { result } = renderHook(() => useAuth(), { wrapper: createWrapper() });
-
-    jest.runAllTimers(); // Ensure all pending promises are resolved
-    await waitFor(() => {
-      expect(result.current.loading).toBe(false);
-      expect(result.current.user).toEqual(expect.objectContaining({
-        id: MOCK_USER.id,
-        email: MOCK_USER.email,
-      }));
-    });
-  });
-
-  it('should use initialUser when NEXT_PUBLIC_DEV_MODE_ENABLED is false', async () => {
-    process.env.NEXT_PUBLIC_DEV_MODE_ENABLED = 'false';
-    const testInitialUser: User = { ...MOCK_USER, id: 'test-initial-user-id', email: 'test@example.com' };
-
-    const { result } = renderHook(() => useAuth(), { wrapper: createWrapper(testInitialUser) });
-
-    jest.runAllTimers(); // Ensure all pending promises are resolved
-    await waitFor(() => {
-      expect(result.current.loading).toBe(false);
-      expect(result.current.user).toEqual(expect.objectContaining({
-        id: testInitialUser.id,
-        email: testInitialUser.email,
-      }));
-    });
-  });
-
-  it('should return null user when NEXT_PUBLIC_DEV_MODE_ENABLED is false and no initialUser', async () => {
-    process.env.NEXT_PUBLIC_DEV_MODE_ENABLED = 'false';
-
-    const { result } = renderHook(() => useAuth(), { wrapper: createWrapper(null) });
-
-    jest.runAllTimers(); // Ensure all pending promises are resolved
+    jest.runAllTimers();
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
       expect(result.current.user).toBeNull();
     });
   });
 
-  it('should prioritize mock user over initialUser if dev mode is enabled', async () => {
+  it('should inject mock user when NEXT_PUBLIC_DEV_MODE_ENABLED is true', async () => {
     process.env.NEXT_PUBLIC_DEV_MODE_ENABLED = 'true';
-    const testInitialUser: User = { ...MOCK_USER, id: 'test-initial-user-id', email: 'test@example.com' };
 
-    const { result } = renderHook(() => useAuth(), { wrapper: createWrapper(testInitialUser) });
+    // Mock supabase.auth.getSession to return null session so dev mode can take over
+    const mockGetSession = jest.fn(() => Promise.resolve({ data: { session: null }, error: null }));
+    require('@/lib/supabase/client').createClient.mockImplementation(() => ({
+      auth: {
+        getSession: mockGetSession,
+        onAuthStateChange: jest.fn(() => ({ data: { subscription: { unsubscribe: jest.fn() } } })),
+      },
+      from: jest.fn(() => ({
+        select: jest.fn(() => ({
+          eq: jest.fn(() => ({
+            single: jest.fn(() => Promise.resolve({ data: null, error: null })),
+          })),
+        })),
+      })),
+    }));
 
-    jest.runAllTimers(); // Ensure all pending promises are resolved
+    const { result } = renderHook(() => useAuth(), { wrapper: createWrapper() });
+
+    jest.runAllTimers();
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
+      // Mock user is hardcoded in AuthProvider, so we check for that
       expect(result.current.user).toEqual(expect.objectContaining({
-        id: MOCK_USER.id, // Should be mock user's ID, not initialUser's
-        email: MOCK_USER.email,
+        id: "68be1abf-ecbe-47a7-bafb-46be273a2e",
+        email: "hammaadworks@gmail.com",
       }));
     });
+    expect(mockGetSession).toHaveBeenCalled(); // Should still try to get session
   });
+
+  it('should fetch user from session and profile from users table', async () => {
+    const mockSessionUser = { ...MOCK_USER, id: 'session-user-id', email: 'session@example.com' };
+    const mockProfileData = { username: 'sessionuser', timezone: 'America/New_York' };
+    const expectedUser = { ...mockSessionUser, ...mockProfileData };
+
+    // Mock supabase.auth.getSession to return a session
+    const mockGetSession = jest.fn(() => Promise.resolve({ data: { session: { user: mockSessionUser } }, error: null }));
+    // Mock supabase.from('users').select().eq().single() to return profile data
+    const mockFetchProfile = jest.fn(() => Promise.resolve({ data: mockProfileData, error: null }));
+
+    require('@/lib/supabase/client').createClient.mockImplementation(() => ({
+      auth: {
+        getSession: mockGetSession,
+        onAuthStateChange: jest.fn(() => ({ data: { subscription: { unsubscribe: jest.fn() } } })),
+      },
+      from: jest.fn(() => ({
+        select: jest.fn(() => ({
+          eq: jest.fn(() => ({
+            single: mockFetchProfile,
+          })),
+        })),
+      })),
+    }));
+
+    const { result } = renderHook(() => useAuth(), { wrapper: createWrapper() });
+
+    jest.runAllTimers();
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+      expect(result.current.user).toEqual(expect.objectContaining(expectedUser));
+    });
+    expect(mockGetSession).toHaveBeenCalled();
+    expect(mockFetchProfile).toHaveBeenCalledWith('id', 'session-user-id');
+  });
+
+  it('should return null user if no session is found', async () => {
+    // getSession already mocked to return null session in beforeEach
+
+    const { result } = renderHook(() => useAuth(), { wrapper: createWrapper() });
+
+    jest.runAllTimers();
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+      expect(result.current.user).toBeNull();
+    });
+  });
+
+  it('refreshUser should re-fetch and update user data', async () => {
+    const initialSessionUser = { ...MOCK_USER, id: 'initial-user-id', email: 'initial@example.com' };
+    const initialProfileData = { username: 'initial', timezone: 'Europe/London' };
+    const refreshedSessionUser = { ...MOCK_USER, id: 'refreshed-user-id', email: 'refreshed@example.com' };
+    const refreshedProfileData = { username: 'refreshed', timezone: 'Asia/Tokyo' };
+
+    // Mock getSession to return initial user, then refreshed user
+    const mockGetSession = jest.fn()
+      .mockResolvedValueOnce({ data: { session: { user: initialSessionUser } }, error: null })
+      .mockResolvedValueOnce({ data: { session: { user: refreshedSessionUser } }, error: null });
+    
+    // Mock fetchProfile to return initial profile, then refreshed profile
+    const mockFetchProfile = jest.fn()
+      .mockResolvedValueOnce({ data: initialProfileData, error: null })
+      .mockResolvedValueOnce({ data: refreshedProfileData, error: null });
+
+    require('@/lib/supabase/client').createClient.mockImplementation(() => ({
+      auth: {
+        getSession: mockGetSession,
+        onAuthStateChange: jest.fn(() => ({ data: { subscription: { unsubscribe: jest.fn() } } })),
+      },
+      from: jest.fn(() => ({
+        select: jest.fn(() => ({
+          eq: jest.fn(() => ({
+            single: mockFetchProfile,
+          })),
+        })),
+      })),
+    }));
+
+    const { result } = renderHook(() => useAuth(), { wrapper: createWrapper() });
+
+    jest.runAllTimers();
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+      expect(result.current.user).toEqual(expect.objectContaining({ ...initialSessionUser, ...initialProfileData }));
+    });
+
+    // Call refreshUser
+    result.current.refreshUser();
+
+    jest.runAllTimers();
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false); // Should still be false after refresh
+      expect(result.current.user).toEqual(expect.objectContaining({ ...refreshedSessionUser, ...refreshedProfileData }));
+    });
+    expect(mockGetSession).toHaveBeenCalledTimes(2);
+    expect(mockFetchProfile).toHaveBeenCalledTimes(2);
+  });
+
 
   it('should throw error if useAuth is not used within AuthContextProvider', () => {
     // Temporarily disable console.error to avoid test noise from expected error

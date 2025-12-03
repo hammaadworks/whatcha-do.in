@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy for whatcha-doin</title>
+    <style>
+        body { font-family: sans-serif; line-height: 1.6; margin: 0; padding: 20px; color: #333; background-color: #f9f9f9; }
+        .container { max-width: 800px; margin: auto; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1, h2, h3 { color: #222; margin-top: 1.5em; margin-bottom: 0.5em; }
+        h1 { font-size: 2.2em; }
+        h2 { font-size: 1.8em; }
+        h3 { font-size: 1.4em; }
+        p { margin-bottom: 1em; }
+        ul { list-style-type: disc; margin-left: 20px; margin-bottom: 1em; }
+        ol { list-style-type: decimal; margin-left: 20px; margin-bottom: 1em; }
+        a { color: #007bff; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        strong { font-weight: bold; }
+        em { font-style: italic; }
+        hr { border: 0; height: 1px; background: #eee; margin: 2em 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Privacy Policy for whatcha-doin</h1>
+        <p><strong>Effective Date:</strong> 30 November 2025</p>
+
+        <p>This Privacy Policy describes how whatcha-doin ("the App," "we," "us," or "our") collects, uses, and discloses information when you use our habit and todo tracking application and related services (collectively, the "Service").</p>
+
+        <hr>
+
+        <h2>1. Information We Collect</h2>
+        <p>We collect several types of information from and about users of our Service:</p>
+        <ul>
+            <li><strong>Personal Identifiable Information (PII):</strong>
+                <ul>
+                    <li><strong>Email Address:</strong> Collected for account creation and login via Magic Link.</li>
+                    <li><strong>User ID:</strong> A unique identifier automatically assigned to your account by our authentication provider (Supabase).</li>
+                    <li><strong>Username:</strong> A unique handle you choose for your public profile (e.g., <code>whatcha-doin.com/[your-username]</code>).</li>
+                    <li><strong>Bio:</strong> Optional text you provide for your user profile.</li>
+                </ul>
+            </li>
+            <li><strong>Usage Data:</strong>
+                <ul>
+                    <li><strong>Habits:</strong> Information about habits you create, including names, goals, public/private status, streak counts, and completion timestamps.</li>
+                    <li><strong>Actions (Todos):</strong> Information about tasks you create, including descriptions, nesting structure, public/private status, and completion timestamps.</li>
+                    <li><strong>Journal Entries:</strong> Text content of your journal entries, along with their creation date and public/private status.</li>
+                    <li><strong>Completion Details:</strong> For habits and actions, we collect mood scores, work values achieved, duration, and any free-form notes you provide upon completion.</li>
+                    <li><strong>Timezone:</strong> Your preferred local timezone, which you can set in your profile settings.</li>
+                </ul>
+            </li>
+            <li><strong>Technical Data:</strong>
+                <ul>
+                    <li><strong>IP Address:</strong> Your IP address is logged by our backend provider (Supabase) for security, analytics, and debugging purposes.</li>
+                    <li><strong>Device Information:</strong> We may collect general, non-identifying information about the device you use to access the Service (e.g., operating system, browser type) through standard web server logs and analytics (Sentry).</li>
+                </ul>
+            </li>
+            <li><strong>Aggregated Data:</strong> We may aggregate and anonymize data collected from users to analyze usage patterns and improve the Service. This aggregated data cannot be used to identify you personally.</li>
+        </ul>
+
+        <hr>
+
+        <h2>2. How We Use Your Information</h2>
+        <p>We use the information we collect for various purposes:</p>
+        <ul>
+            <li><strong>To Provide and Maintain the Service:</strong> To operate our application, manage your account, track your habits and actions, and allow you to create journal entries.</li>
+            <li><strong>To Personalize Your Experience:</strong> To tailor the Service to your preferences, such as displaying content based on your chosen timezone.</li>
+            <li><strong>To Communicate with You:</strong> To send you Magic Links for login and other essential service-related communications.</li>
+            <li><strong>To Improve Our Service:</strong> To understand how users interact with the App, identify areas for improvement, and develop new features.</li>
+            <li><strong>For Security and Fraud Prevention:</strong> To protect the integrity and security of our Service and to detect and prevent unauthorized or illegal activities.</li>
+            <li><strong>For Analytics:</strong> To monitor and analyze usage trends and activities in connection with our Service. We use Sentry for frontend error tracking and performance monitoring, which may collect information about your device and how you interact with the App (without directly identifying you).</li>
+        </ul>
+
+        <hr>
+
+        <h2>3. How We Share Your Information</h2>
+        <p>We generally do not share your Personal Identifiable Information with third parties, except in the following circumstances:</p>
+        <ul>
+            <li><strong>With Your Consent:</strong> We may share your information if you give us explicit permission to do so.</li>
+            <li><strong>Public Profile and Content:</strong> Information you designate as "public" (e.g., your username, bio, public habits, public actions, public journal entries) will be visible to other users and accessible via your public profile URL. Please be mindful of what you choose to make public.</li>
+            <li><strong>Service Providers:</strong> We engage third-party service providers to perform functions on our behalf, such as:
+                <ul>
+                    <li><strong>Supabase:</strong> Our backend provider for database (PostgreSQL), authentication, real-time functionality, and storage. Supabase processes your data as necessary to provide these services.</li>
+                    <li><strong>Vercel:</strong> Our hosting provider for the application.</li>
+                    <li><strong>Sentry:</strong> For error tracking and performance monitoring.</li>
+                </ul>
+            </li>
+            <li><strong>Legal Requirements:</strong> We may disclose your information if required to do so by law or in response to valid requests by public authorities (e.g., a court order or government agency).</li>
+            <li><strong>Business Transfers:</strong> In the event of a merger, acquisition, or sale of all or a portion of our assets, your information may be transferred as part of that transaction.</li>
+        </ul>
+
+        <hr>
+
+        <h2>4. Data Security</h2>
+        <p>We implement reasonable technical and organizational measures designed to protect your information from unauthorized access, use, alteration, and disclosure. These measures include:</p>
+        <ul>
+            <li><strong>Encryption:</strong> Data is encrypted at rest (in our PostgreSQL database) and in transit (via TLS/SSL for all communication).</li>
+            <li><strong>Row Level Security (RLS):</strong> We utilize RLS at the database level to ensure that users can only access and modify their own data, and to strictly control access to public/private content.</li>
+            <li><strong>Authentication:</strong> We use secure Magic Link authentication.</li>
+            <li><strong>Access Control:</strong> Access to your data by our personnel is strictly limited and subject to internal policies.</li>
+        </ul>
+        <p>However, no method of transmission over the Internet or method of electronic storage is 100% secure. Therefore, while we strive to use commercially acceptable means to protect your information, we cannot guarantee its absolute security.</p>
+
+        <hr>
+
+        <h2>5. Your Data Protection Rights</h2>
+        <p>Depending on your location, you may have the following data protection rights:</p>
+        <ul>
+            <li><strong>Access:</strong> The right to request copies of your personal data.</li>
+            <li><strong>Rectification:</strong> The right to request that we correct any information you believe is inaccurate or complete information you believe is incomplete.</li>
+            <li><strong>Erasure:</strong> The right to request that we erase your personal data, under certain conditions.</li>
+            <li><strong>Restriction of Processing:</strong> The right to request that we restrict the processing of your personal data, under certain conditions.</li>
+            <li><strong>Object to Processing:</strong> The right to object to our processing of your personal data, under certain conditions.</li>
+            <li><strong>Data Portability:</strong> The right to request that we transfer the data that we have collected to another organization, or directly to you, under certain conditions.</li>
+        </ul>
+        <p>To exercise any of these rights, please contact us using the details provided in the "Contact Us" section below.</p>
+
+        <hr>
+
+        <h2>6. Data Retention</h2>
+        <p>We retain your personal information for as long as necessary to provide the Service, fulfill the purposes outlined in this Privacy Policy, or as required by law. When your information is no longer needed, we will securely delete or anonymize it.</p>
+
+        <hr>
+
+        <h2>7. Children's Privacy</h2>
+        <p>Our Service is not directed to individuals under the age of 13. We do not knowingly collect personal identifiable information from children under 13. If you are a parent or guardian and you learn that your child has provided us with personal data, please contact us. If we become aware that we have collected personal data from a child under 13 without verification of parental consent, we take steps to remove that information from our servers.</p>
+
+        <hr>
+
+        <h2>8. Changes to This Privacy Policy</h2>
+        <p>We may update our Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page and updating the "Effective Date" at the top of this Privacy Policy. You are advised to review this Privacy Policy periodically for any changes. Changes to this Privacy Policy are effective when they are posted on this page.</p>
+
+        <hr>
+
+        <h2>9. Contact Us</h2>
+        <p>If you have any questions about this Privacy Policy, please contact us at hammaadworks@gmail.com.</p>
+    </div>
+</body>
+</html>

@@ -70,7 +70,7 @@ describe('HabitChipPrivate Integration in PrivatePage', () => {
     };
 
     render(
-      <PrivatePage username="testuser" initialProfileUser={mockPublicUserDisplay} />,
+      <PrivatePage username="testuser" initialProfileUser={mockPublicUserDisplay} publicActions={[]} publicHabits={[]} publicJournalEntries={[]} />,
       { mockUser: mockAuthenticatedUser } // Pass mockAuthenticatedUser to customRender
     );
 
@@ -86,7 +86,7 @@ describe('HabitChipPrivate Integration in PrivatePage', () => {
   // Subtask 4.4: (New) Write a test to verify the `HabitChipPrivate` applies theme-aware styling correctly (e.g., by checking CSS classes or computed styles for light/dark modes).
   test('HabitChipPrivate should apply dark mode styling when theme is dark', async () => {
     render(
-      <PrivatePage username="testuser" initialProfileUser={mockPublicUserDisplay} />,
+      <PrivatePage username="testuser" initialProfileUser={mockPublicUserDisplay} publicActions={[]} publicHabits={[]} publicJournalEntries={[]} />,
       { mockUser: mockAuthenticatedUser, theme: 'dark' }
     );
 
@@ -97,7 +97,7 @@ describe('HabitChipPrivate Integration in PrivatePage', () => {
 
   test('HabitChipPrivate should apply light mode styling when theme is light', async () => {
     render(
-      <PrivatePage username="testuser" initialProfileUser={mockPublicUserDisplay} />,
+      <PrivatePage username="testuser" initialProfileUser={mockPublicUserDisplay} publicActions={[]} publicHabits={[]} publicJournalEntries={[]} />,
       { mockUser: mockAuthenticatedUser, theme: 'light' }
     );
 
@@ -109,7 +109,7 @@ describe('HabitChipPrivate Integration in PrivatePage', () => {
   // Subtask 4.6: (New) Write a test to verify privacy icons are displayed correctly for public/private habits.
   test('should display public icon for public habit', async () => {
     render(
-      <PrivatePage username="testuser" initialProfileUser={mockPublicUserDisplay} />,
+      <PrivatePage username="testuser" initialProfileUser={mockPublicUserDisplay} publicActions={[]} publicHabits={[]} publicJournalEntries={[]} />,
       { mockUser: mockAuthenticatedUser } // Pass mockAuthenticatedUser
     );
     expect(screen.getByText('🌐')).toBeInTheDocument();

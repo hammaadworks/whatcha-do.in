@@ -1,42 +1,127 @@
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
-import {getUserByUsernameServer} from '@/lib/supabase/user.server'; // Corrected import
+import { createServerClient, type CookieOptions } from '@supabase/ssr'
+import { NextResponse, type NextRequest } from 'next/server'
+import { RESERVED_USERNAMES } from "@/lib/constants";
+import { createClient } from '@supabase/supabase-js'
 
 export async function proxy(request: NextRequest) {
-  const pathname = request.nextUrl.pathname;
+  // 1. Run Supabase Auth Session Update
+  let supabaseResponse = NextResponse.next({
+    request,
+  })
 
-  // Regex to match /username pattern, but not /_next, /api, /static, etc.
-  // This specifically targets paths that are a single segment starting with a character
-  // and are not known Next.js internal paths or file extensions.
-  const usernameMatch = pathname.match(/^\/([a-zA-Z0-9_-]+)$/);
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return request.cookies.get(name)?.value
+        },
+        set(name: string, value: string, options: CookieOptions) {
+          request.cookies.set({
+            name,
+            value,
+            ...options,
+          })
+          supabaseResponse = NextResponse.next({
+            request,
+          })
+          supabaseResponse.cookies.set({
+            name,
+            value,
+            ...options,
+          })
+        },
+        remove(name: string, options: CookieOptions) {
+          request.cookies.set({
+            name,
+            value: '',
+            ...options,
+          })
+          supabaseResponse = NextResponse.next({
+            request,
+          })
+          supabaseResponse.cookies.set({
+            name,
+            value: '',
+            ...options,
+          })
+        },
+      },
+    }
+  )
 
-  // Exclude internal Next.js paths and API routes
+  // Refresh session
+  await supabase.auth.getUser()
+
+  // 2. Proxy / Routing Logic
+  const pathname = request.nextUrl.pathname
+
+  // Regex to match /username pattern (single segment)
+  const usernameMatch = pathname.match(/^\/([a-zA-Z0-9_-]+)$/)
+
+  // Exclusions
   if (
     pathname.startsWith('/_next') ||
     pathname.startsWith('/api') ||
     pathname.startsWith('/static') ||
-    pathname.includes('.') // Exclude paths with file extensions (e.g., favicon.ico)
+    pathname.startsWith('/auth') || 
+    pathname.startsWith('/logins') ||
+    pathname === '/' ||
+    pathname === '/me' || // Explicitly exclude /me
+    pathname.includes('.') 
   ) {
-    return NextResponse.next();
+    return supabaseResponse
   }
 
   if (usernameMatch) {
-    const username = usernameMatch[1];
-    const userExists = await getUserByUsernameServer(username); // Corrected function call
+    const username = usernameMatch[1]
+    const reservedRoutes = RESERVED_USERNAMES;
+    
+    if (reservedRoutes.includes(username)) {
+      return supabaseResponse
+    }
 
-    if (!userExists) {
-      // If username is invalid, rewrite to generic /not-found and set header
-      const response = NextResponse.rewrite(new URL('/not-found', request.url));
-      response.headers.set('x-reason', 'user-not-found');
-      return response;
+    // Check username existence using a lightweight client (Edge compatible)
+    const anonSupabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
+
+    try {
+      const { data, error } = await anonSupabase
+        .from('users')
+        .select('username')
+        .eq('username', username)
+        .single()
+
+      if (!data || error) {
+        // Rewrite to not-found
+        const notFoundUrl = request.nextUrl.clone()
+        notFoundUrl.pathname = '/not-found'
+        const rewriteResponse = NextResponse.rewrite(notFoundUrl)
+        
+        // Important: Copy over the cookies/headers from the auth response
+        supabaseResponse.headers.forEach((value, key) => {
+            rewriteResponse.headers.set(key, value)
+        })
+        supabaseResponse.cookies.getAll().forEach((cookie) => {
+            rewriteResponse.cookies.set(cookie)
+        })
+        
+        rewriteResponse.headers.set('x-reason', 'user-not-found')
+        return rewriteResponse
+      }
+    } catch (err) {
+      console.error('Proxy error checking username:', err)
     }
   }
 
-  return NextResponse.next(); // Continue to the next middleware or page
+  return supabaseResponse
 }
 
 export const config = {
-  // Match all paths to be safe, but filter internally.
-  // Or refine matcher to only target dynamic routes more precisely.
-  matcher: ['/:path*'],
-};
+  matcher: [
+    '/((?!_next/static|_next/image|favicon.ico|.*\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+  ],
+}

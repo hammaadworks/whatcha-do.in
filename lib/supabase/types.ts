@@ -26,6 +26,7 @@ export interface Todo {
 
 export interface JournalEntry {
     id: string;
+    user_id: string;
     entry_date: string;
     content: string;
     is_public: boolean;
@@ -36,6 +37,7 @@ export interface PublicUserDisplay {
     id: string;
     username?: string;
     bio?: string; // Made optional
+    timezone?: string; // Added timezone
 }
 
 export interface PublicProfile extends PublicUserDisplay {
@@ -43,4 +45,13 @@ export interface PublicProfile extends PublicUserDisplay {
     habits: Habit[];
     todos: Todo[];
     journal_entries: JournalEntry[];
+}
+
+export interface ActionNode {
+  id: string;
+  description: string;
+  completed: boolean;
+  is_public?: boolean; // Add is_public flag
+  completed_at?: string; // ISO timestamp
+  children?: ActionNode[];
 }

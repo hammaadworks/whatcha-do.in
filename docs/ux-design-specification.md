@@ -78,7 +78,7 @@ The overall design aesthetic will be "Professional, tech-savvy, out-of-the-box w
 
 ### 4.2 Overall Page Structure
 The main interface is organized with the following top-to-bottom structure to provide a clear and logical user flow:
-1.  User Info/Bio
+1.  **User Info/Bio** (Includes Avatar, Username, Bio, and **Local Time Display**)
 2.  **"Actions" Section** (Todos)
 3.  **"Habits" Section** (The Identity Momentum Board: Today, Yesterday, The Pile)
 4.  **Journal Section** (Daily entry with date selector)
@@ -153,9 +153,12 @@ The application's core functionality revolves around several critical user journ
 
 4.  **Actions (Todos) System:**
     *   **Location:** A separate section positioned above the Habits board.
-    *   **Creation/Editing:** Utilizes an "Intelligent Notepad" concept with an inline input field at the bottom of the list. `Tab` allows for 2-level deep sub-todos. A `🌐/🔒` privacy toggle is available on hover.
+    *   **Creation/Editing:** Utilizes an "Intelligent Notepad" concept with an inline input field. `Tab` allows for **unlimited deep nesting** of sub-actions to organize complex tasks. Keyboard shortcuts (`Tab` for indent, `Shift+Tab` for outdent, `Cmd/Ctrl+Shift+ArrowUp/Down` for moving actions) will be prioritized for efficient interaction. A `🌐/🔒` privacy toggle is available on hover, with clear visual styling indicating a private action (e.g., a dashed border or tinted background).
+    *   **Privacy Propagation:**
+        *   If a parent action is made private, all its children (and their descendants) *must* also become private.
+        *   If a child action is made public, all its ancestors (up to the root) *must* also become public to ensure the child is visible.
     *   **Sorting:** Public first, then Creation Time (ASC).
-    *   **Completion:** Features a "Teleport-to-Journal" animation, where the todo fades out from "Actions" and fades in/pops into "Completed Todos" in the Journal.
+    *   **Completion & Clearing:** When an action is marked complete, it plays a satisfying "check" animation but **remains visible** for the rest of the day to showcase progress. On the **next day** (after midnight), completed items are automatically cleared (archived) from the active view. Uncompleted items remain.
 
 5.  **Journal System:**
     *   **Structure:** A "Two-Sided Journal" with distinct `[ 🌐 Public Journal ]` and `[ 🔒 Private Journal ]` tabs.
@@ -236,6 +239,28 @@ These decisions provide a comprehensive guide for the subsequent design and deve
 
 ---
 
+## 10. Landing Page Strategy
+
+### 10.1 Visual Direction
+The landing page adopts a high-impact, "terminal-meets-pop-culture" aesthetic that bridges the gap between developer-centric tools (like Cloudflare Workers) and Gen-Z friendly branding (inspired by WisprFlow and Charm.sh).
+
+*   **Typography:** Uses `Geist Mono` (or similar monospace font) throughout to reinforce the "building/engineering your life" metaphor.
+*   **Hero:** Features a `RetroGrid` background to evoke a digital, retro-futuristic feel, paired with massive, bold typography.
+*   **Layout:** Utilizes `BentoGrid` layouts for feature and psychology sections to present dense information in a digestible, modern format.
+*   **Motion:** Heavy use of scroll-triggered animations (`BlurFade`) to guide the user's eye and create a narrative flow.
+
+### 10.2 Narrative Structure
+The page follows a clear psychological arc:
+1.  **The Hook:** "So... whatcha doin'?" (Relatable, disarming).
+2.  **The Problem:** "Ambition isn't your problem, your system is." (Validation).
+3.  **The Solution:** "Identity-building toolkit." (Empowerment).
+4.  **The Proof:** "Before/After" comparison and "Psychology" breakdown. (Logic).
+5.  **The Close:** "Build-your-identity o'clock." (Urgency).
+
+This structure is designed to convert "ambitious underachievers" by addressing their pain points directly and offering a system, not just another tool.
+
+---
+
 ## Appendix
 
 ### Related Documents
@@ -279,6 +304,7 @@ This UX Design Specification can serve as input to:
 | Date     | Version | Changes                         | Author        |
 | -------- | ------- | ------------------------------- | ------------- |
 | 2025-11-12 | 1.0     | Initial UX Design Specification | hammaadworks |
+| 2025-12-01 | 1.1     | Added Landing Page Strategy     | Gemini       |
 
 ---
 

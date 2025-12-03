@@ -1,102 +1,214 @@
 "use client";
 
-import React, { useState } from "react";
-import { createClient } from "@/lib/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Mail, ArrowRight } from "lucide-react";
+import React, {useState} from "react";
+import {createClient} from "@/lib/supabase/client";
+import {Input} from "@/components/ui/input";
+import {Label} from "@/components/ui/label";
+import {AlertCircle, CheckCircle2, ExternalLink, Loader2, Mail, MailOpen} from "lucide-react";
+import {DEFAULT_POST_LOGIN_REDIRECT} from "@/lib/constants";
+import {Button} from "@/components/ui/button"; // Import the Button component
+import {MagicCard} from "@/components/ui/magic-card";
+import {PrimaryCtaButton} from "@/components/ui/primary-cta-button"; // Added PrimaryCtaButton import
+import {BlurFade} from "@/components/ui/blur-fade";
 
 const isValidEmail = (email: string) => {
-  return /\S+@\S+\.\S+/.test(email);
+    return /\S+@\S+\.\S+/.test(email);
+};
+
+const openMailClient = (client: 'gmail' | 'outlook' | 'yahoo' | 'generic', userEmail: string) => {
+    let appUrl: string | null = null;
+    let webUrl: string | null = null;
+
+    switch (client) {
+        case 'gmail':
+            appUrl = 'googlegmail:///';
+            webUrl = userEmail ? `https://mail.google.com/mail/u/0/?authuser=${userEmail}` : 'https://mail.google.com/';
+            break;
+        case 'outlook':
+            appUrl = 'ms-outlook://';
+            webUrl = 'https://outlook.live.com/mail/';
+            break;
+        case 'yahoo':
+            webUrl = 'https://mail.yahoo.com/';
+            break;
+        case 'generic':
+            // Attempt to open the default mail client for composing a new email, but no direct inbox opening
+            // This is not ideal for opening inbox, but is a fallback for generic mail client opening
+            window.open('mailto:', '_blank');
+            return;
+    }
+
+    // Try to open the app first on mobile
+    if (appUrl && (/(android|iphone|ipad|ipod)/i.test(navigator.userAgent) || window.innerWidth <= 768)) {
+        const handleAppOpen = setTimeout(() => {
+            if (webUrl) window.open(webUrl, '_blank');
+        }, 1000); // 1 second fallback
+
+        window.location.href = appUrl; // Attempt to open app
+        // Clear timeout if app opens and page navigation occurs
+        window.addEventListener('blur', () => clearTimeout(handleAppOpen));
+    } else if (webUrl) {
+        window.open(webUrl, '_blank');
+    }
 };
 
 export default function Logins() {
-  const supabase = createClient();
-  const [email, setEmail] = useState("");
-  const [message, setMessage] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+    const supabase = createClient();
+    const [email, setEmail] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [isSuccess, setIsSuccess] = useState(false);
 
-  const handleLogins = async (event: React.FormEvent) => {
-    event.preventDefault();
-    setLoading(true);
-    setMessage("");
-    setError(null);
+    const handleLogins = async (event: React.FormEvent) => {
+        event.preventDefault();
+        setLoading(true);
+        setError(null);
+        setIsSuccess(false);
 
-    if (!isValidEmail(email)) {
-      setError("Please enter a valid email address.");
-      setLoading(false);
-      return;
-    }
+        if (!isValidEmail(email)) {
+            setError("Please enter a valid email address to proceed.");
+            setLoading(false);
+            return;
+        }
 
-    const { data, error } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
-      },
-    });
+        const {data, error} = await supabase.auth.signInWithOtp({
+            email, options: {
+                emailRedirectTo: `${window.location.origin}/auth/callback?next=${DEFAULT_POST_LOGIN_REDIRECT}`,
+            },
+        });
 
-    if (error) {
-      console.error("Error sending magic link:", error);
-      setError(error.message);
-    } else {
-      console.log("Magic link sent successfully:", data);
-      setMessage("Please check your email for a magic link.");
-    }
-    setLoading(false);
-  };
+        if (error) {
+            console.error("Error sending magic link:", error);
+            setError(error.message);
+        } else {
+            console.log("Magic link sent successfully:", data);
+            setIsSuccess(true);
+        }
+        setLoading(false);
+    };
 
-  return (
-    <div className="flex flex-col items-center justify-center p-4"> {/* Added padding for inner content */}
-      <div className="text-center mb-6">
-        <div className="p-3 rounded-full bg-gray-100 dark:bg-gray-700 inline-flex mb-4">
-          <ArrowRight className="h-6 w-6 text-gray-600 dark:text-gray-300" />
-        </div>
-        <h1 className="text-3xl font-bold mb-2 text-foreground">
-          Sign in with email
-        </h1>
-        <p className="text-sm text-gray-600 dark:text-gray-400">
-          Enter your email below to receive a magic link to sign in or sign up.
-        </p>
-      </div>
+    return (<div className="flex w-full flex-col items-center p-2 pb-0">
+            <BlurFade delay={0.25} inView>
+                <MagicCard
+                    className="w-full max-w-md overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800 shadow-2xl"
+                    gradientColor="#88888822"
+                >
+                    <div className="flex flex-col p-4 md:p-6">
+                        <div className="text-center mb-8">
+                            <div
+                                className="mx-auto mb-6 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+                                {isSuccess ? (<CheckCircle2 className="h-6 w-6 text-primary"/>) : (
+                                    <Mail className="h-6 w-6 text-primary"/>)}
+                            </div>
+                            <h1 className="text-3xl font-bold tracking-tight text-foreground">
+                                {isSuccess ? "Check Your Inbox" : "Welcome Back"}
+                            </h1>
+                            <p className="mt-2 text-sm text-muted-foreground">
+                                {isSuccess ? (<>
+                                        We&apos;ve sent a secure magic link to{" "}
+                                        <span className="font-medium text-foreground">{email}</span>
+                                    </>) : ("Your journey to disciplined consistency starts here!")}
+                            </p>
+                        </div>
 
-      <form onSubmit={handleLogins} className="space-y-4 w-full">
-        <div>
-          <Label htmlFor="email" className="sr-only">
-            Email
-          </Label>
-          <div className="relative">
-            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
-            <Input
-              type="email"
-              id="email"
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="pl-10 h-10 bg-input border-input text-foreground shadow-inner"
-            />
-          </div>
-        </div>
-        <Button
-          type="submit"
-          className="w-full py-2 px-4 rounded-md text-sm font-medium h-10 shadow-md"
-          disabled={loading}
-        >
-          {loading ? "Sending..." : "Send Magic Link"}
-        </Button>
-      </form>
-      {message && (
-        <p className="mt-4 text-center text-sm text-success-foreground">
-          {message}
-        </p>
-      )}
-      {error && (
-        <p className="mt-4 text-center text-sm text-destructive-foreground">
-          {error}
-        </p>
-      )}
-    </div>
-  );
+                        {!isSuccess ? (<form onSubmit={handleLogins} className="space-y-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="email" className="sr-only">
+                                        Email
+                                    </Label>
+                                    <div className="relative">
+                                        <Mail
+                                            className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"/>
+                                        <div
+                                            className="absolute left-9 top-1/2 -translate-y-1/2 h-5 w-px bg-gray-300 dark:bg-gray-700"/>
+                                        {/* Delimiter */}
+                                        <Input
+                                            type="email"
+                                            id="email"
+                                            placeholder="name@example.com"
+                                            value={email}
+                                            onChange={(e) => setEmail(e.target.value)}
+                                            required
+                                            className="pl-12 h-11 bg-background/50 border-input focus:ring-2 focus:ring-primary/50 transition-all"
+                                            disabled={loading}
+                                        />
+                                    </div>
+                                </div>
+
+                                <PrimaryCtaButton
+                                    type="submit"
+                                    disabled={loading}
+                                    className="w-full h-12" // Simplified className as PrimaryCtaButton sets text-base font-medium
+                                >
+                                    {loading ? (<span className="flex items-center gap-2">
+                      <Loader2 className="h-4 w-4 animate-spin"/>
+                      Sending...
+                    </span>) : ("Continue with Magic Link")}
+                                </PrimaryCtaButton>
+                            </form>) : (<div
+                                className="flex flex-col items-center space-y-4 animate-in fade-in zoom-in duration-500">
+                                <div className="text-center space-y-2">
+                                    <p className="text-muted-foreground max-w-[250px] mx-auto">
+                                        Click the login link in mail to continue building your identity.
+                                    </p>
+                                </div>
+                                <div className="flex flex-col gap-3 w-full max-w-sm">
+                                    <PrimaryCtaButton
+                                        onClick={() => openMailClient('gmail', email)}
+                                        className="w-full h-12" // Simplified className
+                                    >
+                                        <MailOpen className="h-5 w-5 mr-2"/> Open Gmail
+                                    </PrimaryCtaButton>
+                                    <div className="flex justify-center gap-2">
+                                        <Button
+                                            variant="outline"
+                                            onClick={() => openMailClient('outlook', email)}
+                                            className="flex-1 h-10 text-sm"
+                                        >
+                                            <Mail className="h-4 w-4 mr-2"/> Outlook
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            onClick={() => openMailClient('yahoo', email)}
+                                            className="flex-1 h-10 text-sm"
+                                        >
+                                            <Mail className="h-4 w-4 mr-2"/> Yahoo Mail
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            onClick={() => openMailClient('generic', email)}
+                                            className="flex-1 h-10 text-sm"
+                                        >
+                                            <ExternalLink className="h-4 w-4 mr-2"/> Other
+                                        </Button>
+                                    </div>
+                                </div>
+                                <Button
+                                    onClick={() => setIsSuccess(false)}
+                                    variant="link"
+                                    className="mt-6 w-full h-10 text-sm"
+                                >
+                                    Try a different email
+                                </Button>
+                            </div>)}
+
+                        {error && (<div
+                                className="mt-6 flex items-center gap-2 rounded-lg bg-destructive/10 p-3 text-sm text-destructive animate-in slide-in-from-top-2">
+                                <AlertCircle className="h-4 w-4 shrink-0"/>
+                                <p>{error}</p>
+                            </div>)}
+                        <div className="mt-6 text-center text-xs text-muted-foreground">
+                            <p>
+                                By clicking continue, you agree to our{" "}
+                                <a href="/legal/terms.html" className="underline hover:text-primary">Terms of
+                                    Service</a> and{" "}
+                                <a href="/legal/privacy.html" className="underline hover:text-primary">Privacy
+                                    Policy</a>
+                                .
+                            </p>
+                        </div>
+                    </div>
+                </MagicCard>
+            </BlurFade>
+        </div>);
 }

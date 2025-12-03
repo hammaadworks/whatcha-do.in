@@ -1,88 +1,59 @@
 // components/profile/PrivatePage.tsx
 "use client";
 
-import {notFound} from 'next/navigation';
-import {PublicUserDisplay} from '@/lib/supabase/types';
-import {useAuth} from "@/hooks/useAuth";
-import React, {useEffect, useState} from 'react';
-import ProfileLayout from '@/components/profile/ProfileLayout';
-import ActionsSection from '@/components/profile/sections/ActionsSection';
-import HabitsSection from '@/components/profile/sections/HabitsSection';
-import JournalSection from '@/components/profile/sections/JournalSection';
-import MotivationsSection from '@/components/profile/sections/MotivationsSection';
-import {PublicPage} from '@/components/profile/PublicPage';
-import {useActions} from '@/hooks/useActions'; // Import the new hook
+import { notFound } from 'next/navigation';
+import { PublicUserDisplay, ActionNode, Habit, JournalEntry } from '@/lib/supabase/types'; // Import JournalEntry
+import { useAuth } from "@/hooks/useAuth";
+import React from 'react';
+
+import { PublicPage } from '@/components/profile/PublicPage';
+import OwnerProfileView from '@/components/profile/OwnerProfileView'; // New component
 
 type ProfilePageClientProps = {
-    username: string; initialProfileUser: PublicUserDisplay | null;
+    username: string;
+    initialProfileUser: PublicUserDisplay | null;
+    publicActions: ActionNode[];
+    publicHabits: Habit[];
+    publicJournalEntries: JournalEntry[]; // Add publicJournalEntries
+    privateCount?: number; // Add privateCount
 };
 
-export default function PrivatePage({username, initialProfileUser}: Readonly<ProfilePageClientProps>) {
-    const {user: authenticatedUser, loading: authLoading} = useAuth();
-    const {actions, justCompletedId, toggleAction, addAction} = useActions();
-    const [clientFetchedProfileUser, setClientFetchedProfileUser] = useState<PublicUserDisplay | null>(null);
-
+export default function PrivatePage({ username, initialProfileUser, publicActions, publicHabits, publicJournalEntries, privateCount = 0 }: Readonly<ProfilePageClientProps>) {
+    const { user: authenticatedUser, loading: authLoading } = useAuth();
+    
+    // Determine if the authenticated user is the owner of this profile page
     const isOwner = authenticatedUser?.username === username;
 
-    let profileToDisplay: PublicUserDisplay | (typeof authenticatedUser & {
-        username?: string;
-        bio?: string
-    }) | null = null;
-    let overallLoading: boolean;
-
     if (authLoading) {
-        overallLoading = true;
-    } else if (isOwner) {
-        profileToDisplay = authenticatedUser;
-        overallLoading = false;
-    } else {
-        profileToDisplay = clientFetchedProfileUser || initialProfileUser;
-        overallLoading = (!clientFetchedProfileUser && !initialProfileUser);
-    }
-
-    useEffect(() => {
-        if (!isOwner && !authLoading && !clientFetchedProfileUser && !initialProfileUser) {
-            const fetchPublicProfile = async () => {
-                const res = await fetch(`/api/user/${username}`);
-                const data = await res.json();
-                const user: PublicUserDisplay | null = data.error ? null : data;
-
-                if (!user) {
-                    notFound();
-                }
-                setClientFetchedProfileUser(user);
-            };
-            fetchPublicProfile();
-        }
-    }, [username, authenticatedUser, authLoading, isOwner, clientFetchedProfileUser, initialProfileUser]);
-
-    if (overallLoading) {
+        // Show loading state if authentication status is still being determined
         return <div>Loading...</div>;
     }
 
-    if (!profileToDisplay) {
-        return null;
+    if (!initialProfileUser) {
+        // If no initial user data, something went wrong (server component should have handled this)
+        // Or if the initialProfileUser is 'null' from server, then it's a 404.
+        notFound();
     }
 
+    // If it's the owner, render the owner's view
     if (isOwner) {
-        return (<ProfileLayout
-                username={username}
-                bio={profileToDisplay.bio ?? null}
-                isOwner={isOwner}
-            >
-                <ActionsSection
-                    isOwner={isOwner}
-                    actions={actions}
-                    onActionToggled={toggleAction}
-                    onActionAdded={addAction}
-                    justCompletedId={justCompletedId}
-                />
-                <HabitsSection isOwner={isOwner}/>
-                <JournalSection isOwner={isOwner}/>
-                <MotivationsSection username={username}/>
-            </ProfileLayout>);
+        // Type assertion needed because authenticatedUser is 'User | null', but if isOwner=true, it must be User
+        return <OwnerProfileView
+            username={username}
+            initialProfileUser={authenticatedUser as typeof authenticatedUser & { username: string; id: string; }}
+            publicActions={publicActions}
+            publicHabits={publicHabits}
+            publicJournalEntries={publicJournalEntries}
+            privateCount={privateCount} // Pass privateCount
+        />;
     } else {
         // If not the owner, render the public version of the profile
-        return <PublicPage user={profileToDisplay as PublicUserDisplay}/>;
+        return <PublicPage 
+            user={initialProfileUser} 
+            publicActions={publicActions} 
+            publicHabits={publicHabits} 
+            publicJournalEntries={publicJournalEntries} 
+            privateCount={privateCount} // Pass privateCount
+        />;
     }
 }

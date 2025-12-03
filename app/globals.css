@@ -1,3 +1,4 @@
+@import url('https://geistfont.vercel.app/geist.css');
 @import "tailwindcss";
 @import "tw-animate-css";
 
@@ -43,6 +44,15 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  --animate-orbit: orbit calc(var(--duration)*1s) linear infinite;
+  @keyframes orbit {
+  0% {
+    transform: rotate(calc(var(--angle) * 1deg)) translateY(calc(var(--radius) * 1px)) rotate(calc(var(--angle) * -1deg));
+    }
+  100% {
+    transform: rotate(calc(var(--angle) * 1deg + 360deg)) translateY(calc(var(--radius) * 1px)) rotate(calc((var(--angle) * -1deg) - 360deg));
+    }
+  }
 }
 
 /* Zenith Theme (Light Mode) */
@@ -86,6 +96,8 @@
   --chip-foreground: #212529;
   --chip-border: #DEE2E6;
   --primary-dark-variant: hsl(var(--primary-hsl) / 0.8);
+  --cursor-border: 255 255 255; /* White for light mode */
+  --cursor-stroke: 255 255 255; /* White for light mode */
 }
 
 /* Monolith Theme (Dark Mode) */
@@ -128,6 +140,8 @@
   --chip-background: #222222;
   --chip-foreground: #E0E0E0;
   --chip-border: #444444;
+  --cursor-border: 0 0 0; /* Black for dark mode */
+  --cursor-stroke: 0 0 0; /* Black for dark mode */
 }
 
 @layer base {
@@ -150,3 +164,19 @@
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
+
+/* Custom Utility for Glassmorphic Cards */
+.glass-card-hover {
+  @apply bg-white/50 backdrop-blur-sm border border-white/20 shadow-sm transition-all duration-300 hover:shadow-lg hover:bg-white/80 dark:bg-neutral-900/50 dark:border-white/5 dark:hover:bg-neutral-900/80;
+}
+
+@keyframes moveRightFade {
+  0% { transform: translateX(0); opacity: 1; }
+  100% { transform: translateX(5px); opacity: 0; }
+}
+
+/* Global native cursor hide for custom Pointer component */
+.hide-native-cursor, .hide-native-cursor * {
+    cursor: none !important;
+}
+

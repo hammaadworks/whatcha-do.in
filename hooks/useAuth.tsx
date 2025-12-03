@@ -1,71 +1,154 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState } from "react";
-import { User as SupabaseUser } from "@supabase/supabase-js";
+import React, {createContext, useContext, useEffect, useState} from "react";
+import {User as SupabaseUser} from "@supabase/supabase-js";
+import {createClient} from "@/lib/supabase/client";
+import {LOCAL_STORAGE_USER_PROFILE_CACHE_KEY} from "@/lib/constants";
 
 export interface User extends SupabaseUser {
-  username?: string;
+    username?: string;
+    timezone?: string;
+    bio?: string; // Add bio here for consistency with PublicUserDisplay
 }
 
 interface AuthContextType {
-  user: User | null;
-  loading: boolean;
+    user: User | null;
+    loading: boolean;
+    refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({
-  children,
-  initialUser,
-}: {
-  children: React.ReactNode;
-  initialUser?: User | null;
+                                 children,
+                             }: {
+    children: React.ReactNode;
 }) {
-  const [user, setUser] = useState<User | null>(initialUser || null);
-  const [loading, setLoading] = useState(true);
+    const [user, setUser] = useState<User | null>(null);
+    const [loading, setLoading] = useState(true);
+    const supabase = createClient();
 
-  useEffect(() => {
-    const initializeAuth = async () => {
-      await Promise.resolve().then(() => {
-        if (process.env.NEXT_PUBLIC_DEV_MODE_ENABLED === "true") {
-          console.log("Development mode enabled. Injecting mock user.");
-          const mockUser: User = {
-            id: "68be1abf-ecbe-47a7-bafb-46be273a2e",
-            email: "hammaadworks@gmail.com",
-            username: "hammaadworks", // Added username
-            aud: "authenticated",
-            app_metadata: {},
-            user_metadata: {},
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          };
-          setUser(mockUser);
-        } else if (initialUser) {
-          setUser(initialUser);
-        } else {
-          setUser(null);
+    const fetchUserProfile = async (authUser: SupabaseUser): Promise<User> => {
+        const CACHE_KEY = `${LOCAL_STORAGE_USER_PROFILE_CACHE_KEY}_${authUser.id}`;
+
+        try {
+            // 1. Try to get from cache first
+            const cached = localStorage.getItem(CACHE_KEY);
+            if (cached) {
+                const parsed = JSON.parse(cached);
+                // Simple check to ensure it's the right shape/user
+                if (parsed.id === authUser.id && parsed.username) {
+                    // Return merged user immediately
+                    return {...authUser, ...parsed};
+                }
+            }
+
+            // 2. Fetch from DB if not in cache
+            const {data, error} = await supabase
+                .from('users')
+                .select('username, timezone, bio') // Select bio as well
+                .eq('id', authUser.id)
+                .single();
+
+            if (error) {
+                console.error("Error fetching user profile:", error);
+                return authUser;
+            }
+
+            const userWithProfile = {
+                ...authUser, username: data?.username, timezone: data?.timezone, bio: data?.bio, // Add bio to the merged user object
+            };
+
+            // 3. Save to cache
+            localStorage.setItem(CACHE_KEY, JSON.stringify({
+                id: authUser.id, username: data?.username, timezone: data?.timezone, bio: data?.bio, // Save bio to cache
+            }));
+
+            return userWithProfile;
+
+        } catch (error) {
+            console.error("Unexpected error fetching user profile:", error);
+            return authUser;
         }
-        setLoading(false);
-      });
     };
 
-    initializeAuth().catch(error => {
-      console.error("Error initializing authentication:", error);
-      setLoading(false); // Ensure loading is set to false even if an error occurs
-    });
-  }, [initialUser]);
+    const refreshUser = async () => {
+        const {data: {session}} = await supabase.auth.getSession();
+        if (session?.user) {
+            // Clear cache to force a fresh fetch
+            localStorage.removeItem(`${LOCAL_STORAGE_USER_PROFILE_CACHE_KEY}_${session.user.id}`);
+            const userWithProfile = await fetchUserProfile(session.user);
+            setUser(userWithProfile);
+        } else {
+            setUser(null);
+        }
+    };
 
-  return (
-    <AuthContext.Provider value={{ user, loading }}>
-      {children}
-    </AuthContext.Provider>
-  );
+    useEffect(() => {
+        let mounted = true;
+
+        const initializeAuth = async () => {
+            try {
+                const {data: {session}} = await supabase.auth.getSession();
+
+                if (session?.user) {
+                    const userWithProfile = await fetchUserProfile(session.user);
+                    if (mounted) setUser(userWithProfile);
+                } else {
+                    if (mounted) setUser(null);
+                }
+            } catch (error) {
+                console.error("Error checking session:", error);
+            } finally {
+                if (mounted) setLoading(false);
+            }
+        };
+
+        initializeAuth();
+
+        const {data: {subscription}} = supabase.auth.onAuthStateChange(async (_event, session) => {
+            if (_event === 'SIGNED_OUT') {
+                // Clear any cached user profiles on logout
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key && key.startsWith(LOCAL_STORAGE_USER_PROFILE_CACHE_KEY)) {
+                        localStorage.removeItem(key);
+                    }
+                }
+                if (mounted) {
+                    setUser(null);
+                    setLoading(false);
+                }
+            } else if (session?.user) {
+                // If we have a session, ensure we have the profile data too
+                const userWithProfile = await fetchUserProfile(session.user);
+                if (mounted) {
+                    setUser(userWithProfile);
+                    setLoading(false);
+                }
+            } else {
+                if (mounted) {
+                    setUser(null);
+                    setLoading(false);
+                }
+            }
+        });
+
+        return () => {
+            mounted = false;
+            subscription.unsubscribe();
+        };
+    }, []);
+
+    return (<AuthContext.Provider value={{user, loading, refreshUser}}>
+            {children}
+        </AuthContext.Provider>);
 }
 
 export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthContextProvider");
-  }
-  return context;
+    const context = useContext(AuthContext);
+    if (context === undefined) {
+        throw new Error("useAuth must be used within an AuthContextProvider");
+    }
+    return context;
 };

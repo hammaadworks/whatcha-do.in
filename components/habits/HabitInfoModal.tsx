@@ -1,12 +1,4 @@
-"use client";
-
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
+import BaseModal from '../shared/BaseModal'; // Import the new BaseModal
 import { Habit } from "@/lib/supabase/types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -60,16 +52,36 @@ const HabitInfoModal: React.FC<HabitInfoModalProps> = ({
     }
   };
 
-  if (!isOpen) {
-    return null;
-  }
-
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle className="text-2xl font-bold">{habit.name}</DialogTitle>
-        </DialogHeader>
+    <BaseModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={habit.name}
+      footerContent={isPrivateHabit && (
+        <div className="flex flex-row gap-2 justify-end pt-4">
+          <Button
+            variant="outline" // Reverted from secondary to outline
+            onClick={() => {
+              setIsEditModalOpen(true);
+            }}
+            size="lg"
+            className="text-sm"
+          >
+            <Pencil className="mr-2 h-4 w-4" /> Edit
+          </Button>
+          {canBeDeleted && (
+            <Button
+              variant="destructive"
+              onClick={handleDeleteClick}
+              size="lg" // Changed from lg to xl
+              className="text-sm" // Removed custom hover class
+            >
+              <Trash2 className="mr-2 h-4 w-4" /> Delete
+            </Button>
+          )}
+        </div>
+      )}
+    >
         <div className="grid gap-4 py-4">
           <div className="flex justify-between items-center">
             <span className="text-muted-foreground">Current Streak</span>
@@ -106,31 +118,6 @@ const HabitInfoModal: React.FC<HabitInfoModalProps> = ({
             </span>
           </div>
         </div>
-        {isPrivateHabit && (
-          <DialogFooter className="flex flex-row gap-2 justify-end pt-4">
-            <Button
-              variant="outline" // Reverted from secondary to outline
-              onClick={() => {
-                setIsEditModalOpen(true);
-              }}
-              size="xl"
-              className="text-sm"
-            >
-              <Pencil className="mr-2 h-4 w-4" /> Edit
-            </Button>
-            {canBeDeleted && (
-              <Button
-                variant="destructive"
-                onClick={handleDeleteClick}
-                size="xl" // Changed from lg to xl
-                className="text-sm" // Removed custom hover class
-              >
-                <Trash2 className="mr-2 h-4 w-4" /> Delete
-              </Button>
-            )}
-          </DialogFooter>
-        )}
-      </DialogContent>
       {isPrivateHabit && (
         <EditHabitModal
           isOpen={isEditModalOpen}
@@ -139,7 +126,7 @@ const HabitInfoModal: React.FC<HabitInfoModalProps> = ({
           onSave={handleSave}
         />
       )}
-    </Dialog>
+    </BaseModal>
   );
 };
 

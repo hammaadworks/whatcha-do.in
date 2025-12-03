@@ -37,7 +37,7 @@ describe('AppHeader', () => {
     render(<AppHeader />);
     const loginButton = screen.getByText('Login');
     expect(loginButton).toBeInTheDocument();
-    expect(loginButton.closest('a')).toHaveAttribute('href', '/login');
+    expect(loginButton.closest('a')).toHaveAttribute('href', '/me');
   });
 
   it('should not render Login button when authenticated and not loading', () => {

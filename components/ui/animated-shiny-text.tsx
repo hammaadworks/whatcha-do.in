@@ -7,8 +7,7 @@ export interface AnimatedShinyTextProps
   shimmerWidth?: number
 }
 
-export const AnimatedShinyText: FC<AnimatedShinyTextProps> = ({
-  children,
+export const AnimatedShinyText: FC<AnimatedShinyTextProps> = ({ children,
   className,
   shimmerWidth = 100,
   ...props
