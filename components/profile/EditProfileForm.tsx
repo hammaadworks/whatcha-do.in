@@ -22,7 +22,6 @@ import {
 } from '@/components/ui/form';
 import { useAuth } from '@/hooks/useAuth';
 import { updateUserProfile, checkUsernameAvailability } from '@/lib/supabase/user.client';
-import { useDebounce } from '@/hooks/useDebounce'; // We'll need to make sure this exists or create it
 
 // Schema
 const profileSchema = z.object({

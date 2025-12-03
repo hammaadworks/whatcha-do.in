@@ -1,10 +1,17 @@
 import { RetroGrid } from "@/components/ui/retro-grid";
 import { BlurFade } from "@/components/ui/blur-fade";
 import Link from "next/link";
+<<<<<<< Updated upstream
 import { ShimmerButton } from "@/components/ui/shimmer-button";
+||||||| Stash base
+import { RainbowButton } from "@/components/ui/rainbow-button";
+=======
+import { ShimmerButton } from "@/components/ui/shimmer-button"; // Changed to ShimmerButton
+import { AnimatedGradientText } from "@/components/ui/animated-gradient-text";
+>>>>>>> Stashed changes
 import { cn } from "@/lib/utils";
+import { ChevronRight } from "lucide-react";
 import { HeroVisuals } from "@/components/landing/HeroVisuals";
-import { Activity } from "lucide-react";
 
 export function HeroSection() {
   return (
@@ -46,10 +53,22 @@ export function HeroSection() {
 
           <BlurFade delay={0.6} inView>
             <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+<<<<<<< Updated upstream
               <Link href="/me">
                 <ShimmerButton className="h-14 px-8 text-lg font-bold font-sans rounded-full shadow-2xl transition-transform hover:scale-105 active:scale-95"
                                background="var(--primary)"
                                shimmerColor="rgba(255, 255, 0.4)">
+||||||| Stash base
+              <RainbowButton className="h-14 px-8 text-lg font-bold font-sans rounded-full shadow-2xl transition-transform hover:scale-105 active:scale-95">
+                <Link href="/logins">
+=======
+              <Link href="/logins">
+                <ShimmerButton 
+                  className="h-14 px-8 text-lg font-bold font-sans shadow-2xl transition-transform hover:scale-105 active:scale-95"
+                  background="var(--primary)"
+                  shimmerColor="var(--background)"
+                >
+>>>>>>> Stashed changes
                   Start Building Your Identity
                 </ShimmerButton>
               </Link>

@@ -50,6 +50,11 @@ const mockHabits: Habit[] = [
     last_streak: 104,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
+<<<<<<< Updated upstream
+||||||| Stash base
+=======
+    junked_at: null,
+>>>>>>> Stashed changes
     pile_state: "today",
     goal_value: 1,
     goal_unit: "adventure",
@@ -64,6 +69,11 @@ const mockHabits: Habit[] = [
     last_streak: 45,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
+<<<<<<< Updated upstream
+||||||| Stash base
+=======
+    junked_at: null,
+>>>>>>> Stashed changes
     pile_state: "today",
     goal_value: 1,
     goal_unit: "invention",
