@@ -3,10 +3,12 @@
 import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import rehypeHighlight from 'rehype-highlight';
+import remarkBreaks from 'remark-breaks';
 import { MovingBorder } from '@/components/ui/moving-border';
 import { UserClock } from './UserClock';
 import { MarkdownEditor } from '@/components/journal/MarkdownEditor';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { Pencil, Check, X, Loader2 } from 'lucide-react';
 
 interface ProfileLayoutProps {
@@ -57,44 +59,57 @@ const ProfileLayout: React.FC<ProfileLayoutProps> = ({ username, bio, isOwner, t
 
             {/* Main card content with its own padding and z-index */}
             <div className="relative z-10 pt-16 sm:p-6 md:p-8 lg:p-12">
-                <h1 className="text-4xl font-extrabold text-center text-primary mb-2 mt-4">
+                <h1 className="text-4xl font-extrabold text-center text-primary mb-8 mt-4">
                     {isOwner ? `Welcome, ${username}!` : username}
                 </h1>
                 
-                <div className="bio-container mb-8 max-w-3xl mx-auto relative group min-h-[3rem]">
+                <div className="bio-container mb-8 max-w-3xl mx-auto relative">
                      {isEditingBio ? (
-                        <div className="flex flex-col gap-2 animate-in fade-in zoom-in-95 duration-200">
-                            <MarkdownEditor value={editedBio} onChange={setEditedBio} className="min-h-[200px]" />
-                            <div className="flex justify-end gap-2">
-                                <Button size="sm" variant="outline" onClick={handleCancelBio} disabled={isSavingBio}>
-                                    <X className="h-4 w-4 mr-1" /> Cancel
-                                </Button>
-                                <Button size="sm" onClick={handleSaveBio} disabled={isSavingBio}>
-                                    {isSavingBio ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Check className="h-4 w-4 mr-1" />}
-                                    Save
-                                </Button>
-                            </div>
-                        </div>
+                        <Card className="border-dashed">
+                            <CardContent className="p-4 flex flex-col gap-2 animate-in fade-in zoom-in-95 duration-200">
+                                <MarkdownEditor value={editedBio} onChange={setEditedBio} className="min-h-[200px]" />
+                                <div className="flex justify-end gap-2">
+                                    <Button size="sm" variant="outline" onClick={handleCancelBio} disabled={isSavingBio}>
+                                        <X className="h-4 w-4 mr-1" /> Cancel
+                                    </Button>
+                                    <Button size="sm" onClick={handleSaveBio} disabled={isSavingBio}>
+                                        {isSavingBio ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Check className="h-4 w-4 mr-1" />}
+                                        Save
+                                    </Button>
+                                </div>
+                            </CardContent>
+                        </Card>
                     ) : (
-                        <div className="relative flex justify-center">
-                             <div className="bio text-lg text-muted-foreground text-center leading-relaxed prose dark:prose-invert max-w-none">
-                                <ReactMarkdown rehypePlugins={[rehypeHighlight]}>{bioContent}</ReactMarkdown>
-                            </div>
-                            {isOwner && onBioUpdate && (
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="absolute right-0 top-0 md:-right-12 md:top-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                                    onClick={() => {
-                                        setEditedBio(bio || '');
-                                        setIsEditingBio(true);
-                                    }}
-                                    title="Edit Bio"
-                                >
-                                    <Pencil className="h-4 w-4" />
-                                </Button>
-                            )}
-                        </div>
+                        <Card className="bg-muted/30 border-none shadow-sm group">
+                            <CardContent className="p-6 relative">
+                                <div className="prose prose-sm sm:prose-base dark:prose-invert max-w-none text-left leading-relaxed break-words">
+                                    <ReactMarkdown 
+                                        remarkPlugins={[remarkBreaks]}
+                                        rehypePlugins={[rehypeHighlight]}
+                                        components={{
+                                            a: ({node, ...props}) => <a {...props} className="text-primary hover:underline font-medium transition-colors" target="_blank" rel="noopener noreferrer" />,
+                                            p: ({node, ...props}) => <p {...props} className="mb-2 last:mb-0" />,
+                                        }}
+                                    >
+                                        {bioContent}
+                                    </ReactMarkdown>
+                                </div>
+                                {isOwner && onBioUpdate && (
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity bg-background/50 hover:bg-background border border-transparent hover:border-border shadow-sm"
+                                        onClick={() => {
+                                            setEditedBio(bio || '');
+                                            setIsEditingBio(true);
+                                        }}
+                                        title="Edit Bio"
+                                    >
+                                        <Pencil className="h-4 w-4" />
+                                    </Button>
+                                )}
+                            </CardContent>
+                        </Card>
                     )}
                 </div>
 
