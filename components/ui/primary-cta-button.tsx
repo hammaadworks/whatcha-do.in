@@ -2,10 +2,7 @@ import React, { ComponentPropsWithoutRef } from "react";
 import { ShimmerButton } from "./shimmer-button"; // Assuming shimmer-button is in the same ui folder
 import { cn } from "@/lib/utils";
 
-interface PrimaryCtaButtonProps extends ComponentPropsWithoutRef<"button"> {
-  // Add any specific props for PrimaryCtaButton if needed,
-  // otherwise, just extends from button props
-}
+type PrimaryCtaButtonProps = ComponentPropsWithoutRef<"button">
 
 export const PrimaryCtaButton = React.forwardRef<
   HTMLButtonElement,

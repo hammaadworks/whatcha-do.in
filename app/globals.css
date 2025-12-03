@@ -96,16 +96,8 @@
   --chip-foreground: #212529;
   --chip-border: #DEE2E6;
   --primary-dark-variant: hsl(var(--primary-hsl) / 0.8);
-<<<<<<< Updated upstream
-  --cursor-stroke: 255 255 255;
-  --cursor-border: 0 0 0;
-||||||| Stash base
   --cursor-border: 255 255 255; /* White for light mode */
-  --cursor-stroke: 255 255 255; /* White for light mode */}
-=======
-  --cursor-border: 255 107 107; /* Match Primary Red in RGB */
-  --cursor-stroke: 255 107 107; /* Match Primary Red in RGB */
->>>>>>> Stashed changes
+  --cursor-stroke: 255 255 255; /* White for light mode */
 }
 
 /* Monolith Theme (Dark Mode) */
@@ -148,16 +140,8 @@
   --chip-background: #222222;
   --chip-foreground: #E0E0E0;
   --chip-border: #444444;
-<<<<<<< Updated upstream
-  --cursor-stroke: 0 0 0;
-  --cursor-border: 255 255 255;
-||||||| Stash base
   --cursor-border: 0 0 0; /* Black for dark mode */
-  --cursor-stroke: 0 0 0; /* Black for dark mode */}
-=======
-  --cursor-border: 0 245 160; /* Match Primary Green in RGB */
-  --cursor-stroke: 0 245 160; /* Match Primary Green in RGB */
->>>>>>> Stashed changes
+  --cursor-stroke: 0 0 0; /* Black for dark mode */
 }
 
 @layer base {
@@ -188,13 +172,6 @@
 
 /* Global native cursor hide for custom Pointer component */
 .hide-native-cursor, .hide-native-cursor * {
-  cursor: none !important;
-<<<<<<< Updated upstream
-}
-||||||| Stash base
+    cursor: none !important;
 }
 
-
-=======
-}
->>>>>>> Stashed changes
