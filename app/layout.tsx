@@ -91,7 +91,7 @@ export default async function RootLayout({children,}: Readonly<{ children: React
         <KeyboardShortcutsProvider> {/* New wrapper */}
             <AuthProvider>
                 <AppHeader/>
-                <main className="flex-grow flex justify-center px-2 md:px-4 lg:px-8 pt-16 pb-4">
+                <main className="flex-grow flex justify-center px-2 md:px-4 lg:px-8 pt-16 lg:pt-32 pb-4">
                     {children}
                 </main>
                 <AppFooter/>

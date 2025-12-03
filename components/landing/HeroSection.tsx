@@ -12,7 +12,7 @@ export function HeroSection() {
             <div className="relative z-10 max-w-7xl mx-auto w-full grid lg:grid-cols-2 gap-12 lg:gap-24 items-center">
 
                 {/* Left Column: Text */}
-                <div className="flex flex-col items-center lg:items-start text-center lg:text-left space-y-8">
+                <div className="flex flex-col items-center lg:items-start text-center lg:text-left space-y-4">
 
                     {/* Pulsating Badge */}
                     <BlurFade delay={0.1} inView>
@@ -24,9 +24,17 @@ export function HeroSection() {
                       className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
                 </span>
-                                I know what we are gonna do today.
+                                I know what we are gonna do today
                                 <span
                                     className="text-xs font-mono text-primary-foreground bg-primary rounded-full px-2 py-0.5 ml-2">Beta</span>
+                                <span 
+                                    className="ml-1 inline-block"
+                                    style={{
+                                        animation: "moveRightFade 1.5s ease-in-out infinite"
+                                    }}
+                                >
+                                    &gt;
+                                </span>
                             </div>
                         </Link>
                     </BlurFade>
@@ -34,7 +42,7 @@ export function HeroSection() {
                     <BlurFade delay={0.2} inView>
                         <h1 className="text-6xl md:text-7xl lg:text-8xl font-bold font-mono tracking-tighter text-foreground leading-none">
                             <span
-                                className="text-4xl md:text-5xl lg:text-6xl font-sans text-muted-foreground/80">So...</span><br/>
+                                className="text-4xl md:text-5xl lg:text-6xl font-sans text-muted-foreground/80">So <span className="tracking-widest">...</span></span><br/>
                             whatcha doin?
                         </h1>
                     </BlurFade>
@@ -47,7 +55,7 @@ export function HeroSection() {
                         </p>
                     </BlurFade>
                     <BlurFade delay={0.6} inView>
-                        <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+                        <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto pt-2">
                             <Link href="/me">
                                 <PrimaryCtaButton
                                     className="h-14 px-8 text-lg font-bold font-sans shadow-2xl transition-transform hover:scale-105 active:scale-95"

@@ -93,6 +93,10 @@ const config = {
           "0%": { transform: "translateY(-50%)" },
           "100%": { transform: "translateY(0)" },
         },
+        "move-right-fade": {
+          "0%": { transform: "translateX(0)", opacity: "1" },
+          "100%": { transform: "translateX(5px)", opacity: "0" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -101,6 +105,7 @@ const config = {
         shine: 'shine var(--duration) linear infinite',
         "spin-scale": "spin-scale 0.5s ease-out forwards",
         grid: "grid 15s linear infinite",
+        "move-right-fade": "move-right-fade 1.5s ease-in-out infinite",
       },
     },
   },

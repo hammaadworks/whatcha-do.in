@@ -17,4 +17,5 @@ favicons.io [https://favicon.io/favicon-converter/] to create awesome favicons
 14. bro commit even after one satisfaction, never git restore, please
 15. bro keep both pro and flash, one as a senior and one as a junior helper
 16. do the landing page in the last as you can generate good visually from real components from your app, so real and cool
-17.
+17. I had added a cond in pointer that it must be diabled for touch screens so i had a pad but connected to kb so the pointer wasnt available, gemini was able to catch it
+18. 
