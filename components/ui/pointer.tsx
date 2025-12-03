@@ -30,27 +30,28 @@ export function Pointer({
   useEffect(() => {
     if (typeof window !== "undefined") {
       if (isTouchDevice()) {
-        return // Do not apply custom cursor logic on touch devices
+        return; // Do not apply custom cursor logic on touch devices
       }
 
-      // Add global cursor hiding class
-      document.body.classList.add("hide-native-cursor")
+      const style = document.createElement("style");
+      style.innerHTML = "* { cursor: none !important; }";
+      document.head.appendChild(style);
 
       const handleMouseMove = (e: MouseEvent) => {
-        x.set(e.clientX)
-        y.set(e.clientY)
-      }
+        x.set(e.clientX);
+        y.set(e.clientY);
+      };
       
       // Attach event listeners to the window for global coverage
-      window.addEventListener("mousemove", handleMouseMove)
+      window.addEventListener("mousemove", handleMouseMove);
 
       return () => {
         // Clean up on unmount
-        document.body.classList.remove("hide-native-cursor")
-        window.removeEventListener("mousemove", handleMouseMove)
-      }
+        document.head.removeChild(style);
+        window.removeEventListener("mousemove", handleMouseMove);
+      };
     }
-  }, [x, y]) // Dependencies are just motion values
+  }, [x, y]); // Dependencies are just motion values
 
   if (typeof window !== "undefined" && isTouchDevice()) {
     return null // Do not render custom pointer on touch devices
@@ -60,7 +61,7 @@ export function Pointer({
     // Always render the motion.div for the pointer, AnimatePresence is not needed if always rendered.
     <motion.div
       ref={containerRef} // Using ref here to keep consistency
-      className="pointer-events-none fixed z-[9999] transform-[translate(-50%,-50%)]"
+      className="pointer-events-none fixed z-[99999999] transform-[translate(-50%,-50%)]"
       style={{
         top: y,
         left: x,

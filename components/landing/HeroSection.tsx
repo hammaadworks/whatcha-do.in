@@ -1,7 +1,7 @@
 import { RetroGrid } from "@/components/ui/retro-grid";
 import { BlurFade } from "@/components/ui/blur-fade";
 import Link from "next/link";
-import { RainbowButton } from "@/components/ui/rainbow-button";
+import { ShimmerButton } from "@/components/ui/shimmer-button";
 import { cn } from "@/lib/utils";
 import { HeroVisuals } from "@/components/landing/HeroVisuals";
 import { Activity } from "lucide-react";
@@ -18,18 +18,22 @@ export function HeroSection() {
           
           {/* Pulsating Badge */}
           <BlurFade delay={0.1} inView>
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium font-mono shadow-sm hover:bg-primary/15 transition-colors cursor-default">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
-              </span>
-              I know what we are gonna do today.
-            </div>
+            <Link href="/me">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium font-mono shadow-sm hover:bg-primary/15 transition-colors cursor-pointer">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+                </span>
+                I know what we are gonna do today.
+                <span className="text-xs font-mono text-primary-foreground bg-primary rounded-full px-2 py-0.5 ml-2">Beta</span>
+              </div>
+            </Link>
           </BlurFade>
 
           <BlurFade delay={0.2} inView>
-            <h1 className="text-6xl md:text-7xl lg:text-8xl font-bold font-sans tracking-tighter text-foreground leading-[1.1]">
-              So... <br/> whatcha doin?
+            <h1 className="text-6xl md:text-7xl lg:text-8xl font-bold font-mono tracking-tighter text-foreground leading-none">
+              <span className="text-4xl md:text-5xl lg:text-6xl font-sans text-muted-foreground/80">So...</span><br/>
+              whatcha doin?
             </h1>
           </BlurFade>
 
@@ -42,11 +46,13 @@ export function HeroSection() {
 
           <BlurFade delay={0.6} inView>
             <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
-              <RainbowButton className="h-14 px-8 text-lg font-bold font-sans rounded-full shadow-2xl transition-transform hover:scale-105 active:scale-95">
-                <Link href="/logins">
+              <Link href="/me">
+                <ShimmerButton className="h-14 px-8 text-lg font-bold font-sans rounded-full shadow-2xl transition-transform hover:scale-105 active:scale-95"
+                               background="var(--primary)"
+                               shimmerColor="rgba(255, 255, 0.4)">
                   Start Building Your Identity
-                </Link>
-              </RainbowButton>
+                </ShimmerButton>
+              </Link>
             </div>
           </BlurFade>
 

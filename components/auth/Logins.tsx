@@ -72,8 +72,8 @@ export default function Logins() {
               </h1>
               <p className="mt-2 text-sm text-muted-foreground">
                 {isSuccess
-                  ? "We've sent a secure magic link to your email."
-                  : "Your journey to consistency starts here. Enter your email to begin."}
+                  ? "We've sent a secure magic link to <span className=\"font-medium text-foreground\">{email}</span>"
+                  : "Your journey to disciplined consistency starts here!"}
               </p>
             </div>
 
@@ -118,12 +118,9 @@ export default function Logins() {
               </form>
             ) : (
               <div className="flex flex-col items-center space-y-4 animate-in fade-in zoom-in duration-500">
-                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
-                  <CheckCircle2 className="h-8 w-8 text-green-600 dark:text-green-400" />
-                </div>
                 <div className="text-center space-y-2">
                   <p className="text-muted-foreground max-w-[250px] mx-auto">
-                    We&apos;ve sent a secure magic link to <span className="font-medium text-foreground">{email}</span>. Click the link in your email to instantly access your dashboard and continue building your identity.
+                    Click the link in your email to instantly access your dashboard and continue building your identity.
                   </p>
                 </div>
                 <Button

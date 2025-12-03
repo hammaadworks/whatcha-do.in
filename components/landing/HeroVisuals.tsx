@@ -11,29 +11,20 @@ import { motion } from "framer-motion";
 const mockActions: ActionNode[] = [
   {
     id: "1",
-    user_id: "mock",
     description: "Build the greatest roller coaster",
     completed: false,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
     children: [
       {
         id: "1-1",
-        user_id: "mock",
         description: "Gather supplies",
         completed: true,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
         children: [],
         is_public: true
       },
       {
         id: "1-2",
-        user_id: "mock",
         description: "Design the loop-de-loop",
         completed: false,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
         children: [],
         is_public: true
       }
@@ -42,11 +33,8 @@ const mockActions: ActionNode[] = [
   },
   {
     id: "2",
-    user_id: "mock",
     description: "Give Perry a bath",
     completed: false,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
     children: [],
     is_public: true
   }
@@ -61,9 +49,11 @@ const mockHabits: Habit[] = [
     current_streak: 104,
     last_streak: 104,
     created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
     pile_state: "today",
     goal_value: 1,
-    goal_unit: "adventure"
+    goal_unit: "adventure",
+    junked_at: null
   },
   {
     id: "h2",
@@ -73,13 +63,21 @@ const mockHabits: Habit[] = [
     current_streak: 12,
     last_streak: 45,
     created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
     pile_state: "today",
     goal_value: 1,
-    goal_unit: "invention"
+    goal_unit: "invention",
+    junked_at: null
   }
 ];
 
 export function HeroVisuals({ className }: { className?: string }) {
+  const [date, setDate] = React.useState("");
+
+  React.useEffect(() => {
+    setDate(new Date().toLocaleDateString());
+  }, []);
+
   return (
     <div className={cn("relative w-full max-w-[500px] mx-auto", className)}>
       {/* Main Card representing the Dashboard */}
@@ -97,7 +95,7 @@ export function HeroVisuals({ className }: { className?: string }) {
           <div className="flex items-center justify-between border-b pb-4 border-border/50">
             <div className="flex flex-col">
               <h3 className="text-xl font-bold font-sans">Dashboard</h3>
-              <p className="text-xs text-muted-foreground font-mono">Today, {new Date().toLocaleDateString()}</p>
+              <p className="text-xs text-muted-foreground font-mono">Today, {date}</p>
             </div>
             <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-xs">
               P&F

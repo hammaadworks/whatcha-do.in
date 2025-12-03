@@ -1,6 +1,12 @@
 import { BentoCard, BentoGrid } from "@/components/ui/bento-grid";
 import { CalendarDays, MousePointerClick, Sliders, Rss, User, Quote } from "lucide-react";
 import { BlurFade } from "@/components/ui/blur-fade";
+import { TwoDayRuleMockup } from "@/components/landing/TwoDayRuleMockup";
+import { ActionChipsMockup } from "@/components/landing/ActionChipsMockup";
+import { IntensitySliderMockup } from "@/components/landing/IntensitySliderMockup";
+import { AutoJournalFeedMockup } from "@/components/landing/AutoJournalFeedMockup";
+import { ProfileMockup } from "@/components/landing/ProfileMockup";
+import { MotivationalWidgetMockup } from "@/components/landing/MotivationalWidgetMockup";
 
 const features = [
   {
@@ -9,7 +15,7 @@ const features = [
     description: "Miss one day? Cool. Miss two? Streak resets — sustainably.",
     href: "#",
     cta: "See how",
-    background: <div className="absolute -right-20 -top-20 opacity-60" />,
+    background: <TwoDayRuleMockup />,
     className: "col-span-3 md:col-span-1",
   },
   {
@@ -18,7 +24,7 @@ const features = [
     description: "Drag. Drop. Done. Brain-friendly productivity.",
     href: "#",
     cta: "Try it",
-    background: <div className="absolute -right-20 -top-20 opacity-60" />,
+    background: <ActionChipsMockup />,
     className: "col-span-3 md:col-span-2",
   },
   {
@@ -27,7 +33,7 @@ const features = [
     description: "100% and 20% both count. Effort matters.",
     href: "#",
     cta: "Adjust now",
-    background: <div className="absolute -right-20 -top-20 opacity-60" />,
+    background: <IntensitySliderMockup />,
     className: "col-span-3 md:col-span-2",
   },
   {
@@ -36,7 +42,7 @@ const features = [
     description: "Your growth, captured seamlessly.",
     href: "#",
     cta: "View feed",
-    background: <div className="absolute -right-20 -top-20 opacity-60" />,
+    background: <AutoJournalFeedMockup />,
     className: "col-span-3 md:col-span-1",
   },
   {
@@ -45,7 +51,7 @@ const features = [
     description: "Your \"Life Resume\" — streaks, habits, reflections.",
     href: "#",
     cta: "View demo",
-    background: <div className="absolute -right-20 -top-20 opacity-60" />,
+    background: <ProfileMockup />,
     className: "col-span-3 md:col-span-1",
   },
   {
@@ -54,7 +60,7 @@ const features = [
     description: "Quotes that actually hit.",
     href: "#",
     cta: "Get inspired",
-    background: <div className="absolute -right-20 -top-20 opacity-60" />,
+    background: <MotivationalWidgetMockup />,
     className: "col-span-3 md:col-span-2",
   },
 ];

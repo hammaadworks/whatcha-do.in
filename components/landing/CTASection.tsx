@@ -1,6 +1,6 @@
 import { BlurFade } from "@/components/ui/blur-fade";
 import Link from "next/link";
-import { RainbowButton } from "@/components/ui/rainbow-button";
+import { ShimmerButton } from "@/components/ui/shimmer-button";
 import { CoolMode } from "@/components/ui/cool-mode";
 
 export function CTASection() {
@@ -29,11 +29,13 @@ export function CTASection() {
         <BlurFade delay={0.6} inView>
           <div className="flex justify-center pt-8">
             <CoolMode>
-              <RainbowButton className="h-16 px-12 text-xl font-bold font-sans rounded-full shadow-2xl hover:scale-105 transition-transform duration-300">
-                <Link href="/logins">
+              <Link href="/me">
+                <ShimmerButton className="h-16 px-12 text-xl font-bold font-sans rounded-full shadow-2xl hover:scale-105 transition-transform duration-300"
+                               background="var(--primary)"
+                               shimmerColor="rgba(255, 255, 0.4)">
                   Start Building Your Identity
-                </Link>
-              </RainbowButton>
+                </ShimmerButton>
+              </Link>
             </CoolMode>
           </div>
         </BlurFade>
