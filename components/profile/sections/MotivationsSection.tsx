@@ -1,10 +1,9 @@
 'use client';
 
 import React from 'react';
-import InsightsTrigger from '@/components/shared/InsightsTrigger';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton'; // Import Skeleton
-import { useKeyboardShortcuts } from '@/components/shared/KeyboardShortcutsProvider'; // Import the hook
+
 
 interface MotivationsSectionProps {
   username: string;
@@ -14,7 +13,6 @@ interface MotivationsSectionProps {
 
 const MotivationsSection: React.FC<MotivationsSectionProps> = ({ username, isOwner, loading }) => {
   const motivationalQuote = "The journey of a thousand miles begins with a single step."; // Example quote
-  const { isInsightsOpen, toggleInsightsModal } = useKeyboardShortcuts(); // Destructure from hook
 
   if (loading) {
     return (
@@ -29,11 +27,9 @@ const MotivationsSection: React.FC<MotivationsSectionProps> = ({ username, isOwn
     <div className="section mb-10">
       <div className="flex justify-between items-center border-b border-primary pb-4 mb-6">
         <h2 className="text-2xl font-extrabold">Motivations</h2>
-        <InsightsTrigger 
-          username={username} 
-          open={isInsightsOpen} // Pass open state
-          onOpenChange={toggleInsightsModal} // Pass onOpenChange handler
-        />
+        <Button variant="outline">
+          YTD
+        </Button>
       </div>
       <div
         className="motivational-quote-card relative overflow-hidden rounded-3xl p-10 text-center border border-primary animate-pulse-glow text-white dark:text-black"

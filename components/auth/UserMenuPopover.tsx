@@ -35,26 +35,26 @@ const UserMenuPopover: React.FC<UserMenuPopoverProps> = ({ user }) => {
       <PopoverContent className="w-56">
         <div className="p-2">
           <Link href={`/${user.username}`}>
-            <div className="flex justify-between items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800 rounded-md">
+            <div className="flex justify-between items-center px-4 py-2 text-sm text-foreground hover:bg-muted rounded-md">
               View Profile
               <KeyboardShortcut keys={["P"]} />
             </div>
           </Link>
           {user.username && (
             <InsightsTrigger username={user.username} open={isInsightsOpen} onOpenChange={toggleInsightsModal}> {/* Pass insights state and toggler */}
-              <div className="flex justify-between items-center px-4 py-2 text-sm text-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800 rounded-md cursor-pointer">
+              <div className="flex justify-between items-center px-4 py-2 text-sm text-foreground hover:bg-muted rounded-md cursor-pointer">
                 View Insights
                 <KeyboardShortcut keys={["I"]} />
               </div>
             </InsightsTrigger>
           )}
-          <div className="flex justify-between items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800 rounded-md cursor-pointer"
+          <div className="flex justify-between items-center px-4 py-2 text-sm text-foreground hover:bg-muted rounded-md cursor-pointer"
                onClick={toggleShortcutsModal}>
             Keyboard Shortcuts
             <KeyboardShortcut keys={["/"]} />
           </div>
 
-          <div className="my-2 border-t border-primary/50 dark:border-primary/70" />
+          <div className="my-2 border-t border-border" />
           <LogoutButton />
         </div>
       </PopoverContent>

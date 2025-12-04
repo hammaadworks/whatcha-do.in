@@ -25,6 +25,8 @@ import { Habit, ActionNode, JournalEntry } from '@/lib/supabase/types'; // Impor
 
 
 
+import { PublicPill } from '@/components/profile/PublicPill'; // Import the new component
+
 interface OwnerProfileViewProps {
   username: string;
   initialProfileUser: User;
@@ -155,8 +157,11 @@ export default function OwnerProfileView({ username, initialProfileUser, publicA
   }
 
   return (
-    <div className="relative">
-
+    <div className="relative pt-8">
+      <PublicPill 
+        isPublicPreviewMode={isPublicPreviewMode}
+        onTogglePublicPreview={handleTogglePreview}
+      />
 
       {isPublicPreviewMode ? (
           <div className="animate-in fade-in duration-300">
@@ -176,8 +181,6 @@ export default function OwnerProfileView({ username, initialProfileUser, publicA
           timezone={optimisticTimezone || profileToDisplay.timezone}
           onTimezoneChange={handleTimezoneChange}
           onBioUpdate={handleBioUpdate}
-          isPublicPreviewMode={isPublicPreviewMode}
-          onTogglePublicPreview={handleTogglePreview}
         >
             <ActionsSection
               isOwner={true}

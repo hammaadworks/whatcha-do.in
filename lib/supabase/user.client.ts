@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/client';
 import { PublicUserDisplay } from './types';
+import { withLogging } from '../logger/withLogging';
 
 export async function updateUserBio(userId: string, bio: string) {
     const supabase = createClient();
@@ -19,7 +20,7 @@ export async function updateUserBio(userId: string, bio: string) {
     return { data, error: null };
 }
 
-export async function checkUsernameAvailability(username: string): Promise<boolean> {
+async function _checkUsernameAvailability(username: string): Promise<boolean> {
     const reservedUsernames = [
         'auth', 'api', 'dashboard', 'journal', 'grace-period', 'profile', 
         'settings', 'login', 'logout', 'admin', 'support', 'help', 'public'
@@ -37,14 +38,15 @@ export async function checkUsernameAvailability(username: string): Promise<boole
         .eq('username', username);
 
     if (error) {
-        console.error('Error checking username availability:', error);
         return false; // Assume unavailable on error to be safe
     }
     
     return count === 0;
 }
+export const checkUsernameAvailability = withLogging(_checkUsernameAvailability, 'checkUsernameAvailability');
 
-export async function updateUserProfile(userId: string, updates: { username?: string; bio?: string }) {
+
+async function _updateUserProfile(userId: string, updates: { username?: string; bio?: string }) {
     const supabase = createClient();
     const { data, error } = await supabase
         .from('users')
@@ -54,11 +56,12 @@ export async function updateUserProfile(userId: string, updates: { username?: st
         .single();
 
     if (error) {
-        console.error('Error updating user profile:', error);
         return { data: null, error };
     }
     return { data, error: null };
 }
+export const updateUserProfile = withLogging(_updateUserProfile, 'updateUserProfile');
+
 
 // Client-side function to get user by username
 export async function getUserByUsernameClient(username: string): Promise<PublicUserDisplay | null> {
@@ -90,4 +93,3 @@ export async function updateUserTimezone(userId: string, timezone: string) {
     }
     return data;
 }
-

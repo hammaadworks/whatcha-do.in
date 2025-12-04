@@ -30,13 +30,13 @@ const KeyboardShortcut: React.FC<KeyboardShortcutProps> = ({ keys }) => {
 
   return (
     <span className="ml-2 inline-flex items-center gap-1 text-xs text-muted-foreground">
-      <kbd className="kbd kbd-sm bg-gray-200 dark:bg-gray-700 px-1 py-0.5 rounded-sm">
+      <kbd className="kbd kbd-sm bg-muted px-1 py-0.5 rounded-sm">
         {modifier}
       </kbd>
       {plusSign} {/* Display the plus sign */}
       {keys.map((key, index) => (
         <React.Fragment key={index}>
-          <kbd className="kbd kbd-sm bg-gray-200 dark:bg-gray-700 px-1 py-0.5 rounded-sm">
+          <kbd className="kbd kbd-sm bg-muted px-1 py-0.5 rounded-sm">
             {key}
           </kbd>
           {index < keys.length - 1 && plusSign} {/* Add plus sign between multiple keys if any */}

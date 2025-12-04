@@ -20,7 +20,9 @@ import {
     FormDescription,
 } from '@/components/ui/form';
 import { useAuth } from '@/hooks/useAuth';
+import { useDebounce } from '@/hooks/useDebounce';
 import { updateUserProfile, checkUsernameAvailability } from '@/lib/supabase/user.client';
+import logger from '@/lib/logger/client';
 
 // Schema
 const profileSchema = z.object({
@@ -57,24 +59,27 @@ export function EditProfileForm() {
     }, [user, form]);
 
     const watchedUsername = form.watch('username');
+    const debouncedUsername = useDebounce(watchedUsername, 500);
     
     // Debounce username check
     useEffect(() => {
         const checkAvailability = async () => {
-            if (!watchedUsername || watchedUsername === user?.username || watchedUsername.length < 3) {
+            if (!debouncedUsername || debouncedUsername === user?.username || debouncedUsername.length < 3) {
                 setUsernameAvailable(null);
                 return;
             }
 
             // Don't check if regex fails (handled by zod)
-             if (!/^[a-zA-Z0-9_-]+$/.test(watchedUsername)) {
+             if (!/^[a-zA-Z0-9_-]+$/.test(debouncedUsername)) {
                 setUsernameAvailable(null);
                 return;
              }
 
             setIsCheckingUsername(true);
+            const log = logger.child({ module: 'EditProfileForm', username: debouncedUsername });
+            log.info('Checking username availability');
             try {
-                const available = await checkUsernameAvailability(watchedUsername);
+                const available = await checkUsernameAvailability(debouncedUsername);
                 setUsernameAvailable(available);
                 if (!available) {
                     form.setError('username', {
@@ -85,15 +90,14 @@ export function EditProfileForm() {
                     form.clearErrors('username');
                 }
             } catch (error) {
-                console.error(error);
+                log.error({ err: error }, 'Error checking username availability');
             } finally {
                 setIsCheckingUsername(false);
             }
         };
 
-        const timeoutId = setTimeout(checkAvailability, 500); // 500ms debounce
-        return () => clearTimeout(timeoutId);
-    }, [watchedUsername, user?.username, form]);
+        checkAvailability();
+    }, [debouncedUsername, user?.username, form]);
 
 
     const onSubmit = async (data: ProfileFormValues) => {

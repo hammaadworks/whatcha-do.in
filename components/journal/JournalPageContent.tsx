@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 
 import { cn } from '@/lib/utils';
 import { fetchJournalEntryByDate, upsertJournalEntry } from '@/lib/supabase/journal';
-import { MarkdownEditor } from './MarkdownEditor';
+import { CustomMarkdownEditor as MarkdownEditor } from '@/components/shared/CustomMarkdownEditor';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
