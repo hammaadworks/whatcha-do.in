@@ -141,84 +141,86 @@ export function JournalPageContent({ profileUserId, isOwner }: JournalPageConten
                     </PopoverContent>
                 </Popover>
 
-                <TooltipProvider>
-                    <div className="flex items-center bg-card rounded-full p-2 shadow-md border border-primary gap-x-4">
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <button
-                                    type="button"
-                                    onClick={() => setActiveTab('private')}
-                                    className={cn(
-                                        "px-3 py-1 text-xs sm:text-sm font-medium rounded-full whitespace-nowrap flex items-center justify-center",
-                                        "ring-2 ring-primary ring-offset-background", // Added solid ring styles
-                                        activeTab === 'private'
-                                            ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                                            : "bg-background text-muted-foreground hover:bg-accent hover:text-accent-foreground" // Adjusted for solid ring non-active state
-                                    )}
-                                    disabled={!isOwner} // Disable if not owner
-                                >
-                                    <Lock className="h-4 w-4" />
-                                    <span className={cn(
-                                        "ml-2",
-                                        activeTab === 'private' ? "inline-block" : "hidden",
-                                        "lg:inline-block"
-                                    )}>
-                                        Private
-                                    </span>
-                                </button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                <p>Private Journal</p>
-                            </TooltipContent>
-                        </Tooltip>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <button
-                                    type="button"
-                                    onClick={() => setActiveTab('public')}
-                                    className={cn(
-                                        "px-3 py-1 text-xs sm:text-sm font-medium rounded-full whitespace-nowrap flex items-center justify-center",
-                                        "ring-2 ring-primary ring-offset-background", // Added solid ring styles
-                                        activeTab === 'public'
-                                            ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                                            : "bg-background text-muted-foreground hover:bg-accent hover:text-accent-foreground" // Adjusted for solid ring non-active state
-                                    )}
-                                    disabled={!isOwner && activeTab === 'private'} // Disable if not owner and public tab is active
-                                >
-                                    <Globe className="h-4 w-4" />
-                                    <span className={cn(
-                                        "ml-2",
-                                        activeTab === 'public' ? "inline-block" : "hidden",
-                                        "lg:inline-block"
-                                    )}>
-                                        Public
-                                    </span>
-                                </button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                <p>Public Journal</p>
-                            </TooltipContent>
-                        </Tooltip>
+                {isOwner && (
+                    <TooltipProvider>
+                        <div className="flex items-center bg-card rounded-full p-2 shadow-md border border-primary gap-x-4">
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <button
+                                        type="button"
+                                        onClick={() => setActiveTab('private')}
+                                        className={cn(
+                                            "px-3 py-1 text-xs sm:text-sm font-medium rounded-full whitespace-nowrap flex items-center justify-center",
+                                            "ring-2 ring-primary ring-offset-background", // Added solid ring styles
+                                            activeTab === 'private'
+                                                ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                                                : "bg-background text-muted-foreground hover:bg-accent hover:text-accent-foreground" // Adjusted for solid ring non-active state
+                                        )}
+                                        disabled={!isOwner} // Disable if not owner
+                                    >
+                                        <Lock className="h-4 w-4" />
+                                        <span className={cn(
+                                            "ml-2",
+                                            activeTab === 'private' ? "inline-block" : "hidden",
+                                            "lg:inline-block"
+                                        )}>
+                                            Private
+                                        </span>
+                                    </button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p>Private Journal</p>
+                                </TooltipContent>
+                            </Tooltip>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <button
+                                        type="button"
+                                        onClick={() => setActiveTab('public')}
+                                        className={cn(
+                                            "px-3 py-1 text-xs sm:text-sm font-medium rounded-full whitespace-nowrap flex items-center justify-center",
+                                            "ring-2 ring-primary ring-offset-background", // Added solid ring styles
+                                            activeTab === 'public'
+                                                ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                                                : "bg-background text-muted-foreground hover:bg-accent hover:text-accent-foreground" // Adjusted for solid ring non-active state
+                                        )}
+                                        disabled={!isOwner && activeTab === 'private'} // Disable if not owner and public tab is active
+                                    >
+                                        <Globe className="h-4 w-4" />
+                                        <span className={cn(
+                                            "ml-2",
+                                            activeTab === 'public' ? "inline-block" : "hidden",
+                                            "lg:inline-block"
+                                        )}>
+                                            Public
+                                        </span>
+                                    </button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p>Public Journal</p>
+                                </TooltipContent>
+                            </Tooltip>
 
-                        {/* Autosave Status Feedback */}
-                        {canEdit && (
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground ml-4">
-                                {autosaveStatus === 'saving' && (
-                                    <>
-                                        <Loader2 className="h-4 w-4 animate-spin" />
-                                        <span>Saving...</span>
-                                    </>
-                                )}
-                                {autosaveStatus === 'saved' && (
-                                    <span>Saved!</span>
-                                )}
-                                {autosaveStatus === 'error' && (
-                                    <span className="text-destructive">Autosave Error</span>
-                                )}
-                            </div>
-                        )}
-                    </div>
-                </TooltipProvider>
+                            {/* Autosave Status Feedback */}
+                            {canEdit && (
+                                <div className="flex items-center gap-2 text-sm text-muted-foreground ml-4">
+                                    {autosaveStatus === 'saving' && (
+                                        <>
+                                            <Loader2 className="h-4 w-4 animate-spin" />
+                                            <span>Saving...</span>
+                                        </>
+                                    )}
+                                    {autosaveStatus === 'saved' && (
+                                        <span>Saved!</span>
+                                    )}
+                                    {autosaveStatus === 'error' && (
+                                        <span className="text-destructive">Autosave Error</span>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    </TooltipProvider>
+                )}
             </div>
         </div>
 

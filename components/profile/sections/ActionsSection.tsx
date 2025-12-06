@@ -1,14 +1,12 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Check, ListTodo, Undo2 } from 'lucide-react'; // Import Undo2
-import { Button } from '@/components/ui/button';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger, } from "@/components/ui/tooltip"; // Import Check icon
-import { toast } from 'sonner'; // Import sonner toast
-import { ActionNode } from '@/lib/supabase/types';
-import { CircularProgress } from '@/components/ui/circular-progress';
-import { Skeleton } from '@/components/ui/skeleton';
-import { ActionsList } from '@/components/shared/ActionsList';
-import { AddActionForm } from '@/components/shared/AddActionForm';
-import { DeletedNodeContext } from '@/lib/utils/actionTreeUtils';
+import React, {useEffect, useRef, useState} from 'react';
+import {Undo2} from 'lucide-react'; // Removed Check
+import {toast} from 'sonner'; // Import sonner toast
+import {ActionNode} from '@/lib/supabase/types';
+import {CircularProgress} from '@/components/ui/circular-progress';
+import {Skeleton} from '@/components/ui/skeleton';
+import {ActionsList} from '@/components/shared/ActionsList';
+import {AddActionForm} from '@/components/shared/AddActionForm';
+import {DeletedNodeContext} from '@/lib/utils/actionTreeUtils';
 
 // Helper to recursively count total and completed actions
 const getOverallCompletionCounts = (nodes: ActionNode[]): { total: number; completed: number } => {
@@ -96,27 +94,23 @@ const ActionsSection: React.FC<ActionsSectionProps> = ({
     // Handle delete action and show undo toast
     const handleDeleteAction = async (id: string) => {
         if (!onActionDeleted) return;
-        
+
         const deleted = await onActionDeleted(id);
         if (deleted && undoDeleteAction) {
             const isMac = typeof navigator !== 'undefined' && navigator.platform.toUpperCase().indexOf('MAC') >= 0;
             const shortcutKey = isMac ? '⌘Z' : 'Ctrl+Z';
 
             toast("Action deleted.", {
-                description: (
-                    <div className="flex flex-col gap-1">
-                        <span>{deleted.node.description}</span>
-                        <span className="text-xs text-muted-foreground flex items-center gap-1">
-                             Press <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">{shortcutKey}</kbd> to undo
+                description: (<div className="flex flex-col gap-1">
+                    <span>{deleted.node.description}</span>
+                    <span className="text-xs text-muted-foreground flex items-center gap-1">
+                             Press <kbd
+                        className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">{shortcutKey}</kbd> to undo
                         </span>
-                    </div>
-                ),
-                action: {
-                    label: "Undo",
-                    onClick: () => undoDeleteAction(),
-                },
-                duration: 5000, // Show toast for 5 seconds
-                icon: <Undo2 className="h-4 w-4" />,
+                </div>), action: {
+                    label: "Undo", onClick: () => undoDeleteAction(),
+                }, duration: 5000, // Show toast for 5 seconds
+                icon: <Undo2 className="h-4 w-4"/>,
             });
         }
     };
@@ -144,7 +138,7 @@ const ActionsSection: React.FC<ActionsSectionProps> = ({
                         addActionFormRef.current.focusInput();
                     }
                 }
-            } 
+            }
             // Up Arrow in Input -> Focus Last Item (from AddActionForm input)
             else if (event.key === 'ArrowUp' && addActionFormRef.current?.isInputFocused()) {
                 event.preventDefault();
@@ -188,80 +182,73 @@ const ActionsSection: React.FC<ActionsSectionProps> = ({
 
     if (loading && isOwner && !isReadOnly) { // Use loading from prop
         return (<div className="p-4 space-y-3">
-                <Skeleton className="h-10 w-full"/>
-                <Skeleton className="h-10 w-11/12"/>
-                <Skeleton className="h-10 w-full"/>
-                <Skeleton className="h-10 w-10/12"/>
-            </div>);
+            <Skeleton className="h-10 w-full"/>
+            <Skeleton className="h-10 w-11/12"/>
+            <Skeleton className="h-10 w-full"/>
+            <Skeleton className="h-10 w-10/12"/>
+        </div>);
     }
 
     return (<div className="section mb-10">
-            <div className="flex justify-between items-center border-b border-primary pb-4 mb-6">
-                <h2 className="text-2xl font-extrabold text-primary">Actions</h2>
-                <div className="flex items-center gap-3">
-                    {overallTotal > 0 && (isAllComplete ? (
-                            <div className="relative flex items-center justify-center" style={{width: 36, height: 36}}>
-                                <Check
-                                    size={36}
-                                    className="text-primary animate-spin-scale" // Need to define this animation
-                                />
-                                <span
-                                    className="absolute text-xs text-muted-foreground">{overallCompleted}/{overallTotal}</span>
-                            </div>) : (<CircularProgress
-                                progress={overallProgressPercentage}
-                                size={36}
-                                strokeWidth={3}
-                                color="text-primary"
-                                bgColor="text-muted-foreground"
-                            >
-                                <span className="text-xs text-muted-foreground">{overallCompleted}/{overallTotal}</span>
-                            </CircularProgress>))}
-                </div>
+        <div className="flex justify-between items-center border-b border-primary pb-4 mb-6">
+            <h2 className="text-2xl font-extrabold text-primary">Actions</h2>
+            <div className="flex items-center gap-3">
+                {overallTotal > 0 && (<CircularProgress
+                    progress={overallProgressPercentage}
+                    size={36}
+                    strokeWidth={3}
+                    color="text-primary"
+                    bgColor="text-muted-foreground"
+                                                showTickOnComplete={isAllComplete}
+                                            >                    {!isAllComplete && (
+                        <span className="text-xs text-muted-foreground">{overallCompleted}/{overallTotal}</span>)}
+                </CircularProgress>)}
             </div>
-            <ActionsList
-                actions={itemsToRender}
-                onActionToggled={isOwner && !isReadOnly ? onActionToggled : undefined}
-                onActionAdded={isOwner && !isReadOnly ? onActionAdded : undefined}
-                onActionUpdated={isOwner && !isReadOnly ? onActionUpdated : undefined}
-                onActionDeleted={isOwner && !isReadOnly ? handleDeleteAction : undefined}
-                onActionIndented={isOwner && !isReadOnly ? onActionIndented : undefined}
-                onActionOutdented={isOwner && !isReadOnly ? onActionOutdented : undefined}
-                onActionMovedUp={isOwner && !isReadOnly ? onActionMovedUp : undefined}
-                onActionMovedDown={isOwner && !isReadOnly ? onActionMovedDown : undefined}
-                onActionPrivacyToggled={isOwner && !isReadOnly ? onActionPrivacyToggled : undefined}
-                onActionAddedAfter={isOwner && !isReadOnly ? onActionAddedAfter : undefined}
-                justCompletedId={justCompletedId}
-                focusedActionId={focusedActionId}
-                setFocusedActionId={setFocusedActionId}
-                flattenedActions={flattenActionTree(itemsToRender)}
-            />
+        </div>
+        <ActionsList
+            actions={itemsToRender}
+            onActionToggled={isOwner && !isReadOnly ? onActionToggled : undefined}
+            onActionAdded={isOwner && !isReadOnly ? onActionAdded : undefined}
+            onActionUpdated={isOwner && !isReadOnly ? onActionUpdated : undefined}
+            onActionDeleted={isOwner && !isReadOnly ? handleDeleteAction : undefined}
+            onActionIndented={isOwner && !isReadOnly ? onActionIndented : undefined}
+            onActionOutdented={isOwner && !isReadOnly ? onActionOutdented : undefined}
+            onActionMovedUp={isOwner && !isReadOnly ? onActionMovedUp : undefined}
+            onActionMovedDown={isOwner && !isReadOnly ? onActionMovedDown : undefined}
+            onActionPrivacyToggled={isOwner && !isReadOnly ? onActionPrivacyToggled : undefined}
+            onActionAddedAfter={isOwner && !isReadOnly ? onActionAddedAfter : undefined}
+            justCompletedId={justCompletedId}
+            focusedActionId={focusedActionId}
+            setFocusedActionId={setFocusedActionId}
+            flattenedActions={flattenActionTree(itemsToRender)}
+        />
 
-            {!isOwner && privateCount > 0 && (
-                <div className="mt-6 text-center text-muted-foreground italic text-sm animate-pulse">
-                    Pssst... he's working on {privateCount} more actions privately! 🤫
-                </div>)}
+        {!isOwner && privateCount > 0 && (
+            <div className="mt-6 text-center text-muted-foreground italic text-sm animate-pulse">
+                Pssst... he's working on {privateCount} more actions privately! 🤫
+            </div>)}
 
-            {isOwner && !isReadOnly && ( // Conditional rendering for AddActionForm
-                <div className="mt-4">
-                    <AddActionForm
-                        ref={addActionFormRef}
-                        onSave={(desc) => {
-                            onActionAdded?.(desc, undefined, true); // Pass true for isPublic
-                            addActionFormRef.current?.clearInput();
-                            addActionFormRef.current?.focusInput();
-                        }}
-                        onCancel={() => {
-                            addActionFormRef.current?.clearInput();
-                            const flattened = flattenActionTree(itemsToRender);
-                            if (flattened.length > 0) {
-                                setFocusedActionId(flattened[flattened.length - 1].id);
-                            }
-                        }}
-                        triggerKey="A" // Pass triggerKey
-                        autoFocusOnMount={false}
-                    />
-                </div>)}
-        </div>);
+        {isOwner && !isReadOnly && ( // Conditional rendering for AddActionForm
+            <div className="mt-4">
+                <AddActionForm
+                    ref={addActionFormRef}
+                    onSave={(desc) => {
+                        onActionAdded?.(desc, undefined, true); // Pass true for isPublic
+                        addActionFormRef.current?.clearInput();
+                        addActionFormRef.current?.focusInput();
+                    }}
+                    onCancel={() => {
+                        addActionFormRef.current?.clearInput();
+                        const flattened = flattenActionTree(itemsToRender);
+                        if (flattened.length > 0) {
+                            setFocusedActionId(flattened[flattened.length - 1].id);
+                        }
+                    }}
+                    triggerKey="A" // Pass triggerKey
+                    autoFocusOnMount={false}
+                />
+            </div>)}
+    </div>);
 };
 
 export default ActionsSection;

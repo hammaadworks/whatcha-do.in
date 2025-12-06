@@ -27,6 +27,7 @@ function Calendar({
 
   return (
     <DayPicker
+      toDate={new Date()} // Prevent selection of future dates
       showOutsideDays={showOutsideDays}
       className={cn(
         "p-3",
@@ -39,8 +40,11 @@ function Calendar({
         caption_label: "text-sm font-medium",
         nav: "space-x-1 flex items-center",
         nav_button: cn(
-          buttonVariants({ variant: "outline" }),
-          "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100"
+          buttonVariants({ variant: "ghost" }),
+          "h-7 w-7 p-0 rounded-md",
+          "ring-2 ring-primary ring-offset-background", // Always show solid ring
+          "hover:bg-primary hover:text-primary-foreground", // Make hover consistent with active tab styling
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" // Standard focus for accessibility
         ),
         nav_button_previous: "absolute left-1",
         nav_button_next: "absolute right-1",

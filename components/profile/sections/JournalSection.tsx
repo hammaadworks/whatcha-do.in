@@ -93,6 +93,8 @@ const JournalSection: React.FC<JournalSectionProps> = ({isOwner, isReadOnly = fa
     const [autosaveStatus, setAutosaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
     const lastSavedContentRef = useRef('');
     const debouncedContent = useDebounce(entryContent, 5000);
+    const mainDatePickerButtonRef = useRef<HTMLButtonElement>(null);
+    const [isMainDatePickerOpen, setIsMainDatePickerOpen] = useState(false);
 
     // Helper to find entry for selected date and tab
     const getCurrentEntry = useCallback(() => {
@@ -162,9 +164,10 @@ const JournalSection: React.FC<JournalSectionProps> = ({isOwner, isReadOnly = fa
 
                 <div className="flex items-center gap-2"> {/* Wrapper for date picker and new add button */}
                     {/* Date Picker */}
-                    <Popover>
+                    <Popover open={isMainDatePickerOpen} onOpenChange={setIsMainDatePickerOpen}>
                         <PopoverTrigger asChild>
                                                              <Button
+                                ref={mainDatePickerButtonRef}
                                 variant="ghost"
                                 className={cn("relative inline-flex items-center gap-2 px-4 py-2 rounded-full border border-transparent bg-background/80 backdrop-blur-sm text-sm font-medium text-muted-foreground shadow-sm hover:bg-accent/50 hover:text-muted-foreground transition-colors cursor-pointer select-none h-12 w-fit", !selectedDate && "text-muted-foreground")}
                             >
@@ -300,8 +303,19 @@ const JournalSection: React.FC<JournalSectionProps> = ({isOwner, isReadOnly = fa
 
                 {/* Activity Log Section */}
                 <div className="activity-log-section p-4 bg-muted/40 rounded-lg border shadow-sm">
-                    <h2 className="text-lg font-semibold mb-3 text-muted-foreground">
-                        {activeTab === 'private' ? 'Private' : 'Public'} Activity Log - {format(selectedDate, 'MMM dd, yyyy')}
+                    <h2 className="flex justify-between items-center text-lg font-semibold mb-3 text-muted-foreground">
+                        <span>{activeTab === 'private' ? 'Private' : 'Public'} Activity Log</span>
+                        <span 
+                            className="text-sm font-medium text-muted-foreground cursor-pointer hover:underline text-primary"
+                            onClick={() => {
+                                if (mainDatePickerButtonRef.current) {
+                                    mainDatePickerButtonRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                    setTimeout(() => setIsMainDatePickerOpen(true), 300); 
+                                }
+                            }}
+                        >
+                            {format(selectedDate, 'MMM dd, yyyy')}
+                        </span>
                     </h2>
                     {sortedLogs.length === 0 ? (
                         <p className="text-muted-foreground text-sm">No activities logged for this day yet.</p>

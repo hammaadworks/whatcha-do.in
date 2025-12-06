@@ -1,17 +1,15 @@
-import React, {useState, useEffect, useRef} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {TargetBucket, useTargets} from '@/hooks/useTargets';
 import {ActionsList} from '@/components/shared/ActionsList';
 import {AddActionForm} from '@/components/shared/AddActionForm';
-import {Button} from '@/components/ui/button';
 import {Tabs, TabsContent, TabsList, TabsTrigger} from '@/components/ui/tabs';
 import {Skeleton} from '@/components/ui/skeleton';
 import {format, parseISO} from 'date-fns';
 import {getMonthStartDate} from '@/lib/date';
 import {ActionNode} from '@/lib/supabase/types';
-import {Activity, Check, Undo2} from 'lucide-react'; // Added Check, Undo2
-import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,} from "@/components/ui/tooltip";
+import {Undo2} from 'lucide-react'; // Removed Check, Undo2
 import {CircularProgress} from '@/components/ui/circular-progress'; // Added CircularProgress
-import { toast } from 'sonner'; // Import sonner toast
+import {toast} from 'sonner'; // Import sonner toast
 
 interface TargetsSectionProps {
     isOwner: boolean;
@@ -43,27 +41,13 @@ const getMonthlyTargetCompletionCounts = (nodes: ActionNode[]): { total: number;
 };
 
 export default function TargetsSection({
-                                           isOwner,
-                                           isReadOnly = false,
-                                           timezone,
-                                           targets: propTargets,
-                                           onActivityLogged
+                                           isOwner, isReadOnly = false, timezone, targets: propTargets, onActivityLogged
                                        }: TargetsSectionProps) {
     const {
-        buckets,
-        loading,
-        addTarget,
-        addTargetAfter, // Destructure new function
-        toggleTarget,
-        updateTargetText,
-        deleteTarget,
-        undoDeleteTarget, // Add undoDeleteTarget
+        buckets, loading, addTarget, addTargetAfter, // Destructure new function
+        toggleTarget, updateTargetText, deleteTarget, undoDeleteTarget, // Add undoDeleteTarget
         lastDeletedTargetContext, // Add lastDeletedTargetContext
-        indentTarget,
-        outdentTarget,
-        moveTargetUp,
-        moveTargetDown,
-        toggleTargetPrivacy, // Add this
+        indentTarget, outdentTarget, moveTargetUp, moveTargetDown, toggleTargetPrivacy, // Add this
         moveTargetToBucket
     } = useTargets(isOwner, timezone, propTargets); // Pass propTargets to hook
 
@@ -85,20 +69,16 @@ export default function TargetsSection({
             const shortcutKey = isMac ? '⌘Z' : 'Ctrl+Z';
 
             toast("Target deleted.", {
-                description: (
-                    <div className="flex flex-col gap-1">
+                description: (<div className="flex flex-col gap-1">
                         <span>{deleted.node.description}</span>
                         <span className="text-xs text-muted-foreground flex items-center gap-1">
-                             Press <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">{shortcutKey}</kbd> to undo
+                             Press <kbd
+                            className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">{shortcutKey}</kbd> to undo
                         </span>
-                    </div>
-                ),
-                action: {
-                    label: "Undo",
-                    onClick: () => undoDeleteTarget(),
-                },
-                duration: 5000, // Show toast for 5 seconds
-                icon: <Undo2 className="h-4 w-4" />,
+                    </div>), action: {
+                    label: "Undo", onClick: () => undoDeleteTarget(),
+                }, duration: 5000, // Show toast for 5 seconds
+                icon: <Undo2 className="h-4 w-4"/>,
             });
         }
     };
@@ -166,7 +146,10 @@ export default function TargetsSection({
     const prev1MonthLabel = format(parseISO(getMonthStartDate(-2, timezone)), 'MMM');
 
     // Calculate progress for the current month's targets
-    const {total: currentMonthTotal, completed: currentMonthCompleted} = getMonthlyTargetCompletionCounts(buckets.current);
+    const {
+        total: currentMonthTotal,
+        completed: currentMonthCompleted
+    } = getMonthlyTargetCompletionCounts(buckets.current);
     const currentMonthProgressPercentage = currentMonthTotal > 0 ? (currentMonthCompleted / currentMonthTotal) * 100 : 0;
     const isCurrentMonthAllComplete = currentMonthTotal > 0 && currentMonthCompleted === currentMonthTotal;
 
@@ -190,45 +173,48 @@ export default function TargetsSection({
         const flattened = flattenActionTree(actions);
 
         return (<div className="mt-4">
-                <ActionsList
-                    actions={actions}
-                    onActionToggled={canEdit ? async (id) => { await toggleTarget(bucket, id); onActivityLogged?.(); } : undefined}
-                    onActionAdded={canEdit ? (desc, parentId) => addTarget(bucket, desc, parentId) : undefined}
-                    onActionUpdated={canEdit ? (id, text) => updateTargetText(bucket, id, text) : undefined}
-                    onActionDeleted={canEdit ? (id) => handleDeleteTarget(bucket, id) : undefined} // Use local handler
-                    onActionIndented={canEdit ? (id) => indentTarget(bucket, id) : undefined}
-                    onActionOutdented={canEdit ? (id) => outdentTarget(bucket, id) : undefined}
-                    onActionMovedUp={canEdit ? (id) => moveTargetUp(bucket, id) : undefined}
-                    onActionMovedDown={canEdit ? (id) => moveTargetDown(bucket, id) : undefined}
-                    onActionPrivacyToggled={canEdit ? (id) => toggleTargetPrivacy(bucket, id) : undefined} // Enable privacy toggle
-                    onActionAddedAfter={canEdit ? (afterId, description, isPublic) => addTargetAfter(bucket, afterId, description, isPublic) : undefined} // New
-                    flattenedActions={flattened}
-                    focusedActionId={focusedActionId} // Pass focusedActionId
-                    setFocusedActionId={setFocusedActionId} // Pass setFocusedActionId
+            <ActionsList
+                actions={actions}
+                onActionToggled={canEdit ? async (id) => {
+                    await toggleTarget(bucket, id);
+                    onActivityLogged?.();
+                } : undefined}
+                onActionAdded={canEdit ? (desc, parentId) => addTarget(bucket, desc, parentId) : undefined}
+                onActionUpdated={canEdit ? (id, text) => updateTargetText(bucket, id, text) : undefined}
+                onActionDeleted={canEdit ? (id) => handleDeleteTarget(bucket, id) : undefined} // Use local handler
+                onActionIndented={canEdit ? (id) => indentTarget(bucket, id) : undefined}
+                onActionOutdented={canEdit ? (id) => outdentTarget(bucket, id) : undefined}
+                onActionMovedUp={canEdit ? (id) => moveTargetUp(bucket, id) : undefined}
+                onActionMovedDown={canEdit ? (id) => moveTargetDown(bucket, id) : undefined}
+                onActionPrivacyToggled={canEdit ? (id) => toggleTargetPrivacy(bucket, id) : undefined} // Enable privacy toggle
+                onActionAddedAfter={canEdit ? (afterId, description, isPublic) => addTargetAfter(bucket, afterId, description, isPublic) : undefined} // New
+                flattenedActions={flattened}
+                focusedActionId={focusedActionId} // Pass focusedActionId
+                setFocusedActionId={setFocusedActionId} // Pass setFocusedActionId
+            />
+
+            {canEdit && (<div className="mt-4">
+                <AddActionForm
+                    ref={addTargetFormRef}
+                    onSave={(desc) => addTarget(bucket, desc)}
+                    onCancel={() => {
+                        addTargetFormRef.current?.clearInput();
+                        const currentFlattened = flattenActionTree(buckets[activeTab]); // Get fresh flattened list
+                        if (currentFlattened.length > 0) {
+                            setFocusedActionId(currentFlattened[currentFlattened.length - 1].id);
+                        }
+                    }}
+                    triggerKey="T" // Pass triggerKey for Targets (Alt+T)
+                    autoFocusOnMount={false}
                 />
+            </div>)}
 
-                {canEdit && (<div className="mt-4">
-                        <AddActionForm
-                            ref={addTargetFormRef}
-                            onSave={(desc) => addTarget(bucket, desc)}
-                            onCancel={() => {
-                                addTargetFormRef.current?.clearInput();
-                                const currentFlattened = flattenActionTree(buckets[activeTab]); // Get fresh flattened list
-                                if (currentFlattened.length > 0) {
-                                    setFocusedActionId(currentFlattened[currentFlattened.length - 1].id);
-                                }
-                            }}
-                            triggerKey="T" // Pass triggerKey for Targets (Alt+T)
-                            autoFocusOnMount={false}
-                        />
-                    </div>)}
-
-                {/* Move to Current button for Future items */}
-                {bucket === 'future' && isOwner && actions.length > 0 && !isReadOnly && ( // Only show if not read-only
-                    <div className="mt-4 p-4 bg-muted/20 rounded-md border border-dashed">
-                        <p className="text-xs text-muted-foreground mb-2">Move selected items to current month?</p>
-                    </div>)}
-            </div>);
+            {/* Move to Current button for Future items */}
+            {bucket === 'future' && isOwner && actions.length > 0 && !isReadOnly && ( // Only show if not read-only
+                <div className="mt-4 p-4 bg-muted/20 rounded-md border border-dashed">
+                    <p className="text-xs text-muted-foreground mb-2">Move selected items to current month?</p>
+                </div>)}
+        </div>);
     };
 
     if (loading) {
@@ -241,43 +227,37 @@ export default function TargetsSection({
     if (!isOwner && !isReadOnly) return null;
 
     return (<div className="space-y-4">
-            <div className="flex justify-between items-center border-b border-primary pb-4 mb-6">
-                <h2 className="text-2xl font-extrabold text-primary">Targets</h2>
-                <div className="flex items-center gap-3">
-                    {currentMonthTotal > 0 && (isCurrentMonthAllComplete ? (
-                            <div className="relative flex items-center justify-center" style={{width: 36, height: 36}}>
-                                <Check
-                                    size={36}
-                                    className="text-primary animate-spin-scale" // Need to define this animation
-                                />
-                                <span
-                                    className="absolute text-xs text-muted-foreground">{currentMonthCompleted}/{currentMonthTotal}</span>
-                            </div>) : (<CircularProgress
-                                progress={currentMonthProgressPercentage}
-                                size={36}
-                                strokeWidth={3}
-                                color="text-primary"
-                                bgColor="text-muted-foreground"
-                            >
-                                <span className="text-xs text-muted-foreground">{currentMonthCompleted}/{currentMonthTotal}</span>
-                            </CircularProgress>))}
-                </div>
+        <div className="flex justify-between items-center border-b border-primary pb-4 mb-6">
+            <h2 className="text-2xl font-extrabold text-primary">Targets</h2>
+            <div className="flex items-center gap-3">
+                {currentMonthTotal > 0 && (<CircularProgress
+                        progress={currentMonthProgressPercentage}
+                        size={36}
+                        strokeWidth={3}
+                        color="text-primary"
+                        bgColor="text-muted-foreground"
+                                                    showTickOnComplete={isCurrentMonthAllComplete}
+                                                >                        {!isCurrentMonthAllComplete && (<span className="text-xs text-muted-foreground">
+                                    {currentMonthCompleted}/{currentMonthTotal}
+                                </span>)}
+                    </CircularProgress>)}
             </div>
+        </div>
 
-            <Tabs value={activeTab} onValueChange={(v: string) => setActiveTab(v as TargetBucket)} className="w-full">
-                <TabsList className="grid w-full grid-cols-4">
-                    <TabsTrigger value="prev1">{prev1MonthLabel}</TabsTrigger>
-                    <TabsTrigger value="prev">{prevMonthLabel}</TabsTrigger>
-                    <TabsTrigger value="current">{currentMonthLabel}</TabsTrigger>
-                    <TabsTrigger value="future">Future</TabsTrigger>
-                </TabsList>
+        <Tabs value={activeTab} onValueChange={(v: string) => setActiveTab(v as TargetBucket)} className="w-full">
+            <TabsList className="grid w-full grid-cols-4">
+                <TabsTrigger value="prev1">{prev1MonthLabel}</TabsTrigger>
+                <TabsTrigger value="prev">{prevMonthLabel}</TabsTrigger>
+                <TabsTrigger value="current">{currentMonthLabel}</TabsTrigger>
+                <TabsTrigger value="future">Future</TabsTrigger>
+            </TabsList>
 
-                <TabsContent value="prev1">{renderTabContent('prev1')}</TabsContent>
-                <TabsContent value="prev">{renderTabContent('prev')}</TabsContent>
-                <TabsContent value="current">{renderTabContent('current')}</TabsContent>
-                <TabsContent value="future">{renderTabContent('future')}</TabsContent>
-            </Tabs>
-        </div>);
+            <TabsContent value="prev1">{renderTabContent('prev1')}</TabsContent>
+            <TabsContent value="prev">{renderTabContent('prev')}</TabsContent>
+            <TabsContent value="current">{renderTabContent('current')}</TabsContent>
+            <TabsContent value="future">{renderTabContent('future')}</TabsContent>
+        </Tabs>
+    </div>);
 }
 
 // Helper (duplicated from ActionsSection, ideally move to utils)
