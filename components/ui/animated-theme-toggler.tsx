@@ -1,6 +1,6 @@
 "use client"
 
-import {useCallback, useEffect, useRef, useState} from "react"
+import {useCallback, useEffect, useRef, useState, forwardRef, useImperativeHandle} from "react"
 import {Moon, Sun} from "lucide-react"
 import {flushSync} from "react-dom"
 
@@ -10,9 +10,13 @@ interface AnimatedThemeTogglerProps extends React.ComponentPropsWithoutRef<"butt
     duration?: number
 }
 
-export const AnimatedThemeToggler = ({
+export interface AnimatedThemeTogglerRef {
+    toggle: () => void;
+}
+
+export const AnimatedThemeToggler = forwardRef<AnimatedThemeTogglerRef, AnimatedThemeTogglerProps>(({
                                          className, duration = 400, ...props
-                                     }: AnimatedThemeTogglerProps) => {
+                                     }, ref) => {
     const [isDark, setIsDark] = useState(false)
     const buttonRef = useRef<HTMLButtonElement>(null)
 
@@ -60,6 +64,10 @@ export const AnimatedThemeToggler = ({
         })
     }, [isDark, duration])
 
+    useImperativeHandle(ref, () => ({
+        toggle: toggleTheme,
+    }));
+
     return (<button
             ref={buttonRef}
             onClick={toggleTheme}
@@ -69,4 +77,6 @@ export const AnimatedThemeToggler = ({
             {isDark ? (<Sun className="h-6 w-6 transition-all"/>) : (<Moon className="h-6 w-6 transition-all"/>)}
             <span className="sr-only">Toggle theme</span>
         </button>)
-}
+})
+
+AnimatedThemeToggler.displayName = "AnimatedThemeToggler";

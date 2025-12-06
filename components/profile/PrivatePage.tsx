@@ -1,12 +1,12 @@
 // components/profile/PrivatePage.tsx
 "use client";
 
-import { notFound } from 'next/navigation';
-import { PublicUserDisplay, ActionNode, Habit, JournalEntry } from '@/lib/supabase/types'; // Import JournalEntry
-import { useAuth } from "@/hooks/useAuth";
+import {notFound} from 'next/navigation';
+import {ActionNode, Habit, Identity, JournalEntry, PublicUserDisplay} from '@/lib/supabase/types'; // Import JournalEntry, Identity
+import {useAuth} from "@/hooks/useAuth";
 import React from 'react';
 
-import { PublicPage } from '@/components/profile/PublicPage';
+import {PublicPage} from '@/components/profile/PublicPage';
 import OwnerProfileView from '@/components/profile/OwnerProfileView'; // New component
 
 type ProfilePageClientProps = {
@@ -15,12 +15,23 @@ type ProfilePageClientProps = {
     publicActions: ActionNode[];
     publicHabits: Habit[];
     publicJournalEntries: JournalEntry[]; // Add publicJournalEntries
+    publicIdentities: (Identity & { backingCount: number })[]; // Add publicIdentities
+    publicTargets: ActionNode[]; // Add publicTargets
     privateCount?: number; // Add privateCount
 };
 
-export default function PrivatePage({ username, initialProfileUser, publicActions, publicHabits, publicJournalEntries, privateCount = 0 }: Readonly<ProfilePageClientProps>) {
-    const { user: authenticatedUser, loading: authLoading } = useAuth();
-    
+export default function PrivatePage({
+                                        username,
+                                        initialProfileUser,
+                                        publicActions,
+                                        publicHabits,
+                                        publicJournalEntries,
+                                        publicIdentities,
+                                        publicTargets,
+                                        privateCount = 0
+                                    }: Readonly<ProfilePageClientProps>) {
+    const {user: authenticatedUser, loading: authLoading} = useAuth();
+
     // Determine if the authenticated user is the owner of this profile page
     const isOwner = authenticatedUser?.username === username;
 
@@ -44,15 +55,19 @@ export default function PrivatePage({ username, initialProfileUser, publicAction
             publicActions={publicActions}
             publicHabits={publicHabits}
             publicJournalEntries={publicJournalEntries}
+            publicIdentities={publicIdentities}
+            publicTargets={publicTargets}
             privateCount={privateCount} // Pass privateCount
         />;
     } else {
         // If not the owner, render the public version of the profile
-        return <PublicPage 
-            user={initialProfileUser} 
-            publicActions={publicActions} 
-            publicHabits={publicHabits} 
-            publicJournalEntries={publicJournalEntries} 
+        return <PublicPage
+            user={initialProfileUser}
+            publicActions={publicActions}
+            publicHabits={publicHabits}
+            publicJournalEntries={publicJournalEntries}
+            publicIdentities={publicIdentities}
+            publicTargets={publicTargets}
             privateCount={privateCount} // Pass privateCount
         />;
     }

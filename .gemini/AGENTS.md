@@ -34,6 +34,8 @@
 
 - For all server-side functions, use the `withLogging` higher-order function from `lib/logger/withLogging.ts` to ensure consistent entry, exit, and error logging. For granular logs within a function, import the `logger` from `lib/logger/server.ts`.
 
+- Read the wikis under `docs/wiki/**` to understand the application's architecture and important flows.
+
 [//]: # (Custom)
 - All dev-ops related tasks were moved to stories after version 8.2.
 - The authenticated dashboard/profile page will be accessed via `domain/[username]`. If the user is authenticated, it shows their private dashboard. If not, it shows a login button. This is similar to GitHub's profile page behavior.

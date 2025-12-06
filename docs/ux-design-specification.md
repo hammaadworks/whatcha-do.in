@@ -78,7 +78,7 @@ The overall design aesthetic will be "Professional, tech-savvy, out-of-the-box w
 
 ### 4.2 Overall Page Structure
 The main interface is organized with the following top-to-bottom structure to provide a clear and logical user flow:
-1.  **User Info/Bio** (Includes Avatar, Username, Bio, and **Local Time Display**)
+1.  **User Info/Bio** (Includes Avatar, Username, Bio [Full-screen Immersive Edit Modal], and **Local Time Display**)
 2.  **"Actions" Section** (Todos)
 3.  **"Habits" Section** (The Identity Momentum Board: Today, Yesterday, The Pile)
 4.  **Journal Section** (Daily entry with date selector)
@@ -162,7 +162,7 @@ The application's core functionality revolves around several critical user journ
 
 5.  **Journal System:**
     *   **Structure:** A "Two-Sided Journal" with distinct `[ 🌐 Public Journal ]` and `[ 🔒 Private Journal ]` tabs.
-    *   **Content:** Each daily entry includes user-typed notes (Markdown editor). Completed Habits and Todos are automatically added as line items, displaying the habit's name, mood, work, and duration.
+    *   **Content:** Each daily entry includes user-typed notes (Markdown editor with rich rendering support in read-only modes). Completed Habits and Todos are automatically added as line items, displaying the habit's name, mood, work, and duration.
     *   **Privacy Logic:** The privacy of completed Habits/Todos notes is determined by their original status. Free-form notes' privacy is determined by the active tab. Absolute separation ensures public profiles only see `🌐 Public Journal` content.
 
 ---
@@ -305,6 +305,7 @@ This UX Design Specification can serve as input to:
 | -------- | ------- | ------------------------------- | ------------- |
 | 2025-11-12 | 1.0     | Initial UX Design Specification | hammaadworks |
 | 2025-12-01 | 1.1     | Added Landing Page Strategy     | Gemini       |
+| 2025-12-05 | 1.2     | UI Tweaks: Fullscreen Bio, MD Journal | Gemini       |
 
 ---
 

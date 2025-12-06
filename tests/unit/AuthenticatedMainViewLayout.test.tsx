@@ -90,7 +90,7 @@ describe('PrivatePage', () => { // Changed describe block title
       loading: false,
     });
     // For owner, initialProfileUser should be the authenticated user
-    render(<PrivatePage username={mockUsername} initialProfileUser={mockAuthenticatedUser} publicActions={[]} publicHabits={[]} publicJournalEntries={[]} />);
+    render(<PrivatePage username={mockUsername} initialProfileUser={mockAuthenticatedUser} publicActions={[]} publicHabits={[]} publicJournalEntries={[]} publicIdentities={[]} publicTargets={[]} />);
 
     await waitFor(() => {
       // Check for AppHeader
@@ -117,14 +117,14 @@ describe('PrivatePage', () => { // Changed describe block title
   it('renders loading state when auth is loading', () => {
     mockUseAuth.mockReturnValue({ user: null, loading: true });
     // When auth is loading, initialProfileUser doesn't matter much as it won't be rendered immediately
-    render(<PrivatePage username={mockUsername} initialProfileUser={mockPublicUserDisplay} publicActions={[]} publicHabits={[]} publicJournalEntries={[]} />);
+    render(<PrivatePage username={mockUsername} initialProfileUser={mockPublicUserDisplay} publicActions={[]} publicHabits={[]} publicJournalEntries={[]} publicIdentities={[]} publicTargets={[]} />);
     expect(screen.getByText(/Loading.../i)).toBeInTheDocument();
   });
 
   // Test for AC: #1 (PublicPage for non-owner)
   it('renders PublicPage for unauthenticated user (data provided by server component)', async () => {
     mockUseAuth.mockReturnValue({ user: null, loading: false }); // Unauthenticated
-    render(<PrivatePage username={mockUsername} initialProfileUser={mockPublicUserDisplay} publicActions={[]} publicHabits={[]} publicJournalEntries={[]} />); // Initial data is now always provided
+    render(<PrivatePage username={mockUsername} initialProfileUser={mockPublicUserDisplay} publicActions={[]} publicHabits={[]} publicJournalEntries={[]} publicIdentities={[]} publicTargets={[]} />); // Initial data is now always provided
 
     await waitFor(() => {
       expect(screen.getByText(`Public Profile for ${mockUsername}`)).toBeInTheDocument();
@@ -138,7 +138,7 @@ describe('PrivatePage', () => { // Changed describe block title
       user: mockOtherUser,
       loading: false,
     });
-    render(<PrivatePage username={mockUsername} initialProfileUser={mockPublicUserDisplay} publicActions={[]} publicHabits={[]} publicJournalEntries={[]} />); // Initial data is now always provided
+    render(<PrivatePage username={mockUsername} initialProfileUser={mockPublicUserDisplay} publicActions={[]} publicHabits={[]} publicJournalEntries={[]} publicIdentities={[]} publicTargets={[]} />); // Initial data is now always provided
 
     await waitFor(() => {
       expect(screen.getByText(`Public Profile for ${mockUsername}`)).toBeInTheDocument();
@@ -148,8 +148,7 @@ describe('PrivatePage', () => { // Changed describe block title
 
   it('calls notFound when public user does not exist', async () => {
     mockUseAuth.mockReturnValue({ user: null, loading: false });
-    // Simulating initialProfileUser being null from server component
-    render(<PrivatePage username={mockUsername} initialProfileUser={null} publicActions={[]} publicHabits={[]} publicJournalEntries={[]} />);
+    render(<PrivatePage username={mockUsername} initialProfileUser={null} publicActions={[]} publicHabits={[]} publicJournalEntries={[]} publicIdentities={[]} publicTargets={[]} />);
 
     await waitFor(() => {
         expect(mockedNotFound).toHaveBeenCalled();

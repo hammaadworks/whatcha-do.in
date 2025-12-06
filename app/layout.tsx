@@ -72,14 +72,23 @@ export const metadata: Metadata = {
     manifest: "/manifest.json",
 };
 
-import { KeyboardShortcutsProvider } from '@/components/shared/KeyboardShortcutsProvider'; // New import
+import { ThemeProvider } from "next-themes";
+import { KeyboardShortcutsProvider } from '@/components/shared/KeyboardShortcutsProvider';
+import { LayoutContent } from '@/components/layout/LayoutContent'; // New import for the client component
 
 // ... other imports ...
 
 export default async function RootLayout({children,}: Readonly<{ children: React.ReactNode; }>) {
     // ... existing async function content ...
 
-    return (<html lang="en">
+    const supabase = await createServerSideClient();
+    const {
+        data: { user },
+    } = await supabase.auth.getUser();
+
+    logger.info(`RootLayout server-side user check: userId - ${user?.id}`);
+
+    return (<html lang="en" suppressHydrationWarning>
         <head>
             <meta name="apple-mobile-web-app-title" content="whatcha-doin"/>
             <title>whatcha-doin | Building Consistency, One Habit at a Time</title>
@@ -88,21 +97,13 @@ export default async function RootLayout({children,}: Readonly<{ children: React
             className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}
         >
         <Pointer className="fill-primary" />
-        <KeyboardShortcutsProvider> {/* New wrapper */}
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
             <AuthProvider>
-                <AppHeader/>
-                <main className="flex-grow flex justify-center px-2 md:px-4 lg:px-8 pt-16 lg:pt-32 pb-4">
-                    {children}
-                </main>
-                <AppFooter/>
-                <Toaster
-                  position="top-center"
-                  closeButton
-                  richColors
-                  theme="system"
-                />
+                <KeyboardShortcutsProvider>
+                    <LayoutContent>{children}</LayoutContent>
+                </KeyboardShortcutsProvider>
             </AuthProvider>
-        </KeyboardShortcutsProvider> {/* New wrapper */}
+        </ThemeProvider>
         </body>
         </html>);
 }

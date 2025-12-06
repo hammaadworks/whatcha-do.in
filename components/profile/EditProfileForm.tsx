@@ -10,7 +10,6 @@ import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import {
     Form,
     FormControl,
@@ -21,7 +20,9 @@ import {
     FormDescription,
 } from '@/components/ui/form';
 import { useAuth } from '@/hooks/useAuth';
+import { useDebounce } from '@/hooks/useDebounce';
 import { updateUserProfile, checkUsernameAvailability } from '@/lib/supabase/user.client';
+import logger from '@/lib/logger/client';
 
 // Schema
 const profileSchema = z.object({
@@ -29,9 +30,6 @@ const profileSchema = z.object({
         .min(3, "Username must be at least 3 characters")
         .max(30, "Username must be less than 30 characters")
         .regex(/^[a-zA-Z0-9_-]+$/, "Username can only contain letters, numbers, underscores, and hyphens"),
-    bio: z.string()
-        .max(160, "Bio must be less than 160 characters")
-        .optional(),
 });
 
 type ProfileFormValues = z.infer<typeof profileSchema>;
@@ -47,7 +45,6 @@ export function EditProfileForm() {
         resolver: zodResolver(profileSchema),
         defaultValues: {
             username: '',
-            bio: '',
         },
         mode: 'onChange',
     });
@@ -57,30 +54,32 @@ export function EditProfileForm() {
         if (user) {
             form.reset({
                 username: user.username || '',
-                bio: user.bio || '',
             });
         }
     }, [user, form]);
 
     const watchedUsername = form.watch('username');
+    const debouncedUsername = useDebounce(watchedUsername, 500);
     
     // Debounce username check
     useEffect(() => {
         const checkAvailability = async () => {
-            if (!watchedUsername || watchedUsername === user?.username || watchedUsername.length < 3) {
+            if (!debouncedUsername || debouncedUsername === user?.username || debouncedUsername.length < 3) {
                 setUsernameAvailable(null);
                 return;
             }
 
             // Don't check if regex fails (handled by zod)
-             if (!/^[a-zA-Z0-9_-]+$/.test(watchedUsername)) {
+             if (!/^[a-zA-Z0-9_-]+$/.test(debouncedUsername)) {
                 setUsernameAvailable(null);
                 return;
              }
 
             setIsCheckingUsername(true);
+            const log = logger.child({ module: 'EditProfileForm', username: debouncedUsername });
+            log.info('Checking username availability');
             try {
-                const available = await checkUsernameAvailability(watchedUsername);
+                const available = await checkUsernameAvailability(debouncedUsername);
                 setUsernameAvailable(available);
                 if (!available) {
                     form.setError('username', {
@@ -91,15 +90,14 @@ export function EditProfileForm() {
                     form.clearErrors('username');
                 }
             } catch (error) {
-                console.error(error);
+                log.error({ err: error }, 'Error checking username availability');
             } finally {
                 setIsCheckingUsername(false);
             }
         };
 
-        const timeoutId = setTimeout(checkAvailability, 500); // 500ms debounce
-        return () => clearTimeout(timeoutId);
-    }, [watchedUsername, user?.username, form]);
+        checkAvailability();
+    }, [debouncedUsername, user?.username, form]);
 
 
     const onSubmit = async (data: ProfileFormValues) => {
@@ -113,7 +111,6 @@ export function EditProfileForm() {
         try {
             const { error } = await updateUserProfile(user.id, {
                 username: data.username,
-                bio: data.bio || '',
             });
 
             if (error) {
@@ -166,28 +163,7 @@ export function EditProfileForm() {
                                 </div>
                             </div>
                             <FormDescription>
-                                Your public profile URL: whatcha-doin.com/{field.value || 'username'}
-                            </FormDescription>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-
-                <FormField
-                    control={form.control}
-                    name="bio"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Bio</FormLabel>
-                            <FormControl>
-                                <Textarea 
-                                    placeholder="Tell us a little about yourself" 
-                                    className="resize-none"
-                                    {...field} 
-                                />
-                            </FormControl>
-                            <FormDescription>
-                                {field.value?.length || 0}/160 characters
+                                This will be your unique handle on the platform.
                             </FormDescription>
                             <FormMessage />
                         </FormItem>

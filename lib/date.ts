@@ -40,3 +40,19 @@ export function isCompletedBeforeToday(timestampISO: string, timezone: string = 
   
   return completedAt < startOfToday;
 }
+
+/**
+ * Returns the start date of a month (YYYY-MM-01) relative to the current date in the given timezone.
+ * 
+ * @param offsetMonths 0 for current month, -1 for previous month, etc.
+ * @param timezone User's timezone.
+ */
+export function getMonthStartDate(offsetMonths: number, timezone: string = 'UTC'): string {
+  const now = new Date();
+  const zonedDate = toZonedTime(now, timezone);
+  
+  // Adjust month safely handles year rollovers
+  const targetDate = new Date(zonedDate.getFullYear(), zonedDate.getMonth() + offsetMonths, 1);
+  
+  return format(toZonedTime(targetDate, timezone), 'yyyy-MM-dd', { timeZone: timezone });
+}

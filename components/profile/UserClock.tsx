@@ -7,6 +7,8 @@ import { motion, AnimatePresence } from "framer-motion";
 interface UserClockProps {
   timezone: string;
   className?: string;
+  isOwner?: boolean;
+  viewerTimezone?: string;
 }
 
 // Helper to get consistent short timezone abbreviations
@@ -27,22 +29,29 @@ const getConsistentTimeZoneName = (ianaTimezone: string, date: Date): string => 
     return typeof abbr === 'function' ? abbr(date) : abbr;
   }
 
-  // Fallback: Try Intl.DateTimeFormat with 'short'
-  let shortName = new Intl.DateTimeFormat('en-US', { timeZone: ianaTimezone, timeZoneName: 'short' }).format(date);
+  try {
+      // Fallback: Try Intl.DateTimeFormat with 'short' using formatToParts to avoid getting date/time
+      const parts = new Intl.DateTimeFormat('en-US', { timeZone: ianaTimezone, timeZoneName: 'short' }).formatToParts(date);
+      let shortName = parts.find(p => p.type === 'timeZoneName')?.value || '';
 
-  // If it's still a GMT offset after trying 'short', try 'shortGeneric'
-  if (shortName.includes('GMT') || shortName.includes('Coordinated Universal Time')) {
-      const genericName = new Intl.DateTimeFormat('en-US', { timeZone: ianaTimezone, timeZoneName: 'shortGeneric' }).format(date);
-      if (!genericName.includes('GMT') && genericName !== '') {
-          return genericName; // Use generic name if it's not GMT and not empty
+      // If it's still a GMT offset after trying 'short', try 'shortGeneric'
+      if (shortName.includes('GMT') || shortName.includes('Coordinated Universal Time')) {
+          const genericParts = new Intl.DateTimeFormat('en-US', { timeZone: ianaTimezone, timeZoneName: 'shortGeneric' }).formatToParts(date);
+          const genericName = genericParts.find(p => p.type === 'timeZoneName')?.value || '';
+          
+          if (!genericName.includes('GMT') && genericName !== '') {
+              return genericName; // Use generic name if it's not GMT and not empty
+          }
+          return shortName; // Return the short GMT name if no better generic name
       }
-      return ''; // No abbreviation if it's a GMT offset and no preferred mapping
-  }
 
-  return shortName; // Return the short name if not GMT or already a good abbreviation
+      return shortName; // Return the short name if not GMT or already a good abbreviation
+  } catch (e) {
+      return '';
+  }
 };
 
-export const UserClock: React.FC<UserClockProps> = ({ timezone, className }) => {
+export const UserClock: React.FC<UserClockProps> = ({ timezone, className, isOwner, viewerTimezone }) => {
   const [timeString, setTimeString] = useState<string>('');
   const [diffInfo, setDiffInfo] = useState<{ text: string; isSame: boolean }>({ text: '', isSame: true });
   const [showDate, setShowDate] = useState<boolean>(false); // New state for showing date
@@ -56,7 +65,7 @@ export const UserClock: React.FC<UserClockProps> = ({ timezone, className }) => 
         // Use formatToParts for explicit extraction of weekday, hour, minute, and dayPeriod
         const parts = new Intl.DateTimeFormat('en-US', {
             timeZone: timezone,
-            hour: 'numeric',
+            hour: '2-digit', // Changed to 2-digit for leading zero (09:30)
             minute: '2-digit',
             hour12: true,
             weekday: 'short',
@@ -77,8 +86,8 @@ export const UserClock: React.FC<UserClockProps> = ({ timezone, className }) => 
         const timeOnly = `${hour}:${minute} ${dayPeriod}`;
         const timeZoneAbbr = getConsistentTimeZoneName(timezone, now);
         
-        // Combine as "Mon, 10:34 PM IST"
-        setTimeString(`${weekday}, ${timeOnly} ${timeZoneAbbr}`);
+        // Combine as "Mon, 09:34 PM, IST" (Added comma)
+        setTimeString(`${weekday}, ${timeOnly}, ${timeZoneAbbr}`);
 
         // Format date for display
         setDisplayDateContent(new Intl.DateTimeFormat('en-US', {
@@ -88,12 +97,16 @@ export const UserClock: React.FC<UserClockProps> = ({ timezone, className }) => 
         }).format(now));
 
         // 2. Calculate the difference relative to the viewer's local time
-        const localTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        const localTimezone = viewerTimezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
 
         // Helper to get "face value" timestamp
         const getFaceValueMs = (date: Date, tz: string) => {
-             const str = date.toLocaleString('en-US', { timeZone: tz });
-             return new Date(str).getTime();
+             try {
+                const str = date.toLocaleString('en-US', { timeZone: tz });
+                return new Date(str).getTime();
+             } catch (e) {
+                return date.getTime();
+             }
         };
 
         const targetFaceMs = getFaceValueMs(now, timezone);
@@ -129,7 +142,7 @@ export const UserClock: React.FC<UserClockProps> = ({ timezone, className }) => 
     updateTime();
     const interval = setInterval(updateTime, 1000);
     return () => clearInterval(interval);
-  }, [timezone]);
+  }, [timezone, viewerTimezone]);
 
   const handleClick = () => {
     setShowDate(true);
@@ -191,7 +204,7 @@ export const UserClock: React.FC<UserClockProps> = ({ timezone, className }) => 
       </div>
       
       {/* Subtitle for Time Difference */}
-      {!diffInfo.isSame && (
+      {!diffInfo.isSame && !isOwner && (
         <div className="w-full text-center"> {/* Changed span to div, added w-full */}
             <span className="text-[10px] text-muted-foreground/80 font-medium mt-1 px-1 tracking-wide animate-in fade-in slide-in-from-top-1 duration-500">
                 {diffInfo.text}

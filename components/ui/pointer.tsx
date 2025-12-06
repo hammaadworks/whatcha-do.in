@@ -33,9 +33,8 @@ export function Pointer({
         return; // Do not apply custom cursor logic on touch devices
       }
 
-      const style = document.createElement("style");
-      style.innerHTML = "* { cursor: none !important; }";
-      document.head.appendChild(style);
+      // Use CSS class instead of injecting style tag
+      document.documentElement.classList.add("hide-native-cursor");
 
       const handleMouseMove = (e: MouseEvent) => {
         x.set(e.clientX);
@@ -47,7 +46,7 @@ export function Pointer({
 
       return () => {
         // Clean up on unmount
-        document.head.removeChild(style);
+        document.documentElement.classList.remove("hide-native-cursor");
         window.removeEventListener("mousemove", handleMouseMove);
       };
     }
@@ -61,7 +60,7 @@ export function Pointer({
     // Always render the motion.div for the pointer, AnimatePresence is not needed if always rendered.
     <motion.div
       ref={containerRef} // Using ref here to keep consistency
-      className="pointer-events-none fixed z-[9999999999999]"
+      className="pointer-events-none fixed z-[9999999]"
       style={{
         x: x,
         y: y,

@@ -18,9 +18,11 @@ import { toast } from 'sonner'; // Switch to sonner for consistency
 
 interface SettingsDrawerProps {
   children: React.ReactNode;
+  isOpen: boolean; // Add isOpen prop
+  onOpenChange: (open: boolean) => void; // Add onOpenChange prop
 }
 
-export function SettingsDrawer({ children }: SettingsDrawerProps) {
+export function SettingsDrawer({ children, isOpen, onOpenChange }: SettingsDrawerProps) {
   const { user, refreshUser } = useAuth();
   const [isUpdatingTimezone, setIsUpdatingTimezone] = useState(false);
 
@@ -47,9 +49,9 @@ export function SettingsDrawer({ children }: SettingsDrawerProps) {
   };
 
   return (
-    <Sheet>
-      <SheetTrigger asChild>{children}</SheetTrigger>
-      <SheetContent side="right" className="w-[400px] sm:w-[540px] overflow-y-auto">
+    <Sheet open={isOpen} onOpenChange={onOpenChange}>
+      {children && <SheetTrigger asChild>{children}</SheetTrigger>}
+      <SheetContent side="right" className="w-[400px] sm:w-[540px] overflow-y-auto pointer-events-auto">
         <SheetHeader>
           <SheetTitle>Settings</SheetTitle>
           <SheetDescription>

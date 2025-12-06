@@ -1,6 +1,7 @@
 @import url('https://geistfont.vercel.app/geist.css');
 @import "tailwindcss";
 @import "tw-animate-css";
+@import "highlight.js/styles/github-dark.css";
 
 @plugin "tailwindcss-animate";
 
@@ -151,6 +152,15 @@
   body {
     @apply bg-background text-foreground;
   }
+  input, textarea, [contenteditable] {
+    caret-color: var(--primary);
+    caret-shape: block;
+  }
+}
+
+/* Utility to restore native cursor for scrollable areas where custom cursor breaks interaction */
+.force-native-cursor, .force-native-cursor * {
+  cursor: auto !important;
 }
 
 /* Keyframe Animations for Motivational Quote Card */
@@ -178,5 +188,41 @@
 /* Global native cursor hide for custom Pointer component */
 .hide-native-cursor, .hide-native-cursor * {
     cursor: none !important;
+}
+
+/* More robust overrides for @uiw/react-md-editor fullscreen behavior */
+.w-md-editor-fullscreen,
+.w-md-editor-container-fullscreen { /* Target both potential fullscreen classes */
+  position: relative !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  max-height: none !important;
+  min-height: auto !important; /* Ensure it doesn't force a minimum height */
+  margin: 0 !important;
+  padding: 0 !important;
+  z-index: auto !important;
+  top: auto !important;
+  left: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  transform: none !important; /* Reset any potential transforms */
+  box-shadow: none !important; /* Remove any fullscreen shadows */
+  border-radius: 0 !important; /* Remove any fullscreen border-radius */
+}
+
+/* Prevent body scroll lock when editor tries to go fullscreen */
+body.w-md-editor-body-fullscreen,
+html.w-md-editor-body-fullscreen { /* Target both body and html for safety */
+  overflow: auto !important; /* Revert overflow hidden */
+  position: static !important; /* Ensure body is not fixed */
+  height: auto !important; /* Ensure body height is not forced */
+  width: auto !important; /* Ensure body width is not forced */
+  padding-right: 0 !important; /* Remove any padding added for scrollbar compensation */
+}
+
+/* Ensure the editor content area itself is scrollable if needed */
+.w-md-editor .w-md-editor-content {
+  overflow: auto !important;
 }
 

@@ -117,6 +117,45 @@ export function addActionToTree(currentTree: ActionNode[], description: string, 
 }
 
 /**
+ * Adds a new action after a specified existing action in the tree.
+ * @param currentTree The current action tree.
+ * @param afterId The ID of the action after which to insert the new action.
+ * @param description The description of the new action.
+ * @param isPublic Optional, whether the new action is public. Defaults to true.
+ * @returns A new action tree with the added action.
+ */
+export function addActionAfterId(currentTree: ActionNode[], afterId: string, description: string, isPublic: boolean = true): ActionNode[] {
+    const newTree = deepCopyActions(currentTree);
+    const targetContext = findNodeAndContext(newTree, afterId);
+
+    if (!targetContext) return newTree; // Target not found
+
+    const { siblingsArray, indexInSiblings } = targetContext;
+
+    const newAction: ActionNode = {
+        id: uuidv4(),
+        description,
+        completed: false,
+        is_public: isPublic,
+        children: [],
+        completed_at: undefined
+    };
+
+    // Determine parent's privacy to enforce effectiveIsPublic
+    let effectiveIsPublic = isPublic;
+    if (targetContext.parent && !targetContext.parent.is_public) {
+        effectiveIsPublic = false; // If parent is private, child must be private
+    }
+
+    newAction.is_public = effectiveIsPublic;
+
+    // Insert the new action right after the target action in the same siblings array
+    siblingsArray.splice(indexInSiblings + 1, 0, newAction);
+
+    return newTree;
+}
+
+/**
  * Toggles the completed status of an action in the tree.
  * @param currentTree The current action tree.
  * @param id The ID of the action to toggle.
@@ -180,22 +219,47 @@ export function updateActionTextInTree(currentTree: ActionNode[], id: string, ne
 }
 
 /**
- * Deletes an action from the tree.
+ * Moves an action up in its sibling list.
+ * If it's already the first sibling, no change occurs.
  * @param currentTree The current action tree.
- * @param id The ID of the action to delete.
- * @returns A new action tree with the action removed.
+ * @param id The ID of the action to move up.
+ * @returns A new action tree with the action moved up.
  */
-export function deleteActionFromTree(currentTree: ActionNode[], id: string): ActionNode[] {
-    const deleteRecursive = (nodes: ActionNode[]): ActionNode[] => {
-      const newNodes = nodes.filter(node => node.id !== id);
-      return newNodes.map(node => {
-        if (node.children && node.children.length > 0) {
-          return { ...node, children: deleteRecursive(node.children) };
-        }
-        return node;
-      });
-    };
-    return deleteRecursive(deepCopyActions(currentTree));
+export function moveActionUpInTree(currentTree: ActionNode[], id: string): ActionNode[] {
+    const newTree = deepCopyActions(currentTree);
+    const targetContext = findNodeAndContext(newTree, id);
+
+    if (!targetContext) return newTree;
+    const { node: targetNode, siblingsArray, indexInSiblings } = targetContext;
+
+    if (indexInSiblings === 0) return newTree; // Cannot move up if it's the first sibling
+
+    siblingsArray.splice(indexInSiblings, 1); // Remove targetNode
+    siblingsArray.splice(indexInSiblings - 1, 0, targetNode); // Insert one position before
+
+    return newTree;
+}
+
+/**
+ * Moves an action down in its sibling list.
+ * If it's already the last sibling, no change occurs.
+ * @param currentTree The current action tree.
+ * @param id The ID of the action to move down.
+ * @returns A new action tree with the action moved down.
+ */
+export function moveActionDownInTree(currentTree: ActionNode[], id: string): ActionNode[] {
+    const newTree = deepCopyActions(currentTree);
+    const targetContext = findNodeAndContext(newTree, id);
+
+    if (!targetContext) return newTree;
+    const { node: targetNode, siblingsArray, indexInSiblings } = targetContext;
+
+    if (indexInSiblings === siblingsArray.length - 1) return newTree; // Cannot move down if it's the last sibling
+
+    siblingsArray.splice(indexInSiblings, 1); // Remove targetNode
+    siblingsArray.splice(indexInSiblings + 1, 0, targetNode); // Insert one position after
+
+    return newTree;
 }
 
 /**
@@ -260,50 +324,6 @@ export function outdentActionInTree(currentTree: ActionNode[], id: string): Acti
 }
 
 /**
- * Moves an action up in its sibling list.
- * If it's already the first sibling, no change occurs.
- * @param currentTree The current action tree.
- * @param id The ID of the action to move up.
- * @returns A new action tree with the action moved up.
- */
-export function moveActionUpInTree(currentTree: ActionNode[], id: string): ActionNode[] {
-    const newTree = deepCopyActions(currentTree);
-    const targetContext = findNodeAndContext(newTree, id);
-
-    if (!targetContext) return newTree;
-    const { node: targetNode, siblingsArray, indexInSiblings } = targetContext;
-
-    if (indexInSiblings === 0) return newTree; // Cannot move up if it's the first sibling
-
-    siblingsArray.splice(indexInSiblings, 1); // Remove targetNode
-    siblingsArray.splice(indexInSiblings - 1, 0, targetNode); // Insert one position before
-
-    return newTree;
-}
-
-/**
- * Moves an action down in its sibling list.
- * If it's already the last sibling, no change occurs.
- * @param currentTree The current action tree.
- * @param id The ID of the action to move down.
- * @returns A new action tree with the action moved down.
- */
-export function moveActionDownInTree(currentTree: ActionNode[], id: string): ActionNode[] {
-    const newTree = deepCopyActions(currentTree);
-    const targetContext = findNodeAndContext(newTree, id);
-
-    if (!targetContext) return newTree;
-    const { node: targetNode, siblingsArray, indexInSiblings } = targetContext;
-
-    if (indexInSiblings === siblingsArray.length - 1) return newTree; // Cannot move down if it's the last sibling
-
-    siblingsArray.splice(indexInSiblings, 1); // Remove targetNode
-    siblingsArray.splice(indexInSiblings + 1, 0, targetNode); // Insert one position after
-
-    return newTree;
-}
-
-/**
  * Toggles the privacy status of an action in the tree.
  * Enforces "Private Parent -> Private Child" rule.
  * @param currentTree The current action tree.
@@ -357,5 +377,72 @@ export function toggleActionPrivacyInTree(currentTree: ActionNode[], id: string)
         }
     }
 
+    return newTree;
+}
+
+/**
+ * Context for a deleted action node, used for undo functionality.
+ */
+export type DeletedNodeContext = {
+    node: ActionNode;
+    parentId: string | null;
+    index: number; // Index within parent's children array or root array
+};
+
+/**
+ * Deletes an action from the tree, returning the deleted node's context.
+ * @param currentTree The current action tree.
+ * @param id The ID of the action to delete.
+ * @returns An object containing the new tree and the DeletedNodeContext if a node was deleted.
+ */
+export function deleteActionFromTree(currentTree: ActionNode[], id: string): { tree: ActionNode[], deletedContext: DeletedNodeContext | null } {
+    const newTree = deepCopyActions(currentTree);
+    let deletedContext: DeletedNodeContext | null = null;
+
+    const deleteRecursive = (nodes: ActionNode[], parentId: string | null): ActionNode[] => {
+        const newNodes: ActionNode[] = [];
+        for (let i = 0; i < nodes.length; i++) {
+            const node = nodes[i];
+            if (node.id === id) {
+                deletedContext = { node: { ...node }, parentId, index: i }; // Capture context before deleting
+                continue; // Skip this node
+            }
+            if (node.children && node.children.length > 0) {
+                newNodes.push({ ...node, children: deleteRecursive(node.children, node.id) });
+            } else {
+                newNodes.push({ ...node }); // Push a copy
+            }
+        }
+        return newNodes;
+    };
+    const finalTree = deleteRecursive(newTree, null);
+    return { tree: finalTree, deletedContext };
+}
+
+/**
+ * Restores a deleted action node into the tree at its original position.
+ * @param currentTree The current action tree.
+ * @param context The context of the deleted node to restore.
+ * @returns A new action tree with the node restored.
+ */
+export function restoreActionInTree(currentTree: ActionNode[], context: DeletedNodeContext): ActionNode[] {
+    const newTree = deepCopyActions(currentTree);
+    const { node, parentId, index } = context;
+
+    if (parentId === null) {
+        // Restore to root level
+        newTree.splice(index, 0, node);
+    } else {
+        // Restore as a child of its original parent
+        const parentContext = findNodeAndContext(newTree, parentId);
+        if (parentContext && parentContext.node.children) {
+            parentContext.node.children.splice(index, 0, node);
+        } else if (parentContext) { // Parent found, but no children array yet
+             parentContext.node.children = [node];
+        } else {
+            // Fallback: If parent not found, add to root (shouldn't happen with proper context)
+            newTree.push(node);
+        }
+    }
     return newTree;
 }

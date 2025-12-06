@@ -20,6 +20,7 @@ interface BaseModalProps {
   description?: string;
   children?: React.ReactNode;
   footerContent?: React.ReactNode; // Optional prop for custom footer content
+  className?: string; // Add className prop
 }
 
 const BaseModal: React.FC<BaseModalProps> = ({
@@ -29,10 +30,11 @@ const BaseModal: React.FC<BaseModalProps> = ({
   description,
   children,
   footerContent,
+  className,
 }) => {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-full max-w-full !w-[calc(100vw-2rem)] max-h-[80vh] overflow-y-auto mx-auto p-0">
+      <DialogContent className={`w-full max-w-full !w-[calc(100vw-2rem)] max-h-[80vh] overflow-y-auto mx-auto p-0 ${className || ''}`}>
         <DialogHeader className="px-4 pt-4">
           <DialogTitle>{title}</DialogTitle>
           {description && <DialogDescription className="mt-1">{description}</DialogDescription>}

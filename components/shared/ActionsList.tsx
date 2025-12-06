@@ -15,6 +15,7 @@ interface ActionsListProps {
   onActionMovedUp?: (id: string) => void;
   onActionMovedDown?: (id: string) => void;
   onActionPrivacyToggled?: (id: string) => void; // New prop
+  onActionAddedAfter?: (afterId: string, description: string, isPublic?: boolean) => void; // New prop
   justCompletedId?: string | null;
   level?: number;
   focusedActionId: string | null;
@@ -32,7 +33,8 @@ export const ActionsList: React.FC<ActionsListProps> = ({
   onActionOutdented,
   onActionMovedUp,
   onActionMovedDown,
-  onActionPrivacyToggled, // Destructure prop
+  onActionPrivacyToggled,
+  onActionAddedAfter, // Destructure new prop
   justCompletedId, 
   level = 0,
   focusedActionId,
@@ -53,7 +55,8 @@ export const ActionsList: React.FC<ActionsListProps> = ({
           onActionOutdented={onActionOutdented}
           onActionMovedUp={onActionMovedUp}
           onActionMovedDown={onActionMovedDown}
-          onActionPrivacyToggled={onActionPrivacyToggled} // Propagate prop
+          onActionPrivacyToggled={onActionPrivacyToggled}
+          onActionAddedAfter={onActionAddedAfter} // Pass new prop
           justCompletedId={justCompletedId}
           level={level}
           focusedActionId={focusedActionId}

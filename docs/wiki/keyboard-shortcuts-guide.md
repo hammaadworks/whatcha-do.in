@@ -80,6 +80,10 @@ The `KeyboardShortcutsModal.tsx` component serves as the central hub for documen
 
 **Rule:** Any time a new keyboard shortcut is introduced, or an existing shortcut is modified or removed, the `KeyboardShortcutsModal.tsx` file *must* be updated accordingly to reflect these changes. This ensures users always have access to accurate and comprehensive shortcut information.
 
+### D. Prioritize Existing Entry Points
+
+**Rule:** When implementing new keyboard shortcuts, always prioritize utilizing existing components, functions, or UI elements (entry points) that already perform the desired action. New components or dedicated UI elements for a shortcut should *only* be created if explicitly specified or if no suitable existing entry point can be adapted without introducing significant architectural debt or breaking existing functionality. This ensures consistency, reduces unnecessary code, and simplifies maintenance.
+
 ---
 
 ## 5. Examples from the App
@@ -91,6 +95,8 @@ These shortcuts provide quick access to main sections of the user's dashboard.
 *   **View Profile:** `Alt/Option + P`
 *   **View Insights:** `Alt/Option + I`
 *   **Keyboard Shortcuts (this very list):** `Alt/Option + /`
+*   **Open Settings:** `Alt/Option + S`
+*   **Toggle Theme:** `Alt/Option + T` (Directly toggles the application theme between light and dark modes)
 
 ### B. `ActionItem.tsx` (In-Context Item Manipulation)
 
