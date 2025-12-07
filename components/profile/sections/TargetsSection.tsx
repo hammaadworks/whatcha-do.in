@@ -7,6 +7,7 @@ import {Skeleton} from '@/components/ui/skeleton';
 import {format, parseISO} from 'date-fns';
 import {getMonthStartDate} from '@/lib/date';
 import {ActionNode} from '@/lib/supabase/types';
+import {cn} from '@/lib/utils';
 import {Undo2} from 'lucide-react'; // Removed Check, Undo2
 import {CircularProgress} from '@/components/ui/circular-progress'; // Added CircularProgress
 import {toast} from 'sonner'; // Import sonner toast
@@ -235,7 +236,7 @@ export default function TargetsSection({
                         size={36}
                         strokeWidth={3}
                         color="text-primary"
-                        bgColor="text-muted-foreground"
+                        bgColor="text-background/80"
                                                     showTickOnComplete={isCurrentMonthAllComplete}
                                                 >                        {!isCurrentMonthAllComplete && (<span className="text-xs text-muted-foreground">
                                     {currentMonthCompleted}/{currentMonthTotal}
@@ -245,12 +246,50 @@ export default function TargetsSection({
         </div>
 
         <Tabs value={activeTab} onValueChange={(v: string) => setActiveTab(v as TargetBucket)} className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger value="prev1">{prev1MonthLabel}</TabsTrigger>
-                <TabsTrigger value="prev">{prevMonthLabel}</TabsTrigger>
-                <TabsTrigger value="current">{currentMonthLabel}</TabsTrigger>
-                <TabsTrigger value="future">Future</TabsTrigger>
+        <div className="w-full flex justify-center pt-4 sm:pt-0"> {/* Outer container for centering and padding */}
+            <TabsList className="w-full flex items-center justify-between bg-card rounded-full p-2 shadow-md border border-primary gap-x-4"> {/* Inner container styling */}
+                <TabsTrigger
+                    value="prev1"
+                    className={cn(
+                        "px-3 py-1 text-xs sm:text-sm font-medium rounded-full whitespace-nowrap flex items-center justify-center", // VibeSelector base
+                        "bg-background/80 text-muted-foreground hover:bg-accent/50", // VibeSelector unselected (default)
+                        "data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:hover:bg-primary/90", // VibeSelector selected override
+                        "data-[state=active]:shadow-none data-[state=active]:border data-[state=active]:border-primary", // Custom active styles
+                        "focus-visible:ring-0 focus-visible:ring-offset-0 disabled:opacity-100 disabled:cursor-default" // Remove focus ring, disable opacity
+                    )}
+                >{prev1MonthLabel}</TabsTrigger>
+                <TabsTrigger
+                    value="prev"
+                    className={cn(
+                        "px-3 py-1 text-xs sm:text-sm font-medium rounded-full whitespace-nowrap flex items-center justify-center",
+                        "bg-background/80 text-muted-foreground hover:bg-accent/50",
+                        "data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:hover:bg-primary/90",
+                        "data-[state=active]:shadow-none data-[state=active]:border data-[state=active]:border-primary",
+                        "focus-visible:ring-0 focus-visible:ring-offset-0 disabled:opacity-100 disabled:cursor-default"
+                    )}
+                >{prevMonthLabel}</TabsTrigger>
+                <TabsTrigger
+                    value="current"
+                    className={cn(
+                        "px-3 py-1 text-xs sm:text-sm font-medium rounded-full whitespace-nowrap flex items-center justify-center",
+                        "bg-background/80 text-muted-foreground hover:bg-accent/50",
+                        "data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:hover:bg-primary/90",
+                        "data-[state=active]:shadow-none data-[state=active]:border data-[state=active]:border-primary",
+                        "focus-visible:ring-0 focus-visible:ring-offset-0 disabled:opacity-100 disabled:cursor-default"
+                    )}
+                >{currentMonthLabel}</TabsTrigger>
+                <TabsTrigger
+                    value="future"
+                    className={cn(
+                        "px-3 py-1 text-xs sm:text-sm font-medium rounded-full whitespace-nowrap flex items-center justify-center",
+                        "bg-background/80 text-muted-foreground hover:bg-accent/50",
+                        "data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:hover:bg-primary/90",
+                        "data-[state=active]:shadow-none data-[state=active]:border data-[state=active]:border-primary",
+                        "focus-visible:ring-0 focus-visible:ring-offset-0 disabled:opacity-100 disabled:cursor-default"
+                    )}
+                >Future</TabsTrigger>
             </TabsList>
+        </div>
 
             <TabsContent value="prev1">{renderTabContent('prev1')}</TabsContent>
             <TabsContent value="prev">{renderTabContent('prev')}</TabsContent>

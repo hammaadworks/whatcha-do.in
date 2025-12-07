@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { Check } from 'lucide-react'; // Import Check icon
 
@@ -22,9 +22,26 @@ export const CircularProgress: React.FC<CircularProgressProps> = ({
   bgColor = "text-muted",
   children,
   showTickOnComplete = false, // Default to false
-  completeCircleBgColor = "var(--muted-foreground)", // Default to direct CSS var
+  completeCircleBgColor: propCompleteCircleBgColor, // Rename prop to avoid conflict with local variable
   completeStrokeColor = "var(--accent)", // Default to direct CSS var
 }) => {
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  useEffect(() => {
+    const checkDarkMode = () => {
+      setIsDarkMode(document.documentElement.classList.contains('dark'));
+    };
+    checkDarkMode();
+    const observer = new MutationObserver(checkDarkMode);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    return () => observer.disconnect();
+  }, []);
+
+  const defaultCompleteCircleBgColor = "var(--accent)";
+
+  const resolvedCompleteCircleBgColor = propCompleteCircleBgColor || defaultCompleteCircleBgColor;
+
+
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (progress / 100) * circumference;
@@ -40,9 +57,9 @@ export const CircularProgress: React.FC<CircularProgressProps> = ({
         className="transform -rotate-90"
       >
         <circle
-          className={cn(bgColor)} // completeCircleBgColor is no longer a class, it's a fill color
-          stroke={isComplete ? completeStrokeColor : "currentColor"} // Use completeStrokeColor when complete
-          fill={isComplete ? completeCircleBgColor : 'transparent'} // Fill with completeCircleBgColor when complete
+          className={cn(bgColor)}
+          stroke={isComplete ? completeStrokeColor : "currentColor"}
+          fill={isComplete ? resolvedCompleteCircleBgColor : 'transparent'}
           strokeWidth={strokeWidth}
           r={radius}
           cx={size / 2}
@@ -62,10 +79,10 @@ export const CircularProgress: React.FC<CircularProgressProps> = ({
           style={{ transition: 'stroke-dashoffset 0.35s ease-out' }}
         />
       </svg>
-      {(children || isComplete) && ( // Render children OR tick if complete
+      {(children || isComplete) && (
         <div className="absolute inset-0 flex items-center justify-center">
           {isComplete ? (
-            <Check className="h-2/3 w-2/3 text-primary-foreground animate-spin-scale" /> // Render animated tick with accent color
+            <Check className="h-2/3 w-2/3 text-muted animate-spin-scale" strokeWidth={3} /> // Render animated tick with accent color
           ) : (
             children
           )}

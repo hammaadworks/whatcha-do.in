@@ -107,3 +107,45 @@ This document outlines the color styles for key interactive elements in the appl
 *   **Hover State:**
     *   **Background:** `var(--accent)` at 50% opacity (resolves to `rgba(0, 245, 160, 0.5)`)
     *   **Text/Icon Color:** `var(--muted-foreground)` (resolves to `#CCCCCC`)
+
+---
+
+## 5. Circular Progress Indicator
+
+*   **Description:** This component displays a circular progress indicator, used for visualizing completion percentages for actions and targets. It shows a progress arc, a background circle, and a tick icon when 100% complete.
+*   **Location in Code:** `components/ui/circular-progress.tsx`
+*   **Usage Examples:** `profile/sections/ActionsSection.tsx`, `profile/sections/TargetsSection.tsx`, `shared/ActionItem.tsx`
+
+### Color Roles:
+
+*   **Progress Arc:** The segment of the circle representing the `progress` value.
+*   **Background Circle:** The full circle behind the progress arc when not complete.
+*   **Complete Fill:** The fill color of the entire circle when `progress` is 100% and `showTickOnComplete` is true.
+*   **Complete Stroke:** The stroke color of the background circle when `progress` is 100% and `showTickOnComplete` is true.
+*   **Tick Icon:** The checkmark icon displayed when `progress` is 100% and `showTickOnComplete` is true. Its `strokeWidth` is set to `3` for increased visibility.
+
+### Color Styles (Zenith - Light Theme)
+
+*   **Progress Arc (Default `color` - `text-primary`)**
+    *   Resolved Value: `var(--primary)` (`#FF6B6B`)
+*   **Background Circle (Default `bgColor` - `text-muted`)**
+    *   Resolved Value: `var(--muted)` (`#F1F3F5`)
+*   **Complete Fill (`completeCircleBgColor` - `var(--muted-foreground)`)**
+    *   Resolved Value: `var(--accent)` (`#FF6B6B`)
+*   **Complete Stroke (`completeStrokeColor` - `var(--accent)`)**
+    *   Resolved Value: `var(--accent)` (`#FF6B6B`)
+*   **Tick Icon Color (`text-primary-foreground`)**
+    *   Resolved Value: `var(--muted)` (`#F1F3F5`)
+
+### Color Styles (Monolith - Dark Theme)
+
+*   **Progress Arc (Default `color` - `text-primary`)**
+    *   Resolved Value: `var(--primary)` (`#00F5A0`)
+*   **Background Circle (Default `bgColor` - `text-muted`)**
+    *   Resolved Value: `var(--muted)` (`#2a2a2a`)
+*   **Complete Fill (`completeCircleBgColor` - `var(--muted-foreground)`)**
+    *   Resolved Value: `var(--accent)` (`#00F5A0`)
+*   **Complete Stroke (`completeStrokeColor` - `var(--accent)`)**
+    *   Resolved Value: `var(--accent)` (`#00F5A0`)
+*   **Tick Icon Color (`text-primary-foreground`)**
+    *   Resolved Value: `var(--muted)` (`#2a2a2a`)
