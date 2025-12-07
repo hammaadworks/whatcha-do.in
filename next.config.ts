@@ -11,6 +11,7 @@ const nextConfig: NextConfig = {
   /* config options here */
   reactCompiler: true,
   serverExternalPackages: ["pino", "pino-pretty"],
+  allowedDevOrigins: ['local-origin.dev', '*.local-origin.dev'],
 };
 
 export default withPWAConfig(nextConfig);

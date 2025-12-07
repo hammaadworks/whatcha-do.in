@@ -3,6 +3,7 @@
   "short_name": "whatcha-doin",
   "description": "Building consistency one habit at a time",
   "start_url": "/",
+  "scope": "/",
   "icons": [
     {
       "src": "/favicons/light/web-app-manifest-192x192.png",

@@ -11,13 +11,50 @@
         table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
         img { -ms-interpolation-mode: bicubic; }
         a[x-apple-data-detectors] { font-family: inherit !important; font-size: inherit !important; font-weight: inherit !important; line-height: inherit !important; color: inherit !important; text-decoration: none !important; }
+        
+        /* CSS Variables for theming */
+        :root {
+            --bg-color: #f0f2f5; /* Light mode body background */
+            --content-bg: #ffffff; /* Light mode content block background */
+            --text-color: #212529; /* Light mode main text color */
+            --primary-color: #FF6B6B; /* Light mode primary button/link color (Zenith) */
+            --footer-text-color: #495057; /* Light mode footer text color */
+            --logo-light-display: inline-block;
+            --logo-dark-display: none;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-color: #161616; /* Dark mode body background (Monolith) */
+                --content-bg: #222222; /* Dark mode content block background (Monolith) */
+                --text-color: #E0E0E0; /* Dark mode main text color (Monolith) */
+                --primary-color: #00F5A0; /* Dark mode primary button/link color (Monolith) */
+                --footer-text-color: #CCCCCC; /* Dark mode footer text color (Monolith) */
+                --logo-light-display: none;
+                --logo-dark-display: inline-block;
+            }
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+
+        .content-block {
+            background-color: var(--content-bg);
+        }
+
+        .header-text {
+            color: var(--text-color);
+        }
+
         .button {
             display: inline-block;
             font-family: Arial, sans-serif;
             font-size: 16px;
             font-weight: bold;
-            color: #ffffff; /* White text */
-            background-color: #FF6B6B; /* Zenith Primary */
+            color: #ffffff; /* White text, consistent for both themes for the button */
+            background-color: var(--primary-color); /* Themed primary color */
             border-radius: 8px; /* Rounded corners */
             padding: 12px 24px;
             text-decoration: none;
@@ -25,45 +62,58 @@
             line-height: 1.2;
             mso-padding-alt: 0; /* Outlook fix */
         }
-        /* Dark mode friendly text */
-        @media (prefers-color-scheme: dark) {
-            body { background-color: #1a1a1a !important; color: #f0f0f0 !important; }
-            .content-text { color: #f0f0f0 !important; }
+
+        .light-mode-logo {
+            display: var(--logo-light-display);
+        }
+
+        .dark-mode-logo {
+            display: var(--logo-dark-display);
+        }
+        
+        .footer-text {
+            color: var(--footer-text-color);
+        }
+
+        .footer-link {
+            color: var(--primary-color); /* Themed primary color for links */
+            text-decoration: none;
         }
     </style>
 </head>
-<body style="background-color: #f0f2f5; margin: 0; padding: 0;">
+<body style="margin: 0; padding: 0;">
     <table border="0" cellpadding="0" cellspacing="0" width="100%" style="table-layout: fixed;">
         <tr>
             <td align="center" style="padding: 20px 10px;">
                 <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px;">
                     <tr>
                         <td align="center" style="font-family: Arial, sans-serif; font-size: 24px; font-weight: bold; padding-bottom: 20px;">
-                            <img src="https://whatcha-doin.hammaadworks.com/favicons/light/logo-bg.png" alt="whatcha-doin Logo" width="40" height="40" style="display:inline-block; vertical-align: middle; margin-right: 10px;">
-                            <span style="color: #212529;">whatcha-doin</span>
+                            <img class="light-mode-logo" src="https://whatcha-doin.hammaadworks.com/favicons/light/logo-bg.png" alt="whatcha-doin Logo" width="40" height="40" style="vertical-align: middle; margin-right: 10px;">
+                            <img class="dark-mode-logo" src="https://whatcha-doin.hammaadworks.com/favicons/dark/logo-bg.png" alt="whatcha-doin Logo (Dark)" width="40" height="40" style="vertical-align: middle; margin-right: 10px;">
+                            <span class="header-text">whatcha-doin</span>
                         </td>
                     </tr>
                     <tr>
-                        <td align="center" style="background-color: #ffffff; padding: 40px 30px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
-                            <h1 style="margin: 0; font-family: Arial, sans-serif; font-size: 28px; font-weight: bold; color: #212529; line-height: 1.2;">
+                        <td align="center" class="content-block" style="padding: 40px 30px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+                            <h1 style="margin: 0; font-family: Arial, sans-serif; font-size: 28px; font-weight: bold; line-height: 1.2;">
                                 It's Time. Unleash Your Potential.
                             </h1>
-                            <p style="margin: 30px 0 40px; font-family: Arial, sans-serif; font-size: 16px; line-height: 1.5; color: #212529;">
-                                Your secure magic link is ready. Click below to access your whatcha-doin dashboard and start transforming intent into impact. Build in public, share your journey, and let your success be the testimony of whatcha-doin, consistently, one habit at a time. <br/> No waiting, just do it!
+                            <p style="margin: 30px 0 40px; font-family: Arial, sans-serif; font-size: 16px; line-height: 1.5;">
+                                Your secure magic link is ready. Click below to access your whatcha-doin account. Build in public, share your journey, and let your success be the testimony of whatcha-doin, consistently, one habit at a time. <br/> No waiting, just <b>enter your prime and make it happen!</b>
                             </p>
                             <!-- CTA Button -->
-                            <a href="{{ .URL }}" target="_blank" class="button">
-                                &nbsp;Success, Here I Come ! &nbsp;
+                            <a href="{{ .ConfirmationURL }}" class="button" style="color: #ffffff !important;">
+                                &nbsp;Let's Go!&nbsp;
                             </a>
                             <!-- End CTA Button -->
-                            <p style="margin: 40px 0 0; font-family: Arial, sans-serif; font-size: 14px; line-height: 1.5; color: #495057;">
+                            <p class="footer-text" style="margin: 40px 0 0; font-family: Arial, sans-serif; font-size: 14px; line-height: 1.5;">
                                 This link is active for a short period. For your security, please don't share it. If you didn't request this, you can safely disregard this email.
                             </p>
                         </td>
                     </tr>
                     <tr>
-                        <td align="center" style="padding: 30px 20px 0; font-family: Arial, sans-serif; font-size: 12px; line-height: 1.5; color: #495057;">
-                            Need a hand? Contact us via <a href="mailto:hammaadworks@gmail.com" style="color: #FF6B6B; text-decoration: none;">Email</a> or <a href="https://api.whatsapp.com/send/?phone=918310428923&text=Hey%20_hammaadworks_%2C%20I%20got%20here%20from%20your%20whatcha-doin%20app.%20Wazzup!" style="color: #FF6B6B; text-decoration: none;">WhatsApp</a>.
+                        <td align="center" class="footer-text" style="padding: 30px 20px 0; font-family: Arial, sans-serif; font-size: 12px; line-height: 1.5;">
+                            Need a hand? Contact us via <a href="mailto:hammaadworks@gmail.com" class="footer-link">Email</a> or <a href="https://api.whatsapp.com/send/?phone=918310428923&text=%22Hey%20_hammaadworks_,%20I%20got%20here%20from%20your%20*whatcha-doin*%20app.%20Wazzup!%22" class="footer-link">WhatsApp</a>.
                         </td>
                     </tr>
                 </table>
