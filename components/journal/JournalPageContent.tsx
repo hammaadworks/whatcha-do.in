@@ -14,6 +14,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Button } from '@/components/ui/button';
 import { JournalEntry, ActivityLogEntry } from '@/lib/supabase/types'; // Import JournalEntry and ActivityLogEntry
+import { ACTIVITIES_PER_PAGE } from '@/lib/constants'; // Import the constant
 
 
 interface JournalPageContentProps {
@@ -51,6 +52,9 @@ export function JournalPageContent({ profileUserId, isOwner }: JournalPageConten
   
   const debouncedContent = useDebounce(content, 1000); // Debounce content for 1 second
 
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+
   const isPublic = activeTab === 'public';
   const canEdit = isOwner;
 
@@ -65,6 +69,7 @@ export function JournalPageContent({ profileUserId, isOwner }: JournalPageConten
         setContent(newContent);
         lastSavedContentRef.current = newContent;
         setActivityLog(entry?.activity_log || []); // Set the activity log
+        setCurrentPage(1); // Reset to first page on new entry load
       } catch (error) {
         console.error(error);
         toast.error('Failed to load journal entry');
@@ -106,10 +111,19 @@ export function JournalPageContent({ profileUserId, isOwner }: JournalPageConten
     }
   }, [debouncedContent, canEdit, saveEntry]);
 
+  // Sort activities by timestamp in descending order (most recent on top)
+  const sortedActivityLog = [...activityLog].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
-  const actions = activityLog.filter(item => item.type === 'action');
-  const habits = activityLog.filter(item => item.type === 'habit');
-  const targets = activityLog.filter(item => item.type === 'target');
+  // Apply pagination
+  const startIndex = (currentPage - 1) * ACTIVITIES_PER_PAGE;
+  const endIndex = startIndex + ACTIVITIES_PER_PAGE;
+  const paginatedActivityLog = sortedActivityLog.slice(startIndex, endIndex);
+
+  const actions = paginatedActivityLog.filter(item => item.type === 'action');
+  const habits = paginatedActivityLog.filter(item => item.type === 'habit');
+  const targets = paginatedActivityLog.filter(item => item.type === 'target');
+  
+  const totalPages = Math.ceil(activityLog.length / ACTIVITIES_PER_PAGE);
 
 
   return (
@@ -265,6 +279,28 @@ export function JournalPageContent({ profileUserId, isOwner }: JournalPageConten
                                     </li>
                                 ))}
                             </ul>
+                        </div>
+                    )}
+                    {/* Pagination Controls */}
+                    {totalPages > 1 && (
+                        <div className="flex justify-between items-center mt-4 pt-4 border-t border-dashed border-gray-300 dark:border-gray-700">
+                            <Button
+                                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                                disabled={currentPage === 1}
+                                variant="outline"
+                                size="sm"
+                            >
+                                Previous
+                            </Button>
+                            <span className="text-sm text-muted-foreground">Page {currentPage} of {totalPages}</span>
+                            <Button
+                                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                                disabled={currentPage === totalPages}
+                                variant="outline"
+                                size="sm"
+                            >
+                                Next
+                            </Button>
                         </div>
                     )}
                 </div>

@@ -2,7 +2,7 @@
 
 ## 1. Executive Summary
 
-This document outlines the strategy for implementing real-time activity logging into the user's journal. The goal is to move from a batch-processed "Next Day Clearing" mechanism (where completed items are archived into the journal as text the following day) to an immediate, structured logging system. This new approach will store activity completions (from Actions, Habits, and Targets) in a dedicated, read-only `JSONB` column in the `journal_entries` table. This separation ensures that user-editable journal content remains untouched while providing an accurate, timestamped record of daily accomplishments.
+This document outlines the strategy for implementing real-time activity logging into the user's journal. The goal is to move from a batch-processed "Next Day Clearing" mechanism to an immediate, structured logging system. This new approach will store activity completions (from Actions, Habits, and Targets) in a dedicated, read-only `JSONB` column in the `journal_entries` table. This separation ensures that user-editable journal content remains untouched while providing an accurate, timestamped record of daily accomplishments.
 
 ## 2. Core Architectural Changes
 
@@ -40,7 +40,7 @@ Each object in the `activity_log` array represents a single completed or uncompl
     "type": "action",                 // Discriminator: 'action', 'habit', or 'target'
     "description": "Task description or habit name",
     "timestamp": "2025-12-05T10:30:00Z", // ISO 8601 UTC timestamp of the log event (completion/uncompletion)
-    "status": "completed",            // 'completed' or 'uncompleted'
+    "status": "completed",            // Only 'completed' entries exist in the log (uncompleted entries are removed)
     "is_public": true,                // Privacy status of the original item
     "details": {                      // Optional, item-type specific metadata
       // For Actions/Targets (could be empty or contain progress info)
@@ -302,18 +302,27 @@ export const useActions = () => {
                 node.completed_at = newCompletedStatus ? new Date().toISOString() : null;
 
                 // --- NEW JOURNAL LOGIC (Start) ---
-                journalActivityService.logActivity(
-                    user.id,
-                    new Date(), // Log for today
-                    {
-                      id: node.id,
-                      type: 'action',
-                      description: node.description,
-                      is_public: node.is_public,
-                      status: newCompletedStatus ? 'completed' : 'uncompleted',
-                      // details can be added if action nodes have more attributes
-                    }
+                if (newCompletedStatus) { // If becoming completed
+                  await journalActivityService.logActivity(
+                      user.id,
+                      new Date(), // Log for today (completion time)
+                      {
+                          id: node.id,
+                          type: 'action',
+                          description: node.description,
+                          is_public: node.is_public,
+                          status: 'completed', // Explicitly 'completed'
+                      }
                   );
+              } else if (!newCompletedStatus && oldActionNode?.completed && oldActionNode?.completed_at) { // If becoming uncompleted and was previously completed
+                  await journalActivityService.removeActivity(
+                      user.id,
+                      new Date(oldActionNode.completed_at), // Use the original completion date for removal
+                      oldActionNode.id,
+                      'action',
+                      oldActionNode.is_public ?? false
+                  );
+              }
                 // --- NEW JOURNAL LOGIC (End) ---
                 return true;
               }
@@ -500,17 +509,27 @@ export const useTargets = (userId: string, targetDate: string | null) => {
                 node.completed_at = newCompletedStatus ? new Date().toISOString() : null;
 
                 // --- NEW JOURNAL LOGIC (Start) ---
-                journalActivityService.logActivity(
-                    userId,
-                    new Date(), // Log for today
-                    {
-                      id: node.id,
-                      type: 'target',
-                      description: node.description,
-                      is_public: node.is_public,
-                      status: newCompletedStatus ? 'completed' : 'uncompleted',
-                    }
+                if (newCompletedStatus) { // If becoming completed
+                  await journalActivityService.logActivity(
+                      userId,
+                      new Date(), // Log for today (completion time)
+                      {
+                          id: node.id,
+                          type: 'target',
+                          description: node.description,
+                          is_public: node.is_public,
+                          status: 'completed', // Explicitly 'completed'
+                      }
                   );
+              } else if (!newCompletedStatus && oldTargetNode?.completed && oldTargetNode?.completed_at) { // If becoming uncompleted and was previously completed
+                  await journalActivityService.removeActivity(
+                      userId,
+                      new Date(oldTargetNode.completed_at), // Use the original completion date for removal
+                      oldTargetNode.id,
+                      'target',
+                      oldTargetNode.is_public ?? false
+                  );
+              }
                 // --- NEW JOURNAL LOGIC (End) ---
                 return true;
               }
@@ -654,8 +673,40 @@ The `processActionLifecycle` function, which is responsible for archiving comple
     1.  Identifies completed actions/targets from previous days.
     2.  **SKIPS** appending them to `journal_entries.content` (as they are now logged in real-time to `activity_log`).
     3.  **ONLY** deletes the items from the `actions` or `targets` JSONB tree.
+    4.  **Important Note on `activity_log` for Actions/Targets:** With the "go big or go home" philosophy, `activity_log` entries for Actions and Targets are *only created upon completion*. If an Action or Target is later unmarked, its corresponding entry is *deleted* from the `activity_log`. This means the `activity_log` for these types exclusively contains records of truly completed items.
 
-This change ensures that `activity_log` is the single source of truth for real-time completion records, avoiding duplication and confusion.
+## 3. UI Behavior of 'Next Day Clearing'
+
+The "Next Day Clearing" logic fundamentally changes how completed items are presented in the UI, ensuring that the primary views (Actions, Targets, and the Habits board) remain focused on active and pending tasks. Records of completion are, however, immutably preserved in the `journal_entries.activity_log`.
+
+### 3.1. Actions
+
+*   **Completion (Current Day):** When an Action is marked as completed (e.g., via a checkbox or interaction), it remains visible in the "Actions" section for the remainder of the current day. It will typically have a visual indicator of completion (e.g., a strikethrough, a checkmark, or a subdued appearance) but is not immediately removed from the list. The completion event is logged in real-time to the `journal_entries.activity_log`.
+*   **Next Day Clearing (Midnight Local Time):** Upon the "next day" (precisely at midnight in the user's defined timezone), all Actions that were marked as completed on the *previous day* are **permanently deleted** from the active "Actions" data structure (the `actions` JSONB tree). They will no longer appear in the "Actions" section.
+    *   **Mechanism:** This occurs on **app load** OR via a **Midnight Timer** if the user is actively using the app during the transition. This ensures the view is always current without requiring a manual reload.
+
+### 3.2. Targets
+
+*   **Completion (Current Month):** Similar to Actions, when a Target is marked as completed, it remains visible in its respective "Targets" bucket for the remainder of the current month, with a visual indicator of completion. The completion event is logged in real-time to the `journal_entries.activity_log`.
+*   **Next Month Clearing (1st of Month):** Targets follow a monthly lifecycle.
+    *   **Cleared Items:** On the 1st of the *next* month (or the first app load in the new month), all Targets that were marked as **completed** in the *previous* month are **permanently deleted** from the active "Targets" data structure. They will no longer appear in the UI. Their history is preserved in the activity log.
+    *   **Carried-Forward Items:** Any Targets from the *previous* month that were **unmarked** (incomplete) are automatically "carried forward" to the *current* month's list. They remain active and visible.
+    *   **Mechanism:** Like Actions, this is checked on app load and also via the **Midnight Timer**, ensuring that if the month rolls over while the user is active, the list updates immediately.
+
+### 3.3. Habits
+
+Habit clearing logic is distinct due to the "Two-Day Rule" and "Grace Period" features. Habits do not get "deleted" from their main UI sections (Today, Yesterday, The Pile) upon completion; instead, their *state* and *location* on the board change.
+
+*   **Completion (Current Day):** When a habit is completed:
+    *   It moves from the "Today" column to the "Yesterday" column (if applicable).
+    *   The completion event, including any details (mood, value, notes), is logged in real-time to the `journal_entries.activity_log`.
+    *   The habit chip itself remains in an active state on the board.
+*   **Next Day Clearing (After Midnight - Grace Period Trigger):** When the "next day" begins, the "Next Day Clearing" process (often triggered upon app load or user login) assesses the state of all habits from the previous day.
+    *   If a habit was completed on the *previous day*, it remains in the "Yesterday" column (or moves there from "Today"). The `activity_log` for the *previous day* will already contain its completion record.
+    *   If a habit was *not* completed on the *previous day*, the "Two-Day Rule" logic is applied:
+        *   It transitions from "Yesterday" to the "The Pile" as a "Lively" habit (if it's the first missed day).
+        *   It transitions from "Lively" to "Junked" (if it's the second consecutive missed day).
+    *   The habit itself (the habit chip) is never deleted from the main UI board unless the user explicitly deletes it from "The Pile". The "Next Day Clearing" for habits is about managing their status and column placement, not deletion, as their completions are handled by the real-time activity log.
 
 ### 2.6. Key Considerations
 

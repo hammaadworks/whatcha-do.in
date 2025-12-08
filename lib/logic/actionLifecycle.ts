@@ -12,12 +12,12 @@ export async function processActionLifecycle(userId: string, timezone: string) {
     if (actions.length === 0) return;
 
     // 2. Identify items to clear
-    const {cleanedTree, itemsToJournal} = extractCompletedItems(actions, startOfToday);
+    const {cleanedTree, itemsToClear} = extractCompletedItems(actions, startOfToday);
 
     // 3. Update Actions DB (Remove cleared items from the active tree)
-    if (itemsToJournal.length > 0) { // Only update if something was actually cleared
+    if (itemsToClear.length > 0) { // Only update if something was actually cleared
         await updateActions(userId, cleanedTree);
-        console.log(`Cleared ${itemsToJournal.length} actions from active list.`);
+        console.log(`Cleared ${itemsToClear.length} actions from active list.`);
     }
 }
 
@@ -28,9 +28,9 @@ export async function processActionLifecycle(userId: string, timezone: string) {
 
 function extractCompletedItems(nodes: ActionNode[], startOfToday: number): {
     cleanedTree: ActionNode[],
-    itemsToJournal: ActionNode[]
+    itemsToClear: ActionNode[]
 } {
-    let itemsToJournal: ActionNode[] = [];
+    let itemsToClear: ActionNode[] = [];
 
     const filter = (currentNodes: ActionNode[]): ActionNode[] => {
         const filtered: ActionNode[] = [];
@@ -44,8 +44,8 @@ function extractCompletedItems(nodes: ActionNode[], startOfToday: number): {
                 const completedTime = new Date(node.completed_at).getTime();
                 if (completedTime < startOfToday) {
                     shouldClear = true;
-                    // Add to journal list
-                    itemsToJournal.push(node);
+                    // Add to clear list
+                    itemsToClear.push(node);
                 }
             }
 
@@ -69,8 +69,8 @@ function extractCompletedItems(nodes: ActionNode[], startOfToday: number): {
                 // 2. Only journal if it's being *removed*.
 
                 // If `shouldClear` is true AND `hasVisibleChildren` is true:
-                // We are keeping it. We should NOT add it to `itemsToJournal` repeatedly.
-                // Only add to `itemsToJournal` if we are *actually* removing it from `filtered`.
+                // We are keeping it. We should NOT add it to `itemsToClear` repeatedly.
+                // Only add to `itemsToClear` if we are *actually* removing it from `filtered`.
 
                 if (shouldClear && hasVisibleChildren) {
                     // It's a ghost. We keep it. Do NOT journal it yet (or maybe we did already?).
@@ -121,7 +121,7 @@ function extractCompletedItems(nodes: ActionNode[], startOfToday: number): {
                 } else {
                     // shouldClear && !hasVisibleChildren
                     // Safe to delete!
-                    itemsToJournal.push(node);
+                    itemsToClear.push(node);
                 }
             }
         }
@@ -129,7 +129,7 @@ function extractCompletedItems(nodes: ActionNode[], startOfToday: number): {
     };
 
     const cleanedTree = filter(nodes);
-    return {cleanedTree, itemsToJournal};
+    return {cleanedTree, itemsToClear};
 }
 
 function getCurrentDateISO(timezone: string): string {

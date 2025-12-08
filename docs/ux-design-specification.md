@@ -79,6 +79,9 @@ The overall design aesthetic will be "Professional, tech-savvy, out-of-the-box w
 ### 4.2 Overall Page Structure
 The main interface is organized with the following top-to-bottom structure to provide a clear and logical user flow:
 1.  **User Info/Bio** (Includes Avatar, Username, Bio [Full-screen Immersive Edit Modal], and **Local Time Display**)
+    - **Local Time Display (for Public Profiles):**
+        - For authenticated users, the displayed time reflects their configured timezone, retrieved from their profile settings.
+        - For guest users viewing a public profile, the clock will display the profile owner's local time, and a subtle subtitle will indicate the time difference relative to the guest's automatically detected local timezone. This provides immediate context to the guest without requiring them to input their timezone.
 2.  **"Actions" Section** (Todos)
 3.  **"Habits" Section** (The Identity Momentum Board: Today, Yesterday, The Pile)
 4.  **Journal Section** (Daily entry with date selector)

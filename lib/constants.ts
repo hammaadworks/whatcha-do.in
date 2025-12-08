@@ -19,3 +19,5 @@ export const LINKEDIN_PROFILE_URL = "https://www.linkedin.com/in/hammaadworks";
 export const PRODUCTHUNT_PROFILE_URL = "https://www.producthunt.com/@hammaadworks";
 export const WEBSITE_URL = "https://www.hammaadworks.com";
 export const DOMAIN_URL = "https://whatcha-doin.hammaadworks.com";
+
+export const ACTIVITIES_PER_PAGE = 10;

@@ -3,7 +3,7 @@ import {fetchTargets, updateTargets} from '@/lib/supabase/targets';
 import {ActionNode} from '@/lib/supabase/types';
 import {useAuth} from './useAuth';
 import {toast} from 'sonner';
-import {getMonthStartDate} from '@/lib/date';
+import {getMonthStartDate, getMillisecondsUntilNextDay, isFirstDayOfMonth} from '@/lib/date';
 import {
     addActionToTree,
     deleteActionFromTree,
@@ -51,7 +51,7 @@ export const useTargets = (isOwner: boolean, timezone: string = 'UTC', initialTa
     // --- END NEW SERVICE INITIALIZATION ---
 
 
-    const getBucketState = (bucket: TargetBucket) => {
+    const getBucketState = useCallback((bucket: TargetBucket) => {
         switch (bucket) {
             case 'future':
                 return {data: futureTargets, set: setFutureTargets, date: null};
@@ -62,33 +62,58 @@ export const useTargets = (isOwner: boolean, timezone: string = 'UTC', initialTa
             case 'prev1':
                 return {data: prev1Targets, set: setPrev1Targets, date: getMonthStartDate(-2, timezone)};
         }
-    };
+    }, [futureTargets, currentTargets, prevTargets, prev1Targets, timezone]);
 
     useEffect(() => {
         // Only fetch if we don't have initial data AND we are owner (or we want to fetch for owner)
         // If initialTargets is passed, we assume it's for public view and we don't need to fetch.
         if (!initialTargets && isOwner && user) {
-            setLoading(true);
+            const fetchAll = () => {
+                Promise.all([
+                    fetchTargets(user.id, null),
+                    fetchTargets(user.id, getMonthStartDate(0, timezone)),
+                    fetchTargets(user.id, getMonthStartDate(-1, timezone)),
+                    fetchTargets(user.id, getMonthStartDate(-2, timezone)),
+                ])
+                .then(([future, current, prev, prev1]) => {
+                    setFutureTargets(future);
+                    setCurrentTargets(current);
+                    setPrevTargets(prev);
+                    setPrev1Targets(prev1);
+                })
+                .catch(err => console.error("Failed to fetch targets:", err))
+                .finally(() => setLoading(false));
+            };
 
-            // Run lifecycle logic (rollover & clearing) before fetching
-            processTargetLifecycle(user.id, timezone)
-                .catch(err => console.error("Failed to process target lifecycle:", err))
-                .finally(() => {
-                    // Fetch updated state
-                    Promise.all([fetchTargets(user.id, null), fetchTargets(user.id, getMonthStartDate(0, timezone)), fetchTargets(user.id, getMonthStartDate(-1, timezone)), fetchTargets(user.id, getMonthStartDate(-2, timezone)),])
-                        .then(([future, current, prev, prev1]) => {
-                            setFutureTargets(future);
-                            setCurrentTargets(current);
-                            setPrevTargets(prev);
-                            setPrev1Targets(prev1);
-                        })
-                        .catch(err => console.error("Failed to fetch targets:", err))
-                        .finally(() => setLoading(false));
-                });
+            const runLifecycle = async (isMount: boolean) => {
+                // Only run lifecycle if it's the initial mount OR if it's the 1st of the month (when triggered by timer)
+                const shouldRunLifecycle = isMount || isFirstDayOfMonth(timezone);
+
+                if (shouldRunLifecycle) {
+                    setLoading(true);
+                    try {
+                        await processTargetLifecycle(user.id, timezone);
+                    } catch (err) {
+                        console.error("Failed to process target lifecycle:", err);
+                    }
+                }
+                // Always fetch latest data after potential lifecycle changes
+                fetchAll();
+            };
+
+            // 1. Run immediately on mount (isMount = true)
+            runLifecycle(true);
+
+            // 2. Schedule next run at midnight
+            const msUntilMidnight = getMillisecondsUntilNextDay(timezone);
+            // Add a small buffer (e.g., 1 sec) to ensure DB/server time has definitely ticked over
+            const timer = setTimeout(() => runLifecycle(false), msUntilMidnight + 1000);
+
+            return () => clearTimeout(timer);
         }
     }, [isOwner, user, timezone, initialTargets]);
 
-    const save = async (bucket: TargetBucket, newTree: ActionNode[]) => {
+    const save = useCallback(async (bucket: TargetBucket, newTree: ActionNode[]) => {
         const {set, date} = getBucketState(bucket);
         set(newTree);
         if (isOwner && user) {
@@ -99,7 +124,7 @@ export const useTargets = (isOwner: boolean, timezone: string = 'UTC', initialTa
                 toast.error("Failed to save target.");
             }
         }
-    };
+    }, [isOwner, user, getBucketState]);
 
     const addTarget = useCallback((bucket: TargetBucket, description: string, parentId?: string) => {
         setLastDeletedTargetContext(null); // Clear undo history on new action
@@ -125,21 +150,29 @@ export const useTargets = (isOwner: boolean, timezone: string = 'UTC', initialTa
 
         const newTargetNode = findNode(newTree, id); // Get new state
 
-        // --- NEW JOURNAL LOGIC (Start) ---
         if (user && newTargetNode && oldTargetNode?.completed !== newTargetNode.completed) {
-            await journalActivityService.logActivity(
-                user.id,
-                new Date(), // Log for today
-                {
-                    id: newTargetNode.id,
-                    type: 'target',
-                    description: newTargetNode.description,
-                    is_public: newTargetNode.is_public ?? false,
-                    status: newTargetNode.completed ? 'completed' : 'uncompleted',
-                }
-            );
+            if (newTargetNode.completed) { // If becoming completed
+                await journalActivityService.logActivity(
+                    user.id,
+                    new Date(), // Log for today (completion time)
+                    {
+                        id: newTargetNode.id,
+                        type: 'target',
+                        description: newTargetNode.description,
+                        is_public: newTargetNode.is_public ?? false,
+                        status: 'completed', // Explicitly 'completed'
+                    }
+                );
+            } else if (oldTargetNode?.completed && oldTargetNode?.completed_at) { // If becoming uncompleted and was previously completed
+                await journalActivityService.removeActivity(
+                    user.id,
+                    new Date(oldTargetNode.completed_at), // Use the original completion date for removal
+                    oldTargetNode.id,
+                    'target',
+                    oldTargetNode.is_public ?? false
+                );
+            }
         }
-        // --- NEW JOURNAL LOGIC (End) ---
         setLastDeletedTargetContext(null); // Clear undo history on toggle
         save(bucket, newTree);
     }, [getBucketState, save, user, journalActivityService]);
@@ -150,13 +183,26 @@ export const useTargets = (isOwner: boolean, timezone: string = 'UTC', initialTa
         save(bucket, updateActionTextInTree(data, id, newText));
     }, [getBucketState, save]);
 
-    const deleteTarget = useCallback((bucket: TargetBucket, id: string) => {
+    const deleteTarget = useCallback(async (bucket: TargetBucket, id: string) => {
         const {data} = getBucketState(bucket);
         const { tree: newTree, deletedContext } = deleteActionFromTree(data, id);
+        
+        // --- NEW JOURNAL LOGIC (Start) ---
+        if (user && deletedContext && deletedContext.node.completed && deletedContext.node.completed_at) {
+            await journalActivityService.removeActivity(
+                user.id,
+                new Date(deletedContext.node.completed_at),
+                deletedContext.node.id,
+                'target', 
+                deletedContext.node.is_public ?? false
+            );
+        }
+        // --- NEW JOURNAL LOGIC (End) ---
+
         setLastDeletedTargetContext({ context: deletedContext, bucket: bucket }); // Store for undo
         save(bucket, newTree);
         return deletedContext; // Return for UI to trigger toast
-    }, [getBucketState, save]);
+    }, [getBucketState, save, user, journalActivityService]); // Add user and journalActivityService to dependencies
 
     const undoDeleteTarget = useCallback(() => {
         if (lastDeletedTargetContext?.context && lastDeletedTargetContext?.bucket) {
@@ -194,11 +240,49 @@ export const useTargets = (isOwner: boolean, timezone: string = 'UTC', initialTa
         save(bucket, moveActionDownInTree(data, id));
     }, [getBucketState, save]);
 
-    const toggleTargetPrivacy = useCallback((bucket: TargetBucket, id: string) => {
+    const toggleTargetPrivacy = useCallback(async (bucket: TargetBucket, id: string) => { // Make async
         setLastDeletedTargetContext(null); // Clear undo history on privacy toggle
         const {data} = getBucketState(bucket);
-        save(bucket, toggleActionPrivacyInTree(data, id));
-    }, [getBucketState, save]);
+
+        const result = toggleActionPrivacyInTree(data, id); // Use the modified actionTreeUtils function
+
+        if (result && user) {
+            let { tree: newTargetsTree, oldNode, newNode } = result;
+
+            if (oldNode.completed && oldNode.is_public !== newNode.is_public) {
+                // 1a. Delete the marked item from the readonly activity journal
+                if (oldNode.completed_at) { // Ensure completed_at exists
+                    await journalActivityService.removeActivity(
+                        user.id,
+                        new Date(oldNode.completed_at),
+                        oldNode.id,
+                        'target', 
+                        oldNode.is_public ?? false 
+                    );
+                } else {
+                    console.warn(`Target ${oldNode.id} was completed but had no completed_at timestamp. Cannot remove from journal.`);
+                }
+
+                // 1b. Unmark the item (set completed: false, completed_at: undefined)
+                const unmarkRecursive = (nodes: ActionNode[]): ActionNode[] => {
+                    return nodes.map(node => {
+                        if (node.id === id) {
+                            return { ...node, completed: false, completed_at: undefined };
+                        }
+                        if (node.children) {
+                            return { ...node, children: unmarkRecursive(node.children) };
+                        }
+                        return node;
+                    });
+                };
+                newTargetsTree = unmarkRecursive(newTargetsTree); // Apply unmarking to the new tree
+            }
+            // 1c. Then change the visibility (already handled by toggleActionPrivacyInTree result)
+            save(bucket, newTargetsTree); // Save the (potentially uncompleted) privacy-toggled tree
+        } else if (!result) {
+            toast.error("Target not found to toggle privacy.");
+        }
+    }, [getBucketState, save, user, journalActivityService]); // Add user and journalActivityService to dependencies
 
     // Simple move: Removes from Source, Adds to Dest (Root)
     // Does NOT preserve children for now (simplified) or deep position.

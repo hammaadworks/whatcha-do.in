@@ -18,4 +18,6 @@ favicons.io [https://favicon.io/favicon-converter/] to create awesome favicons
 15. bro keep both pro and flash, one as a senior and one as a junior helper
 16. do the landing page in the last as you can generate good visually from real components from your app, so real and cool
 17. I had added a cond in pointer that it must be diabled for touch screens so i had a pad but connected to kb so the pointer wasnt available, gemini was able to catch it
-18. 
+18. Give beutification tasks to higher model
+19. refine epics and make wikis, you are good to go with adhoc dev/ course corrections
+20. ask your model to read wikis while implementing

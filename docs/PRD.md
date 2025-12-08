@@ -145,6 +145,7 @@ above.
   not set, the system should default to the browser's detected timezone.
 - **FR-1.7:** The user's current local time (or timezone identifier) must be displayed on their public and private
   profile. This provides context for visitors regarding the user's activity and deadlines.
+- **FR-1.7.1:** For authenticated users, the `UserClock` component displays the user's saved timezone from the database. For guest users viewing a public profile, their local timezone is automatically detected and used to calculate the time difference relative to the profile owner's timezone.
 - **FR-1.8 (Identity Management):** Users must be able to create "Identities" (e.g., "I want to be a runner").
     - **FR-1.8.1:** Identities are short "one-liners".
     - **FR-1.8.2:** Users can link Habits to Identities in a **Many-to-Many** relationship (a habit can back multiple

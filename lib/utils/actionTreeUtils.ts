@@ -330,12 +330,14 @@ export function outdentActionInTree(currentTree: ActionNode[], id: string): Acti
  * @param id The ID of the action to toggle.
  * @returns A new action tree with the privacy status updated.
  */
-export function toggleActionPrivacyInTree(currentTree: ActionNode[], id: string): ActionNode[] {
+export function toggleActionPrivacyInTree(currentTree: ActionNode[], id: string): { tree: ActionNode[], oldNode: ActionNode, newNode: ActionNode } | null {
     const newTree = deepCopyActions(currentTree);
     const targetContext = findNodeAndContext(newTree, id);
 
-    if (!targetContext) return newTree;
+    if (!targetContext) return null;
     const { node: targetNode } = targetContext;
+
+    const oldNode = { ...targetNode }; // Capture old state before modification
 
     const currentIsPublic = targetNode.is_public ?? true;
     const newIsPublic = !currentIsPublic;
@@ -350,8 +352,6 @@ export function toggleActionPrivacyInTree(currentTree: ActionNode[], id: string)
         targetNode.children?.forEach(setPrivateRecursive);
     } else {
         // Turning PUBLIC: Enforce upwards.
-        // We need to find all ancestors and set them to public.
-        
         const path: ActionNode[] = [];
         const findPath = (nodes: ActionNode[], target: string): boolean => {
             for (const node of nodes) {
@@ -368,16 +368,15 @@ export function toggleActionPrivacyInTree(currentTree: ActionNode[], id: string)
             return false;
         };
         
-        // We search in newTree to find the path to the target node
         if (findPath(newTree, id)) {
-            // All nodes in `path` (ancestors + target) must be public.
             path.forEach(n => {
                 n.is_public = true;
             });
         }
     }
-
-    return newTree;
+    
+    // Return the new tree, the original state of the node, and the new state of the node after privacy toggle and propagation
+    return { tree: newTree, oldNode, newNode: targetNode };
 }
 
 /**

@@ -63,15 +63,15 @@ export default function TargetsSection({
     }>(null);
 
     // Handle delete target and show undo toast
-    const handleDeleteTarget = (bucket: TargetBucket, id: string) => {
-        const deleted = deleteTarget(bucket, id);
-        if (deleted) {
+    const handleDeleteTarget = async (bucket: TargetBucket, id: string) => {
+        const deletedContext = await deleteTarget(bucket, id);
+        if (deletedContext) {
             const isMac = typeof navigator !== 'undefined' && navigator.platform.toUpperCase().indexOf('MAC') >= 0;
             const shortcutKey = isMac ? '⌘Z' : 'Ctrl+Z';
 
             toast("Target deleted.", {
                 description: (<div className="flex flex-col gap-1">
-                        <span>{deleted.node.description}</span>
+                        <span>{deletedContext.node.description}</span>
                         <span className="text-xs text-muted-foreground flex items-center gap-1">
                              Press <kbd
                             className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">{shortcutKey}</kbd> to undo

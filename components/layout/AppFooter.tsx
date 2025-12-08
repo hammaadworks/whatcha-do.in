@@ -114,7 +114,7 @@ const AppFooter = () => {
                                     {renderPWAInstallUI()}
                                 </div>
                             );
-                        } else if (isPWAInstalledFromRelatedApps && mounted && !loading && user) {
+                        } else if (!isAppInstalled && isPWAInstalledFromRelatedApps && mounted && !loading && user) {
                             footerItems.push(
                                 <button
                                     key="open-pwa"

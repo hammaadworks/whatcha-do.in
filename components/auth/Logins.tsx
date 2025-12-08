@@ -125,9 +125,12 @@ export default function Logins() {
             return;
         }
 
+        const emailRedirectTo = `${window.location.origin}/auth/callback?timezone=${encodeURIComponent(clientTimezone || 'UTC')}&next=${encodeURIComponent(DEFAULT_POST_LOGIN_REDIRECT)}`;
+        console.log("Sending magic link with redirect URL:", emailRedirectTo);
+
         const {data, error} = await supabase.auth.signInWithOtp({
             email, options: {
-                emailRedirectTo: `${window.location.origin}/auth/callback?timezone=${encodeURIComponent(clientTimezone || 'UTC')}&next=${encodeURIComponent(DEFAULT_POST_LOGIN_REDIRECT)}`,
+                emailRedirectTo,
             },
         });
 

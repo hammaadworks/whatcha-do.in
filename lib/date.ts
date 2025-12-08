@@ -56,3 +56,33 @@ export function getMonthStartDate(offsetMonths: number, timezone: string = 'UTC'
   
   return format(toZonedTime(targetDate, timezone), 'yyyy-MM-dd', { timeZone: timezone });
 }
+
+/**
+ * Returns the number of milliseconds until the next midnight (start of the next day) 
+ * for a specific timezone.
+ */
+export function getMillisecondsUntilNextDay(timezone: string = 'UTC'): number {
+  const now = new Date();
+  const zonedNow = toZonedTime(now, timezone);
+  
+  // Create a date object for tomorrow at midnight in the same timezone
+  const tomorrow = new Date(zonedNow);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  tomorrow.setHours(0, 0, 0, 0);
+  
+  // Calculate difference
+  // We must compare apples to apples. 
+  // toZonedTime returns a Date object that represents the local time as if it were UTC 
+  // (or rather, the components match the local time).
+  // So comparing the timestamps of these two "Zoned Dates" gives the correct duration.
+  return tomorrow.getTime() - zonedNow.getTime();
+}
+
+/**
+ * Checks if the current date in the specified timezone is the 1st day of the month.
+ */
+export function isFirstDayOfMonth(timezone: string = 'UTC'): boolean {
+  const now = new Date();
+  const zonedNow = toZonedTime(now, timezone);
+  return zonedNow.getDate() === 1;
+}

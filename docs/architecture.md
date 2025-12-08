@@ -527,10 +527,16 @@ each choice.
     * **Rationale:** Ensures maintainability, debuggability, and centralized visibility of application health.
 
 10. **ADR 010: Date/Time Handling**
-    * **Decision:** Store UTC in DB (`TIMESTAMP WITH TIME ZONE`), transmit ISO 8601 UTC strings, client converts for
+
+    *   **Decision:** Store UTC in DB (`TIMESTAMP WITH TIME ZONE`), transmit ISO 8601 UTC strings, client converts for
+
       local display/input, server-side calculations use UTC with user's stored timezone.
-    * **Rationale:** Ensures data integrity, avoids timezone bugs, provides correct local user experience, and maintains
+
+    *   **Rationale:** Ensures data integrity, avoids timezone bugs, provides correct local user experience, and maintains
+
       server as source of truth.
+
+    *   **Guest User Timezone Detection:** For guest users viewing a public profile, the `UserClock` component automatically detects the guest's local timezone using `Intl.DateTimeFormat().resolvedOptions().timeZone` to calculate the time difference relative to the profile owner's timezone. This allows for an accurate time difference display without requiring guest authentication.
 
 11. **ADR 011: API Response Format**
     * **Decision:** Standard JSON structure with `data` for success, `error` for failures (message, code, details), and
