@@ -21,6 +21,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import {Loader2} from 'lucide-react';
+import { IDENTITY_START_PHRASE } from '@/lib/constants';
 
 interface CreateIdentityModalProps {
     isOpen: boolean;
@@ -65,9 +66,9 @@ export const CreateIdentityModal: React.FC<CreateIdentityModalProps> = ({isOpen,
         try {
             let finalTitle = "";
             if (prefix === '-') {
-                finalTitle = `I am ${title.trim()}`;
+                finalTitle = `${IDENTITY_START_PHRASE} ${title.trim()}`;
             } else {
-                finalTitle = `I am ${prefix} ${title.trim()}`;
+                finalTitle = `${IDENTITY_START_PHRASE} ${prefix} ${title.trim()}`;
             }
             
             await onCreate(finalTitle, isPublic);
@@ -103,7 +104,7 @@ export const CreateIdentityModal: React.FC<CreateIdentityModalProps> = ({isOpen,
                     <div className="grid gap-2">
                         <Label htmlFor="identity-title">Identity Statement</Label>
                         <div className="flex gap-3 items-center">
-                            <span className="text-lg font-medium whitespace-nowrap text-muted-foreground">I am</span>
+                            <span className="text-lg font-medium whitespace-nowrap text-muted-foreground">{IDENTITY_START_PHRASE}</span>
                             <Select value={prefix} onValueChange={handlePrefixChange}>
                                 <SelectTrigger className="w-[70px] shrink-0">
                                     <SelectValue />
