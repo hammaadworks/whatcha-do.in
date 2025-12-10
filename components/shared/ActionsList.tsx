@@ -197,7 +197,7 @@ export const ActionsList: React.FC<ActionsListProps> = ({
             )}
           >
             {showCompleted ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-            <span>Yay! ({completedActions.length})</span>
+            <span>Yay ! ({completedActions.length})</span>
           </button>
           
           {showCompleted && (

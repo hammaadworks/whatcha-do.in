@@ -1,0 +1,193 @@
+/* 
+  ZENITH THEME (Light Mode Optimized)
+  ==========================================================================
+*/
+
+:root {
+  /* -----------------------------------------------------------------------
+     BASE COLORS & BACKGROUNDS
+     ----------------------------------------------------------------------- */
+  --background: #FFFFFF;
+  --foreground: #212529;
+
+  /* -----------------------------------------------------------------------
+     SURFACES (Cards, Popovers)
+     ----------------------------------------------------------------------- */
+  --card: #F8F9FA;
+  --card-foreground: #212529;
+  --popover: #FFFFFF;
+  --popover-foreground: #212529;
+
+  /* -----------------------------------------------------------------------
+     BRANDING
+     ----------------------------------------------------------------------- */
+  --primary: #FF6B6B;
+  --primary-foreground: #FFFFFF;
+  --secondary: #F1F3F5;
+  --secondary-foreground: #495057;
+  --muted: #F1F3F5;
+  --muted-foreground: #495057;
+  --accent: #FF6B6B;
+  --accent-foreground: #FFFFFF;
+  --destructive: #DC3545;
+  --destructive-foreground: #FFFFFF;
+
+  /* -----------------------------------------------------------------------
+     UI ELEMENTS (Borders, Inputs, Rings)
+     ----------------------------------------------------------------------- */
+  --border: #DEE2E6;
+  --input: #DEE2E6;
+  --ring: #FF6B6B;
+
+  /* -----------------------------------------------------------------------
+     DATA VISUALIZATION
+     ----------------------------------------------------------------------- */
+  --chart-1: #FF6B6B;
+  --chart-2: #FF8E53;
+  --chart-3: #4ECDC4;
+  --chart-4: #81D4FA;
+  --chart-5: #FFCA28;
+
+  /* -----------------------------------------------------------------------
+     SIDEBAR SPECIFIC
+     ----------------------------------------------------------------------- */
+  --sidebar: #FFFFFF;
+  --sidebar-foreground: #212529;
+  --sidebar-primary: #FF6B6B;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #F1F3F5;
+  --sidebar-accent-foreground: #495057;
+  --sidebar-border: #DEE2E6;
+  --sidebar-ring: #FF6B6B;
+
+  /* -----------------------------------------------------------------------
+     TYPOGRAPHY & LAYOUT
+     ----------------------------------------------------------------------- */
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-serif: serif; /* Default fallback */
+  
+  --radius: 0.625rem;
+  --tracking-normal: 0em;
+  --spacing: 0.25rem;
+
+  /* -----------------------------------------------------------------------
+     SHADOWS (Red-tinted)
+     ----------------------------------------------------------------------- */
+  --shadow-x: 3px;
+  --shadow-y: 3px;
+  --shadow-blur: 0px;
+  --shadow-spread: 0px;
+  --shadow-opacity: 1.0;
+  --shadow-color: rgba(255, 107, 107, 0.2);
+
+  --shadow-2xs: 3px 3px 0px 0px rgba(255, 107, 107, 0.1);
+  --shadow-xs: 3px 3px 0px 0px rgba(255, 107, 107, 0.1);
+  --shadow-sm: 3px 3px 0px 0px rgba(255, 107, 107, 0.2), 3px 1px 2px -1px rgba(255, 107, 107, 0.2);
+  --shadow: 3px 3px 0px 0px rgba(255, 107, 107, 0.2), 3px 1px 2px -1px rgba(255, 107, 107, 0.2);
+  --shadow-md: 3px 3px 0px 0px rgba(255, 107, 107, 0.2), 3px 2px 4px -1px rgba(255, 107, 107, 0.2);
+  --shadow-lg: 3px 3px 0px 0px rgba(255, 107, 107, 0.2), 3px 4px 6px -1px rgba(255, 107, 107, 0.2);
+  --shadow-xl: 3px 3px 0px 0px rgba(255, 107, 107, 0.2), 3px 8px 10px -1px rgba(255, 107, 107, 0.2);
+  --shadow-2xl: 3px 3px 0px 0px rgba(255, 107, 107, 0.5);
+}
+
+.dark {
+  /* -----------------------------------------------------------------------
+     DARK MODE OVERRIDES (Zenith Dark Variant if needed, currently same as Monolith)
+     ----------------------------------------------------------------------- */
+  --background: #161616;
+  --foreground: #E0E0E0;
+  --card: #222222;
+  --card-foreground: #E0E0E0;
+  --popover: #161616;
+  --popover-foreground: #E0E0E0;
+  --primary: #FF6B6B; /* Keeps branding consistent in dark mode */
+  --primary-foreground: #FFFFFF;
+  --secondary: #2a2a2a;
+  --secondary-foreground: #CCCCCC;
+  --muted: #2a2a2a;
+  --muted-foreground: #CCCCCC;
+  --accent: #FF6B6B;
+  --accent-foreground: #FFFFFF;
+  --destructive: #FF4757;
+  --destructive-foreground: #FFFFFF;
+  --border: #3A3A3A;
+  --input: #3A3A3A;
+  --ring: #FF6B6B;
+  --chart-1: #FF6B6B;
+  --chart-2: #FF8E53;
+  --chart-3: #4ECDC4;
+  --chart-4: #81D4FA;
+  --chart-5: #FFCA28;
+  --sidebar: #222222;
+  --sidebar-foreground: #E0E0E0;
+  --sidebar-primary: #FF6B6B;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #2a2a2a;
+  --sidebar-accent-foreground: #CCCCCC;
+  --sidebar-border: #3A3A3A;
+  --sidebar-ring: #FF6B6B;
+  
+  --shadow-color: rgba(255, 107, 107, 0.1);
+  --shadow-2xs: 3px 3px 0px 0px rgba(0, 0, 0, 0.5);
+  --shadow-xs: 3px 3px 0px 0px rgba(0, 0, 0, 0.5);
+  --shadow-sm: 3px 3px 0px 0px rgba(0, 0, 0, 0.5), 3px 1px 2px -1px rgba(0, 0, 0, 0.5);
+  --shadow: 3px 3px 0px 0px rgba(0, 0, 0, 0.5), 3px 1px 2px -1px rgba(0, 0, 0, 0.5);
+  --shadow-md: 3px 3px 0px 0px rgba(0, 0, 0, 0.5), 3px 2px 4px -1px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 3px 3px 0px 0px rgba(0, 0, 0, 0.5), 3px 4px 6px -1px rgba(0, 0, 0, 0.5);
+  --shadow-xl: 3px 3px 0px 0px rgba(0, 0, 0, 0.5), 3px 8px 10px -1px rgba(0, 0, 0, 0.5);
+  --shadow-2xl: 3px 3px 0px 0px rgba(255, 107, 107, 0.2);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+  --font-serif: var(--font-serif);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --shadow-2xs: var(--shadow-2xs);
+  --shadow-xs: var(--shadow-xs);
+  --shadow-sm: var(--shadow-sm);
+  --shadow: var(--shadow);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+  --shadow-xl: var(--shadow-xl);
+  --shadow-2xl: var(--shadow-2xl);
+}
