@@ -124,11 +124,11 @@ export function addActionToTree(currentTree: ActionNode[], description: string, 
  * @param isPublic Optional, whether the new action is public. Defaults to true.
  * @returns A new action tree with the added action.
  */
-export function addActionAfterId(currentTree: ActionNode[], afterId: string, description: string, isPublic: boolean = true): ActionNode[] {
+export function addActionAfterId(currentTree: ActionNode[], afterId: string, description: string, isPublic: boolean = true): [ActionNode[], string] {
     const newTree = deepCopyActions(currentTree);
     const targetContext = findNodeAndContext(newTree, afterId);
 
-    if (!targetContext) return newTree; // Target not found
+    if (!targetContext) return [newTree, '']; // Target not found, return empty ID
 
     const { siblingsArray, indexInSiblings } = targetContext;
 
@@ -152,7 +152,7 @@ export function addActionAfterId(currentTree: ActionNode[], afterId: string, des
     // Insert the new action right after the target action in the same siblings array
     siblingsArray.splice(indexInSiblings + 1, 0, newAction);
 
-    return newTree;
+    return [newTree, newAction.id];
 }
 
 /**

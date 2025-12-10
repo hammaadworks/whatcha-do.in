@@ -23,13 +23,15 @@ interface ActionItemProps {
   onActionMovedUp?: (id: string) => void;
   onActionMovedDown?: (id: string) => void;
   onActionPrivacyToggled?: (id: string) => void;
-  onActionAddedAfter?: (afterId: string, description: string, isPublic?: boolean) => void; // New prop
+  onActionAddedAfter?: (afterId: string, description: string, isPublic?: boolean) => string; // New prop, returns new action ID
   justCompletedId?: string | null;
   level: number;
   focusedActionId: string | null;
   setFocusedActionId: (id: string | null) => void;
   flattenedActions: ActionNode[];
   onConfettiTrigger?: (rect: DOMRect, isParent: boolean) => void; // New prop
+  newlyAddedActionId?: string | null; // New prop for focusing and editing a newly added item
+  onNewlyAddedActionProcessed?: (id: string) => void; // New prop to signal processing
 }
 
 const getCompletionCounts = (action: ActionNode): { total: number; completed: number } => {
@@ -67,7 +69,9 @@ export const ActionItem: React.FC<ActionItemProps> = ({
   focusedActionId,
   setFocusedActionId,
   flattenedActions,
-  onConfettiTrigger // Destructure new prop
+  onConfettiTrigger, // Destructure new prop
+  newlyAddedActionId, // Destructure new prop
+  onNewlyAddedActionProcessed // Destructure new prop
 }) => {
   const [isExpanded, setIsExpanded] = useState(true);
   const [isAddingSubItem, setIsAddingSubItem] = useState(false);
@@ -96,21 +100,44 @@ export const ActionItem: React.FC<ActionItemProps> = ({
     }
   }, [focusedActionId, action.id]);
 
+  // Effect to automatically enter edit mode for newly added action
+  useEffect(() => {
+    if (newlyAddedActionId === action.id && focusedActionId === action.id && !isEditing) {
+      setIsEditing(true);
+      if (editInputRef.current) {
+        editInputRef.current.focus();
+      }
+      onNewlyAddedActionProcessed?.(action.id); // Signal parent that processing is complete
+    }
+  }, [newlyAddedActionId, focusedActionId, action.id, isEditing, onNewlyAddedActionProcessed]);
+
+  // Effect to synchronize local editText with action.description if description changes from parent
+  useEffect(() => {
+    if (!isEditing && editText !== action.description) {
+      setEditText(action.description);
+    }
+  }, [action.description, isEditing, editText]); // Added editText to deps to prevent infinite loop
+
 
   const handleEditSave = () => {
     if (editText.trim()) {
       onActionUpdated?.(action.id, editText.trim());
     } else {
-        setEditText(action.description);
+        onActionDeleted?.(action.id); // Delete the action if text is empty
     }
     setIsEditing(false);
-    divRef.current?.focus();
+    // Use setTimeout to ensure the DOM updates (input removed) before trying to focus the div
+    setTimeout(() => {
+        divRef.current?.focus();
+    }, 0);
   };
 
   const handleEditCancel = () => {
     setEditText(action.description);
     setIsEditing(false);
-    divRef.current?.focus();
+    setTimeout(() => {
+        divRef.current?.focus();
+    }, 0);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
@@ -130,13 +157,8 @@ export const ActionItem: React.FC<ActionItemProps> = ({
                  // Add Below (Edit) - Shift + Enter
                  if (onActionAddedAfter) {
                      setIsAddingSubItem(false); // Close existing sub-item form if open
-                     onActionAddedAfter(action.id, "", isPublic); // Add empty item after
-                     // Note: Focus management for the new item's edit mode needs to be handled by ActionsList/Parent logic
-                     // Typically, adding an empty item puts it in edit mode if logic exists, or focus moves to it.
-                     // Since `onActionAddedAfter` adds a new node, `ActionsList` re-renders.
-                     // We need a way to signal "Edit this new item".
-                     // For now, consistent with "Alt+Enter" request which was "Add Below & Edit".
-                     // `useActions` adds it. Focus should move to it.
+                     const newActionId = onActionAddedAfter(action.id, "", isPublic); // Add empty item after
+                     setFocusedActionId(newActionId); // Focus the newly created action
                  }
             } else {
                 onActionToggled?.(action.id);

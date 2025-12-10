@@ -132,10 +132,12 @@ export const useTargets = (isOwner: boolean, timezone: string = 'UTC', initialTa
         save(bucket, addActionToTree(data, description, parentId, true));
     }, [getBucketState, save]);
 
-    const addTargetAfter = useCallback((bucket: TargetBucket, afterId: string, description: string, isPublic: boolean = true) => {
+    const addTargetAfter = useCallback((bucket: TargetBucket, afterId: string, description: string, isPublic: boolean = true): string => {
         setLastDeletedTargetContext(null); // Clear undo history on new action
         const {data} = getBucketState(bucket);
-        save(bucket, addActionAfterId(data, afterId, description, isPublic));
+        const [newTree, newActionId] = addActionAfterId(data, afterId, description, isPublic);
+        save(bucket, newTree);
+        return newActionId;
     }, [getBucketState, save]);
 
     const toggleTarget = useCallback(async (bucket: TargetBucket, id: string) => {
@@ -179,6 +181,7 @@ export const useTargets = (isOwner: boolean, timezone: string = 'UTC', initialTa
     }, [getBucketState, save, user, journalActivityService]);
 
     const updateTargetText = useCallback((bucket: TargetBucket, id: string, newText: string) => {
+        console.log("useTargets: updateTargetText called", { bucket, id, newText });
         setLastDeletedTargetContext(null); // Clear undo history on update
         const {data} = getBucketState(bucket);
         save(bucket, updateActionTextInTree(data, id, newText));

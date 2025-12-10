@@ -15,13 +15,15 @@ interface ActionsListProps {
   onActionMovedUp?: (id: string) => void;
   onActionMovedDown?: (id: string) => void;
   onActionPrivacyToggled?: (id: string) => void; // New prop
-  onActionAddedAfter?: (afterId: string, description: string, isPublic?: boolean) => void; // New prop
+  onActionAddedAfter?: (afterId: string, description: string, isPublic?: boolean) => string; // New prop, returns new action ID
+  newlyAddedActionId?: string | null; // New prop for focusing and editing a newly added item
   justCompletedId?: string | null;
   level?: number;
   focusedActionId: string | null;
   setFocusedActionId: (id: string | null) => void;
   flattenedActions: ActionNode[];
   onConfettiTrigger?: (rect: DOMRect, isParent: boolean) => void; // New prop
+  onNewlyAddedActionProcessed?: (id: string) => void; // New prop
 }
 
 export const ActionsList: React.FC<ActionsListProps> = ({ 
@@ -41,7 +43,9 @@ export const ActionsList: React.FC<ActionsListProps> = ({
   focusedActionId,
   setFocusedActionId,
   flattenedActions,
-  onConfettiTrigger // Destructure new prop
+  onConfettiTrigger, // Destructure new prop
+  newlyAddedActionId, // Destructure new prop
+  onNewlyAddedActionProcessed // Destructure new prop
 }) => {
   return (
     <div className={cn("grid grid-cols-1 gap-y-2")}>
@@ -65,6 +69,8 @@ export const ActionsList: React.FC<ActionsListProps> = ({
           setFocusedActionId={setFocusedActionId}
           flattenedActions={flattenedActions}
           onConfettiTrigger={onConfettiTrigger} // Pass new prop
+          newlyAddedActionId={newlyAddedActionId} // Pass new prop
+          onNewlyAddedActionProcessed={onNewlyAddedActionProcessed} // Pass new prop
         />
       ))}
     </div>

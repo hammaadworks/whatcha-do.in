@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState, useCallback} from 'react';
 import {TargetBucket, useTargets} from '@/hooks/useTargets';
 import {ActionsList} from '@/components/shared/ActionsList';
 import {AddActionForm} from '@/components/shared/AddActionForm';
@@ -63,6 +63,10 @@ export default function TargetsSection({
                                                const colors = useConfettiColors(); // Confetti colors hook
     const [activeTab, setActiveTab] = useState<TargetBucket>('current');
     const [focusedActionId, setFocusedActionId] = useState<string | null>(null); // Add focus state
+    const [newlyAddedActionId, setNewlyAddedActionId] = useState<string | null>(null); // New state for newly added action
+    const handleNewlyAddedActionProcessed = useCallback(() => {
+        setNewlyAddedActionId(null);
+    }, []);
     const addTargetFormRef = useRef<{
         focusInput: () => void;
         clearInput: () => void;
@@ -124,14 +128,37 @@ export default function TargetsSection({
                     setFocusedActionId(flattened[flattened.length - 1].id);
                 }
             }
-            // Escape (Clear Input / Blur Input / Focus Last Item)
-            else if (event.key === 'Escape' && addTargetFormRef.current?.isInputFocused() && addTargetFormRef.current?.isInputEmpty()) {
-                event.preventDefault();
-                addTargetFormRef.current.clearInput();
-                addTargetFormRef.current.blurInput();
-                const flattened = flattenActionTree(buckets[activeTab]);
-                if (flattened.length > 0) {
-                    setFocusedActionId(flattened[flattened.length - 1].id);
+            if (event.key === 'Escape') {
+                event.preventDefault(); // Prevent default browser behavior
+
+                // Scenario 1: AddTargetForm is focused and empty -> clear and blur it.
+                if (addTargetFormRef.current?.isInputFocused() && addTargetFormRef.current?.isInputEmpty()) {
+                    addTargetFormRef.current.clearInput();
+                    addTargetFormRef.current.blurInput();
+                    const flattened = flattenActionTree(buckets[activeTab]);
+                    if (flattened.length > 0) {
+                        setFocusedActionId(flattened[flattened.length - 1].id); // Focus the last item
+                    } else {
+                        setFocusedActionId(null);
+                        (document.activeElement as HTMLElement)?.blur(); // Truly exit section focus
+                    }
+                }
+                // Scenario 2: AddTargetForm is focused and HAS content -> clear and blur it.
+                else if (addTargetFormRef.current?.isInputFocused()) {
+                    addTargetFormRef.current.clearInput();
+                    addTargetFormRef.current.blurInput();
+                    setFocusedActionId(null); // Clear focus from list
+                    (document.activeElement as HTMLElement)?.blur(); // Blur current focus
+                }
+                // Scenario 3: An ActionItem is focused (but not editing)
+                else if (focusedActionId) {
+                    setFocusedActionId(null); // Clear focus from the ActionItem
+                    (document.activeElement as HTMLElement)?.blur(); // Blur current focus
+                }
+                // Scenario 4: Nothing specific in the section is focused.
+                // This means focus should leave the whole section.
+                else {
+                    (document.activeElement as HTMLElement)?.blur(); // Blur whatever is currently focused
                 }
             }
             // Ctrl+Z (Undo)
@@ -274,11 +301,18 @@ export default function TargetsSection({
                 onActionMovedUp={canEdit ? (id) => moveTargetUp(bucket, id) : undefined}
                 onActionMovedDown={canEdit ? (id) => moveTargetDown(bucket, id) : undefined}
                 onActionPrivacyToggled={canEdit ? (id) => toggleTargetPrivacy(bucket, id) : undefined} // Enable privacy toggle
-                onActionAddedAfter={canEdit ? (afterId, description, isPublic) => addTargetAfter(bucket, afterId, description, isPublic) : undefined} // New
+                onActionAddedAfter={canEdit ? (afterId, description, isPublic) => {
+                    const newActionId = addTargetAfter(bucket, afterId, description, isPublic);
+                    setNewlyAddedActionId(newActionId);
+                    setFocusedActionId(newActionId);
+                    return newActionId;
+                } : undefined} // New
                 flattenedActions={flattened}
                 focusedActionId={focusedActionId} // Pass focusedActionId
                 setFocusedActionId={setFocusedActionId} // Pass setFocusedActionId
                 onConfettiTrigger={handleConfettiTrigger} // Pass handler
+                newlyAddedActionId={newlyAddedActionId} // Pass new prop
+                onNewlyAddedActionProcessed={handleNewlyAddedActionProcessed} // Pass new prop
             />
 
             {canEdit && (<div className="mt-4">

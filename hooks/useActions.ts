@@ -85,9 +85,11 @@ export const useActions = (isOwner: boolean, timezone: string = 'UTC') => {
         save(addActionToTree(actions, description, parentId, isPublic));
     };
 
-    const addActionAfter = (afterId: string, description: string, isPublic: boolean = true) => {
+    const addActionAfter = (afterId: string, description: string, isPublic: boolean = true): string => {
         setLastDeletedContext(null); // Clear undo history on new action
-        save(addActionAfterId(actions, afterId, description, isPublic));
+        const [newTree, newActionId] = addActionAfterId(actions, afterId, description, isPublic);
+        save(newTree);
+        return newActionId;
     };
 
     const toggleAction = async (id: string) => {

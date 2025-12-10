@@ -7,21 +7,20 @@ import { cn } from "@/lib/utils";
 import KeyboardShortcut from './KeyboardShortcut'; // Import KeyboardShortcut
 import { Plus } from 'lucide-react'; // For a possible icon on the Add button
 
-interface AddActionFormProps {
-  onSave: (description: string) => void;
+interface AddTargetFormProps {
+  onSaveTarget: (targetDescription: string) => void;
   onCancel: () => void;
   className?: string;
-  placeholder?: string;
+  targetPlaceholder?: string;
   autoFocusOnMount?: boolean;
-  triggerKey?: string; // Add triggerKey prop
+  targetTriggerKey?: string; // Add targetTriggerKey prop
 }
 
-export const AddActionForm = React.forwardRef<
+export const AddTargetForm = React.forwardRef<
   { focusInput: () => void; clearInput: () => void; isInputFocused: () => boolean; isInputEmpty: () => boolean; blurInput: () => void; },
-  AddActionFormProps
->(({ onSave, onCancel, className, placeholder = "Add a new action...", autoFocusOnMount = true, triggerKey = 'A' }, ref) => {
-  const [description, setDescription] = useState('');
-  const [isFocused, setIsFocused] = useState(false); // New state to track focus
+  AddTargetFormProps
+>(({ onSaveTarget, onCancel, className, targetPlaceholder = "Add a new target...", autoFocusOnMount = true, targetTriggerKey = 'T' }, ref) => {
+  const [targetDescription, setTargetDescription] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 
   useImperativeHandle(ref, () => ({
@@ -29,13 +28,13 @@ export const AddActionForm = React.forwardRef<
       inputRef.current?.focus();
     },
     clearInput: () => {
-      setDescription('');
+      setTargetDescription('');
     },
     isInputFocused: () => {
-      return isFocused; // Use the new isFocused state
+      return inputRef.current === document.activeElement;
     },
     isInputEmpty: () => {
-      return description === '';
+      return targetDescription === '';
     },
     blurInput: () => {
       inputRef.current?.blur();
@@ -49,9 +48,9 @@ export const AddActionForm = React.forwardRef<
   }, [autoFocusOnMount]);
 
   const handleSave = () => {
-    if (description.trim()) {
-      onSave(description.trim());
-      setDescription('');
+    if (targetDescription.trim()) {
+      onSaveTarget(targetDescription.trim());
+      setTargetDescription('');
     }
   };
 
@@ -65,7 +64,7 @@ export const AddActionForm = React.forwardRef<
     }
   };
 
-  // Remove: const isInputFocused = inputRef.current === document.activeElement;
+  const isInputFocused = inputRef.current === document.activeElement;
 
   // Determine keyboard symbols based on OS (simplified check)
   const [isMac, setIsMac] = useState(false);
@@ -85,39 +84,37 @@ export const AddActionForm = React.forwardRef<
           <Input
             ref={inputRef}
             type="text"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
+            value={targetDescription}
+            onChange={(e) => setTargetDescription(e.target.value)}
             onKeyDown={handleKeyDown}
-            onFocus={() => setIsFocused(true)} // Set isFocused to true on focus
-            onBlur={() => setIsFocused(false)}   // Set isFocused to false on blur
             className={cn(
               "w-full border bg-background text-foreground shadow-sm rounded-md px-3 py-2 text-base h-10",
               "focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
-              isFocused ? "border-primary" : "border-input" // Use new isFocused state
+              isInputFocused ? "border-primary" : "border-input"
             )}
           />
           {/* Custom Rich Placeholder */}
-          {description === '' && (
+          {targetDescription === '' && (
               <div className="absolute inset-0 flex items-center px-3 pointer-events-none text-muted-foreground text-sm whitespace-nowrap overflow-hidden">
-                  {isFocused ? ( // Use new isFocused state
+                  {isInputFocused ? (
                       <span className="flex items-center gap-1 opacity-50">
                           Use <Key char="↑" /> <Key char="↓" /> to navigate, <AltKey/> + <Key char="/" /> for shortcuts
                       </span>
                   ) : (
                       <span className="flex items-center gap-1 opacity-50">
-                          <AltKey/> + <Key char={triggerKey} /> to register actions
+                          <AltKey/> + <Key char={targetTriggerKey} /> to register targets
                       </span>
                   )}
               </div>
           )}
       </div>
       
-      {description !== '' && (
+      {targetDescription !== '' && (
         <>
           <Button 
             onClick={handleSave} 
             size="sm" 
-            disabled={!description.trim()}
+            disabled={!targetDescription.trim()}
             className="flex items-center space-x-1"
           >
             <Plus size={16} />
@@ -130,4 +127,4 @@ export const AddActionForm = React.forwardRef<
   );
 });
 
-AddActionForm.displayName = 'AddActionForm';
+AddTargetForm.displayName = 'AddTargetForm';

@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState, useCallback} from 'react';
 import {Undo2} from 'lucide-react'; // Removed Check
 import {toast} from 'sonner'; // Import sonner toast
 import {ActionNode} from '@/lib/supabase/types';
@@ -59,7 +59,9 @@ interface ActionsSectionProps {
     onActionMovedUp?: (id: string) => void;
     onActionMovedDown?: (id: string) => void;
     onActionPrivacyToggled?: (id: string) => void; // New prop
-    onActionAddedAfter?: (afterId: string, description: string, isPublic?: boolean) => void; // New prop
+    onActionAddedAfter?: (afterId: string, description: string, isPublic?: boolean) => string; // New prop, returns new action ID
+    newlyAddedActionId?: string | null; // New prop for focusing and editing a newly added item
+    onNewlyAddedActionProcessed?: (id: string) => void; // New prop
     justCompletedId?: string | null;
     privateCount?: number; // New prop
     timezone: string; // Add timezone prop
@@ -99,6 +101,10 @@ const ActionsSection: React.FC<ActionsSectionProps> = ({
         blurInput: () => void;
     }>(null);
     const [focusedActionId, setFocusedActionId] = useState<string | null>(null);
+    const [newlyAddedActionId, setNewlyAddedActionId] = useState<string | null>(null); // New state for newly added action
+    const handleNewlyAddedActionProcessed = useCallback(() => {
+        setNewlyAddedActionId(null);
+    }, []);
 
     const confettiRef = useRef<ConfettiRef>(null); // Confetti ref
     const colors = useConfettiColors(); // Confetti colors hook
@@ -180,15 +186,37 @@ const ActionsSection: React.FC<ActionsSectionProps> = ({
                     setFocusedActionId(flattened[flattened.length - 1].id); // Focus the last action item
                 }
             }
-            // Escape (Clear Input / Blur Input / Focus Last Item)
-            else if (event.key === 'Escape' && addActionFormRef.current?.isInputFocused() && addActionFormRef.current?.isInputEmpty()) {
-                event.preventDefault();
-                addActionFormRef.current.clearInput();
-                addActionFormRef.current.blurInput(); // Blur the input
-                // Optional: move focus to the last action item if available
-                const flattened = flattenActionTree(itemsToRender);
-                if (flattened.length > 0) {
-                    setFocusedActionId(flattened[flattened.length - 1].id);
+            if (event.key === 'Escape') {
+                event.preventDefault(); // Prevent default browser behavior
+
+                // Scenario 1: AddActionForm is focused and empty -> clear and blur it.
+                if (addActionFormRef.current?.isInputFocused() && addActionFormRef.current?.isInputEmpty()) {
+                    addActionFormRef.current.clearInput();
+                    addActionFormRef.current.blurInput();
+                    const flattened = flattenActionTree(itemsToRender);
+                    if (flattened.length > 0) {
+                        setFocusedActionId(flattened[flattened.length - 1].id); // Focus the last item
+                    } else {
+                        setFocusedActionId(null);
+                        (document.activeElement as HTMLElement)?.blur(); // Truly exit section focus
+                    }
+                }
+                // Scenario 2: AddActionForm is focused and HAS content -> clear and blur it.
+                else if (addActionFormRef.current?.isInputFocused()) {
+                    addActionFormRef.current.clearInput();
+                    addActionFormRef.current.blurInput();
+                    setFocusedActionId(null); // Clear focus from list
+                    (document.activeElement as HTMLElement)?.blur(); // Blur current focus
+                }
+                // Scenario 3: An ActionItem is focused (but not editing)
+                else if (focusedActionId) {
+                    setFocusedActionId(null); // Clear focus from the ActionItem
+                    (document.activeElement as HTMLElement)?.blur(); // Blur current focus
+                }
+                // Scenario 4: Nothing specific in the section is focused.
+                // This means focus should leave the whole section.
+                else {
+                    (document.activeElement as HTMLElement)?.blur(); // Blur whatever is currently focused
                 }
             }
             // Ctrl+Z (Undo)
@@ -299,12 +327,22 @@ const ActionsSection: React.FC<ActionsSectionProps> = ({
             onActionMovedUp={isOwner && !isReadOnly ? onActionMovedUp : undefined}
             onActionMovedDown={isOwner && !isReadOnly ? onActionMovedDown : undefined}
             onActionPrivacyToggled={isOwner && !isReadOnly ? onActionPrivacyToggled : undefined}
-            onActionAddedAfter={isOwner && !isReadOnly ? onActionAddedAfter : undefined}
+            onActionAddedAfter={(afterId, description, isPublic) => {
+                if (onActionAddedAfter) {
+                    const newActionId = onActionAddedAfter(afterId, description, isPublic);
+                    setNewlyAddedActionId(newActionId);
+                    setFocusedActionId(newActionId);
+                    return newActionId;
+                }
+                return ''; // Should not happen
+            }}
             justCompletedId={justCompletedId}
             focusedActionId={focusedActionId}
             setFocusedActionId={setFocusedActionId}
             flattenedActions={flattenActionTree(itemsToRender)}
             onConfettiTrigger={handleConfettiTrigger} // Pass handler
+            newlyAddedActionId={newlyAddedActionId} // Pass new prop
+            onNewlyAddedActionProcessed={handleNewlyAddedActionProcessed} // Pass new prop
         />
 
         {!isOwner && privateCount > 0 && (
