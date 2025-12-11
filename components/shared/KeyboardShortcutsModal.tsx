@@ -82,8 +82,8 @@ const KeyboardShortcutsModal: React.FC<KeyboardShortcutsModalProps> = ({ open, o
                <p className="text-xs font-medium text-muted-foreground mb-2 px-2">Hierarchy & Movement</p>
                <ShortcutRow label="Indent Item" keys={["Tab"]} showModifier={false} />
                <ShortcutRow label="Outdent Item" keys={["Shift", "Tab"]} showModifier={false} />
-               <ShortcutRow label="Move Item Up" keys={["Shift", "↑"]} showModifier={false} />
-               <ShortcutRow label="Move Item Down" keys={["Shift", "↓"]} showModifier={false} />
+               <ShortcutRow label="Move Item Up" keys={["↑"]} />
+               <ShortcutRow label="Move Item Down" keys={["↓"]} />
                <ShortcutRow label="Navigate Up" keys={["↑"]} showModifier={false} />
                <ShortcutRow label="Navigate Down" keys={["↓"]} showModifier={false} />
             </div>

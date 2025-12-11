@@ -159,7 +159,9 @@ const ActionsSection: React.FC<ActionsSectionProps> = ({
 
         const handleKeyDown = (event: KeyboardEvent) => {
             // Check for Alt+A (Toggle Add Action form / List focus)
-            if (event.altKey && (event.key === 'a' || event.key === 'A')) {
+            // Robust check: KeyA code OR explicit characters (including Mac 'å')
+            const isA = event.code === 'KeyA' || event.key === 'a' || event.key === 'A' || event.key === 'å';
+            if (event.altKey && !event.shiftKey && isA) {
                 event.preventDefault();
 
                 if (addActionFormRef.current) {

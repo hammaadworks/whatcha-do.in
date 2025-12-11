@@ -136,3 +136,14 @@ html.w-md-editor-body-fullscreen { /* Target both body and html for safety */
 .w-md-editor .w-md-editor-content {
   overflow: auto !important;
 }
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+.no-scrollbar {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}

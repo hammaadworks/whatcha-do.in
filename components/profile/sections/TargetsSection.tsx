@@ -103,7 +103,7 @@ export default function TargetsSection({
 
         const handleKeyDown = (event: KeyboardEvent) => {
             // Alt + T (Toggle Add Target form / List focus) - Changed from Alt + A
-            if (event.altKey && (event.key === 't' || event.key === 'T')) {
+            if (event.altKey && !event.shiftKey && event.code === 'KeyT') {
                 event.preventDefault();
 
                 if (addTargetFormRef.current) {

@@ -7,6 +7,7 @@ import KeyboardShortcutsModal from './KeyboardShortcutsModal';
 import { useTheme } from 'next-themes'; // New import for theme management
 import { AnimatedThemeTogglerRef } from '@/components/ui/animated-theme-toggler'; // New import for the ref type
 import InsightsTrigger from '@/components/shared/InsightsTrigger'; // Import InsightsTrigger
+import { toast } from 'sonner'; // Import toast for debugging
 import {
     LOCAL_STORAGE_ME_FOLDED_KEY,
     LOCAL_STORAGE_ACTIONS_FOLDED_KEY,
@@ -111,14 +112,15 @@ export const KeyboardShortcutsProvider: React.FC<{ children: React.ReactNode }> 
               const isModifierPressed = event.altKey || event.metaKey; // Check for Alt/Option/Command
               const isShiftPressed = event.shiftKey; // New check for Shift
               const isSlashPressed = event.code === 'Slash'; // Use event.code for physical key detection
-              const isPPressed = event.key === 'p' || event.key === 'P'; // Check for 'P' key
-              const isIPressed = event.key === 'i' || event.key === 'I'; // Re-added check for 'I' key
-              const isSPressed = event.key === 's' || event.key === 'S'; // Check for 'S' key
-              const isCPressed = event.key === 'c' || event.key === 'C'; // Check for 'C' key
-              const isMPressed = event.key === 'm' || event.key === 'M'; // New check for 'M'
-              const isAPressed = event.key === 'a' || event.key === 'A'; // New check for 'A'
-              const isJPressed = event.key === 'j' || event.key === 'J'; // New check for 'J'
-              const isTPressed = event.key === 't' || event.key === 'T'; // New check for 'T'
+              const isPPressed = event.code === 'KeyP'; // Check for 'P' key
+              const isIPressed = event.code === 'KeyI'; // Check for 'I' key
+              const isSPressed = event.code === 'KeyS'; // Check for 'S' key
+              const isCPressed = event.code === 'KeyC'; // Check for 'C' key
+              const isMPressed = event.code === 'KeyM'; // Check for 'M' key
+              // Check for 'A' key: KeyA code OR char 'a'/'A' OR Mac special chars 'å' (Opt+A) / 'Å' (Opt+Shift+A)
+              const isAPressed = event.code === 'KeyA' || event.key === 'a' || event.key === 'A' || event.key === 'å' || event.key === 'Å';
+              const isJPressed = event.code === 'KeyJ'; // Check for 'J' key
+              const isTPressed = event.code === 'KeyT'; // Check for 'T' key
 
               if (isModifierPressed && isSlashPressed) {
                 event.preventDefault();
@@ -143,6 +145,8 @@ export const KeyboardShortcutsProvider: React.FC<{ children: React.ReactNode }> 
                 event.preventDefault();
                 toggleMeFold();
               } else if (isModifierPressed && isShiftPressed && isAPressed) { // Alt + Shift + A
+                // console.log('Alt+Shift+A detected!');
+                // toast("Actions Fold Toggled"); // Visual feedback
                 event.preventDefault();
                 toggleActionsFold();
               } else if (isModifierPressed && isShiftPressed && isJPressed) { // Alt + Shift + J

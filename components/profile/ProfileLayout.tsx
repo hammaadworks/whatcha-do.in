@@ -7,6 +7,9 @@ import {UserClock} from './UserClock';
 import {useAuth} from '@/hooks/useAuth';
 import {useUiStore} from '@/lib/store/uiStore'; // Import the Zustand store
 import {toast} from 'sonner'; // Import toast for user feedback
+import { GuestLayoutSelector } from './GuestLayoutSelector';
+import { SectionViewLayout } from './SectionViewLayout';
+import { cn } from '@/lib/utils';
 
 interface ProfileLayoutProps {
     username: string;
@@ -27,7 +30,7 @@ const ProfileLayout: React.FC<ProfileLayoutProps> = ({
                                                      }) => {
     const { user: viewer } = useAuth();
     const usernameRef = useRef<HTMLHeadingElement>(null); // Ref for the username heading
-    const { setUsernameSticky, setStickyUsername } = useUiStore(); // Zustand store actions
+    const { setUsernameSticky, setStickyUsername, layoutMode } = useUiStore(); // Zustand store actions
     const isLargeScreen = useMediaQuery('(min-width: 1024px)'); // Define large screen breakpoint
 
     useEffect(() => {
@@ -70,42 +73,162 @@ const ProfileLayout: React.FC<ProfileLayoutProps> = ({
         });
     }, [username]);
 
-    return (
-        <div
-            className="profile-container w-full mx-auto bg-card border border-primary shadow-lg rounded-3xl relative mt-8 mb-8">
-            {/* User Clock positioned in the top right corner */}
-            {timezone && (
-                <div className="absolute top-4 right-4 z-30 md:top-6 md:right-6">
-                    <UserClock timezone={timezone} isOwner={isOwner} viewerTimezone={viewer?.timezone} />
-                </div>
-            )}
+        const renderContent = () => {
 
-            {/* Main card content with its own padding and z-index */}
-            <div className="relative z-10 p-6 pt-12 sm:p-8 md:p-10 lg:p-12">
-                <h1
-                    ref={usernameRef} // Attach ref
-                    className="text-4xl font-extrabold text-center text-primary mb-8 mt-4 cursor-pointer" // Add cursor-pointer
-                    onClick={handleCopyProfileLink} // Attach onClick handler
-                >
-                    {isOwner ? `Welcome, ${username}!` : username}
-                </h1>
+            if (layoutMode === 'section') {
 
-                <div className="main-profile-grid">
-                    <div className="main-content-column">
+                return (
+
+                    <SectionViewLayout>
+
                         {children}
+
+                    </SectionViewLayout>
+
+                );
+
+            }
+
+            return <div className="main-content-column">{children}</div>;
+
+        };
+
+    
+
+        const isCardMode = layoutMode === 'card';
+
+    
+
+        return (
+
+            <div
+
+                className={cn(
+
+                    "profile-container w-full mx-auto relative transition-all duration-300",
+
+                    isCardMode 
+
+                        ? "bg-card border border-primary shadow-lg rounded-3xl mt-8 mb-8" 
+
+                        : "mt-0 mb-0 max-w-none"
+
+                )}
+
+            >
+
+                
+
+                {/* Top Right Controls (Owner Only) */}
+
+                {isOwner && (
+
+                    <div className={cn("absolute z-30 flex items-center gap-3", isCardMode ? "top-4 right-4 md:top-6 md:right-6" : "top-4 right-4 fixed")}>
+
+                       {/* LayoutToggleSettings is in Drawer, but we can keep a quick toggle here if desired, 
+
+                           or rely on the drawer. The plan said Drawer for Owner. 
+
+                           Let's keep the clock here. */}
+
+                        {timezone && (
+
+                            <UserClock timezone={timezone} isOwner={isOwner} viewerTimezone={viewer?.timezone} />
+
+                        )}
+
                     </div>
+
+                )}
+
+    
+
+                {/* Top Right Controls (Guest Only - Clock) */}
+
+                 {!isOwner && timezone && (
+
+                    <div className={cn("absolute z-30", isCardMode ? "top-4 right-4 md:top-6 md:right-6" : "top-4 right-4 fixed")}>
+
+                        <UserClock timezone={timezone} isOwner={isOwner} viewerTimezone={viewer?.timezone} />
+
+                    </div>
+
+                )}
+
+    
+
+                {/* Main card content with its own padding and z-index */}
+
+                <div className={cn("relative z-10", isCardMode ? "p-6 pt-12 sm:p-8 md:p-10 lg:p-12" : "p-0")}>
+
+                    
+
+                    {/* Guest Layout Selector (Center Top) */}
+
+                    {!isOwner && (
+
+                        <div className={cn("flex justify-center z-40 relative", isCardMode ? "mb-4" : "fixed top-4 left-0 right-0 pointer-events-none")}>
+
+                            <div className="pointer-events-auto">
+
+                                <GuestLayoutSelector />
+
+                            </div>
+
+                        </div>
+
+                    )}
+
+    
+
+                    {isCardMode && (
+
+                        <h1
+
+                            ref={usernameRef} // Attach ref
+
+                            className="text-4xl font-extrabold text-center text-primary mb-8 mt-4 cursor-pointer" // Add cursor-pointer
+
+                            onClick={handleCopyProfileLink} // Attach onClick handler
+
+                        >
+
+                            {isOwner ? `Welcome, ${username}!` : username}
+
+                        </h1>
+
+                    )}
+
+    
+
+                    <div className={cn("main-profile-grid", !isCardMode && "w-full")}>
+
+                         {renderContent()}
+
+                    </div>
+
                 </div>
+
+                {!isOwner && isCardMode && (
+
+                    <div className="absolute inset-0 rounded-[inherit] z-20 pointer-events-none">
+
+                        <MovingBorder duration={24000} rx="24" ry="24">
+
+                            <div
+
+                                className="h-1 w-6 bg-[radial-gradient(var(--primary)_60%,transparent_100%)] opacity-100 shadow-[0_0_25px_var(--primary)]"/>
+
+                        </MovingBorder>
+
+                    </div>
+
+                )}
+
             </div>
-            {!isOwner && (
-                <div className="absolute inset-0 rounded-[inherit] z-20 pointer-events-none">
-                    <MovingBorder duration={24000} rx="24" ry="24">
-                        <div
-                            className="h-1 w-6 bg-[radial-gradient(var(--primary)_60%,transparent_100%)] opacity-100 shadow-[0_0_25px_var(--primary)]"/>
-                    </MovingBorder>
-                </div>
-            )}
-        </div>
-    );
-};
+
+        );
+
+    };
 
 export default ProfileLayout;

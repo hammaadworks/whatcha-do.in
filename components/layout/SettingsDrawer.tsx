@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/sheet";
 import { TimezoneSelector } from '@/components/profile/TimezoneSelector';
 import { EditProfileForm } from '@/components/profile/EditProfileForm'; // Import EditProfileForm
+import { LayoutToggleSettings } from '@/components/profile/LayoutToggleSettings'; // Import LayoutToggleSettings
 import { useAuth } from '@/hooks/useAuth';
 import { updateUserTimezone } from '@/lib/supabase/user.client';
 import { toast } from 'sonner'; // Switch to sonner for consistency
@@ -92,6 +93,9 @@ export function SettingsDrawer({ children, isOpen, onOpenChange }: SettingsDrawe
           {/* Preferences Section */}
           <section className="space-y-4">
             <h3 className="text-lg font-medium border-b pb-2">Preferences</h3>
+            
+            <LayoutToggleSettings />
+
             <div className="space-y-2">
                 <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                     Timezone

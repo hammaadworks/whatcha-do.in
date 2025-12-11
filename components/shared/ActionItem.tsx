@@ -149,8 +149,8 @@ export const ActionItem: React.FC<ActionItemProps> = ({
 
     if (
         e.key === 'Enter' || e.key === ' ' || e.key === 'Tab' || e.key === 'Delete' || e.key === 'p' || e.key === 'P' ||
-        (e.shiftKey && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) ||
-        (!e.shiftKey && (e.key === 'ArrowUp' || e.key === 'ArrowDown'))
+        (e.altKey && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) ||
+        (!e.altKey && !e.shiftKey && (e.key === 'ArrowUp' || e.key === 'ArrowDown'))
     ) {
         e.preventDefault();
     }
@@ -183,7 +183,7 @@ export const ActionItem: React.FC<ActionItemProps> = ({
             }
             break;
         case 'ArrowUp':
-            if (e.shiftKey) {
+            if (e.altKey) {
                 onActionMovedUp?.(action.id);
             } else {
                 const currentIndex = flattenedActions.findIndex(a => a.id === action.id);
@@ -195,7 +195,7 @@ export const ActionItem: React.FC<ActionItemProps> = ({
             }
             break;
         case 'ArrowDown':
-            if (e.shiftKey) {
+            if (e.altKey) {
                 onActionMovedDown?.(action.id);
             } else {
                 // If expanded and has children, down means go to first child.
