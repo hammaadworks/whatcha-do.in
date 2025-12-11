@@ -30,8 +30,14 @@ export const SectionViewLayout: React.FC<SectionViewLayoutProps> = ({ children }
     // However, children is a ReactNode, which might be a fragment or array.
     
     // Convert children to an array to map them
-    const childrenArray = React.Children.toArray(children);
+    const allChildren = React.Children.toArray(children);
     
+    // As per requirement: "remove motivations from the nav and place motivations quote inside each of the remaining sections"
+    // We assume the LAST child is the Motivations/Vibe section based on standard order.
+    // [Me, Actions, Habits, Journal, Motivations]
+    const mainSections = allChildren.length > 1 ? allChildren.slice(0, -1) : allChildren;
+    const footerQuoteSection = allChildren.length > 1 ? allChildren[allChildren.length - 1] : null;
+
     // Define the section mapping based on the component types or order
     // Since we can't easily introspect the component type name in production builds sometimes,
     // we rely on the order or expected structure passed from ProfilePage/OwnerProfileView.
@@ -51,21 +57,21 @@ export const SectionViewLayout: React.FC<SectionViewLayoutProps> = ({ children }
 
     // Helper to get Icon for index (Guestimation based on standard order)
     const getIconForIndex = (index: number) => {
-        // This is a heuristic. Ideally, we'd pass explicit props, but we are wrapping children.
-        // Let's try to map by index for now.
+        // Updated mapping based on: [Me (Identity+Targets), Actions, Habits, Journal]
+        // Removed "Vibe" from nav as it is now embedded in each section
         const icons = [
-            { icon: UserCircle, label: "Identity" }, // Bio/Identity
-            { icon: Target, label: "Targets" },     // Targets
-            { icon: ListTodo, label: "Actions" },   // Actions
-            { icon: Flame, label: "Habits" },       // Habits
-            { icon: BookOpen, label: "Journal" },   // Journal
-            { icon: Quote, label: "Vibe" },         // Motivations
+            { icon: UserCircle, label: "Me" },      // CoreIdentitySection (includes Bio, Identity, Targets)
+            { icon: ListTodo, label: "Actions" },   // ActionsSection
+            { icon: Flame, label: "Habits" },       // HabitsSection
+            { icon: BookOpen, label: "Journal" },   // JournalSection
         ];
-        return icons[index % icons.length];
+        
+        // Safety fallback if extra children
+        return icons[index] || { icon: Target, label: "Section" };
     };
 
     const scrollToSection = (index: number) => {
-        sectionRefs.current[index]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        sectionRefs.current[index]?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
         setActiveSection(index);
     };
 
@@ -82,7 +88,7 @@ export const SectionViewLayout: React.FC<SectionViewLayoutProps> = ({ children }
             },
             {
                 root: null, // viewport
-                threshold: 0.6, // Wait until 60% of the slide is visible to switch active state
+                threshold: 0.5, // 50% visibility
             }
         );
 
@@ -91,38 +97,46 @@ export const SectionViewLayout: React.FC<SectionViewLayoutProps> = ({ children }
         });
 
         return () => observer.disconnect();
-    }, [childrenArray.length]);
+    }, [mainSections.length]); // Depend on mainSections length
 
 
     return (
-        <div className="relative w-full h-[100dvh] bg-background">
+        <div className="relative w-full h-[calc(100dvh-160px)] bg-background mt-4">
             
-            {/* Main Scroll Container */}
-            <div className="h-full w-full overflow-y-scroll snap-y snap-mandatory scroll-smooth no-scrollbar">
-                {childrenArray.map((child, index) => (
+            {/* Main Scroll Container - Horizontal */}
+            <div className="flex h-full w-full overflow-x-scroll snap-x snap-mandatory scroll-smooth no-scrollbar border-y border-border/40">
+                {mainSections.map((child, index) => (
                     <div 
                         key={index}
                         ref={(el) => { sectionRefs.current[index] = el; }}
                         data-index={index}
-                        className="w-full h-full snap-start flex flex-col justify-start pt-20 pb-24 px-4 md:px-8 overflow-hidden"
+                        className="min-w-full w-full h-full snap-start overflow-y-auto pt-4 pb-20 px-4 md:px-8 no-scrollbar"
                     >
-                         {/* 
-                            We wrap each child in a container that takes full height.
-                            Using 'h-full' and 'overflow-y-auto' to allow internal scrolling 
-                            ONLY if content exceeds the viewport slide.
-                         */}
-                        <div className="w-full max-w-4xl mx-auto h-full overflow-y-auto no-scrollbar pb-10">
-                             {child}
+                        <div className="w-full max-w-4xl mx-auto flex flex-col min-h-full">
+                             <div className="flex-grow">
+                                 {child}
+                             </div>
+                             
+                             {/* Render the Motivations Quote at the bottom of each section */}
+                             {footerQuoteSection && (
+                                 <div className="mt-8 pb-8 opacity-80 scale-90 origin-bottom">
+                                     {footerQuoteSection}
+                                 </div>
+                             )}
                         </div>
                     </div>
                 ))}
             </div>
 
-            {/* Floating Navigation Dock */}
-            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-50">
+            {/* Navigation Dock */}
+            {/* 
+                Absolute Bottom Center - pinned to the bottom of this view, 
+                so it sits above the App Footer which follows this component.
+            */}
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-[60] transition-all duration-300 flex items-center gap-2">
                 <TooltipProvider delayDuration={0}>
-                <div className="flex items-center gap-2 p-2 bg-background/80 backdrop-blur-md border border-border/50 rounded-full shadow-lg">
-                    {childrenArray.map((_, index) => {
+                <div className="flex flex-row items-center gap-2 p-2 rounded-full bg-background/95 backdrop-blur-xl border border-border shadow-2xl">
+                    {mainSections.map((_, index) => {
                         const { icon: Icon, label } = getIconForIndex(index);
                         return (
                             <Tooltip key={index}>
@@ -140,7 +154,7 @@ export const SectionViewLayout: React.FC<SectionViewLayoutProps> = ({ children }
                                         <Icon size={20} />
                                     </button>
                                 </TooltipTrigger>
-                                <TooltipContent sideOffset={10} className="mb-2">
+                                <TooltipContent side="top" sideOffset={10} className="mb-2">
                                     <p>{label}</p>
                                 </TooltipContent>
                             </Tooltip>
