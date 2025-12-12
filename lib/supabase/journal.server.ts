@@ -2,8 +2,12 @@ import { createServerSideClient } from './server';
 import { JournalEntry } from '@/lib/supabase/types'; // Import JournalEntry from centralized types
 
 /**
- * Fetches journal entries for a specific user.
- * Assumes RLS is configured to handle public/private filtering if userId is for owner or other.
+ * Fetches all journal entries for a specific user from the server-side.
+ * 
+ * Used for authenticated views or owner dashboards where RLS applies.
+ * 
+ * @param userId - The ID of the user whose journal entries to fetch.
+ * @returns A promise resolving to an array of JournalEntry objects, ordered by date descending.
  */
 export async function fetchJournalEntriesServer(userId: string): Promise<JournalEntry[]> {
   const supabase = await createServerSideClient();
@@ -21,7 +25,12 @@ export async function fetchJournalEntriesServer(userId: string): Promise<Journal
 }
 
 /**
- * Fetches only the public journal entries for a specific user.
+ * Fetches only the public journal entries for a specific user from the server-side.
+ * 
+ * Used for public profile views.
+ * 
+ * @param userId - The ID of the user whose public entries to fetch.
+ * @returns A promise resolving to an array of public JournalEntry objects, ordered by date descending.
  */
 export async function fetchPublicJournalEntriesServer(userId: string): Promise<JournalEntry[]> {
   const supabase = await createServerSideClient();

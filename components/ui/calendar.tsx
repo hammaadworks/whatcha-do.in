@@ -10,6 +10,7 @@ import { DayButton, DayPicker, getDefaultClassNames } from "react-day-picker"
 
 import { cn } from "@/lib/utils"
 import { Button, buttonVariants } from "@/components/ui/button"
+import { useSystemTime } from "@/components/providers/SystemTimeProvider"
 
 function Calendar({
   className,
@@ -24,10 +25,11 @@ function Calendar({
   buttonVariant?: React.ComponentProps<typeof Button>["variant"]
 }) {
   const defaultClassNames = getDefaultClassNames()
+  const { simulatedDate } = useSystemTime();
 
   return (
     <DayPicker
-      toDate={new Date()} // Prevent selection of future dates
+      toDate={simulatedDate || new Date()} // Prevent selection of future dates (relative to simulated time)
       showOutsideDays={showOutsideDays}
       className={cn(
         "p-3",

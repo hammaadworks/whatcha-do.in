@@ -1,6 +1,11 @@
 import {createClient} from './client';
 import {Identity} from './types';
 
+/**
+ * Fetches all identities for a given user, including the count of linked habits.
+ * @param userId - The ID of the user.
+ * @returns A promise resolving to an array of Identity objects with a `backingCount` property.
+ */
 export async function fetchIdentities(userId: string) {
     const supabase = createClient();
     // Fetch identities and count of backed habits
@@ -24,6 +29,12 @@ export async function fetchIdentities(userId: string) {
     }));
 }
 
+/**
+ * Creates a new identity for a user.
+ * @param userId - The ID of the user.
+ * @param identity - Object containing title, description, and public status.
+ * @returns The created identity object.
+ */
 export async function createIdentity(userId: string, identity: {
     title: string;
     description?: string;
@@ -47,6 +58,11 @@ export async function createIdentity(userId: string, identity: {
     return data;
 }
 
+/**
+ * Updates an existing identity.
+ * @param id - The ID of the identity to update.
+ * @param updates - Partial identity object with updated fields.
+ */
 export async function updateIdentity(id: string, updates: Partial<Identity>) {
     const supabase = createClient();
     const {error} = await supabase
@@ -60,6 +76,10 @@ export async function updateIdentity(id: string, updates: Partial<Identity>) {
     }
 }
 
+/**
+ * Deletes an identity.
+ * @param id - The ID of the identity to delete.
+ */
 export async function deleteIdentity(id: string) {
     const supabase = createClient();
     const {error} = await supabase
@@ -73,6 +93,11 @@ export async function deleteIdentity(id: string) {
     }
 }
 
+/**
+ * Fetches all habits linked to a specific identity.
+ * @param identityId - The ID of the identity.
+ * @returns Array of Habit objects linked to this identity.
+ */
 export async function fetchIdentityHabits(identityId: string) {
     const supabase = createClient();
     const {data, error} = await supabase
@@ -91,6 +116,12 @@ export async function fetchIdentityHabits(identityId: string) {
     return data.map((item: any) => item.habits);
 }
 
+/**
+ * Links a habit to an identity.
+ * @param userId - The ID of the user (for RLS/ownership check).
+ * @param habitId - The ID of the habit.
+ * @param identityId - The ID of the identity.
+ */
 export async function linkHabitToIdentity(userId: string, habitId: string, identityId: string) {
     const supabase = createClient();
     const {error} = await supabase
@@ -103,6 +134,11 @@ export async function linkHabitToIdentity(userId: string, habitId: string, ident
     }
 }
 
+/**
+ * Unlinks a habit from an identity.
+ * @param habitId - The ID of the habit.
+ * @param identityId - The ID of the identity.
+ */
 export async function unlinkHabitFromIdentity(habitId: string, identityId: string) {
     const supabase = createClient();
     const {error} = await supabase

@@ -1,4 +1,4 @@
-import {fetchTargets, updateTargets} from '@/lib/supabase/targets';
+import {fetchRawTargets, updateTargets} from '@/lib/supabase/targets';
 import {getMonthStartDate} from '@/lib/date';
 import {ActionNode} from '@/lib/supabase/types';
 
@@ -7,14 +7,14 @@ export async function processTargetLifecycle(userId: string, timezone: string) {
     const prevMonthDate = getMonthStartDate(-1, timezone);
 
     // Fetch targets from the previous month
-    const prevTargets = await fetchTargets(userId, prevMonthDate);
+    const prevTargets = await fetchRawTargets(userId, prevMonthDate);
 
     if (prevTargets.length > 0) {
         // 1. Separate Active (Uncompleted) and Completed items
         const {active, completed} = splitActiveCompleted(prevTargets);
 
         // 2. Fetch current month's targets to merge active items
-        const currentTargets = await fetchTargets(userId, currentMonthDate);
+        const currentTargets = await fetchRawTargets(userId, currentMonthDate);
         
         // 3. Merge Active items into Current Month
         // We append them. We assume IDs are unique enough or handled by the UI.

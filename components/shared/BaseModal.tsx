@@ -8,10 +8,9 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
-  // Removed DialogClose from here
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-// Removed X import as it's no longer directly used for the close button
+import { cn } from "@/lib/utils";
 
 interface BaseModalProps {
   isOpen: boolean;
@@ -19,10 +18,24 @@ interface BaseModalProps {
   title: string;
   description?: string;
   children?: React.ReactNode;
-  footerContent?: React.ReactNode; // Optional prop for custom footer content
-  className?: string; // Add className prop
+  footerContent?: React.ReactNode; 
+  className?: string; 
 }
 
+/**
+ * A reusable modal component built on top of the Shadcn Dialog primitive.
+ * 
+ * Provides consistent styling for headers, content, and footers.
+ * Supports custom footer content or defaults to a "Close" button.
+ * 
+ * @param isOpen - Controls the visibility of the modal.
+ * @param onClose - Handler called when the modal is closed.
+ * @param title - The title displayed in the header.
+ * @param description - Optional description text below the title.
+ * @param children - The main content of the modal.
+ * @param footerContent - Optional custom elements for the footer (e.g., action buttons).
+ * @param className - Optional additional classes for the DialogContent wrapper.
+ */
 const BaseModal: React.FC<BaseModalProps> = ({
   isOpen,
   onClose,
@@ -34,11 +47,17 @@ const BaseModal: React.FC<BaseModalProps> = ({
 }) => {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className={`w-full max-w-full !w-[calc(100vw-2rem)] max-h-[80vh] overflow-y-auto mx-auto p-0 ${className || ''}`}>
+      <DialogContent 
+        className={cn(
+          "w-full max-w-full sm:max-w-lg max-h-[80vh] overflow-y-auto p-0", 
+          // Responsive width override for mobile-first feel:
+          "!w-[calc(100vw-2rem)] sm:!w-full", 
+          className
+        )}
+      >
         <DialogHeader className="px-4 pt-10">
           <DialogTitle>{title}</DialogTitle>
           {description && <DialogDescription className="mt-1">{description}</DialogDescription>}
-          {/* The DialogClose is typically provided by DialogContent itself, so removing explicit add */}
         </DialogHeader>
         <div className="px-4">
           {children}

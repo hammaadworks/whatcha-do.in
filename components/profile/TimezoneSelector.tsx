@@ -6,6 +6,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Input } from '@/components/ui/input';
 import { Check, ChevronsUpDown, Clock, LocateFixed, Search, Globe } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useSystemTime } from '@/components/providers/SystemTimeProvider';
 
 // ... (keep helper functions: getFormattedLocalTime, getFriendlyTimeZoneName)
 
@@ -62,12 +63,13 @@ export const TimezoneSelector: React.FC<TimezoneSelectorProps> = ({ currentTimez
   const [timezoneOptions, setTimezoneOptions] = useState<TimezoneOption[]>([]);
   const [currentLocalTimeFormatted, setCurrentLocalTimeFormatted] = useState<string>('');
   const [search, setSearch] = useState('');
+  const { simulatedDate } = useSystemTime();
 
   useEffect(() => {
             const generateTimezoneOptions = () => {
               try {
                 const supportedTimezones = Intl.supportedValuesOf('timeZone');
-                const now = new Date(); 
+                const now = simulatedDate || new Date(); 
                 const options: TimezoneOption[] = supportedTimezones.map(tz => ({
                   id: tz,
                   label: getFriendlyTimeZoneName(tz, now),
@@ -90,7 +92,7 @@ export const TimezoneSelector: React.FC<TimezoneSelectorProps> = ({ currentTimez
   useEffect(() => {
     const updateTimeDisplay = () => {
       if (currentTimezone) {
-        setCurrentLocalTimeFormatted(getFormattedLocalTime(currentTimezone));
+        setCurrentLocalTimeFormatted(getFormattedLocalTime(currentTimezone, simulatedDate || new Date()));
       } else {
         setCurrentLocalTimeFormatted('Select timezone...');
       }
@@ -98,7 +100,7 @@ export const TimezoneSelector: React.FC<TimezoneSelectorProps> = ({ currentTimez
     updateTimeDisplay();
     const interval = setInterval(updateTimeDisplay, 1000);
     return () => clearInterval(interval);
-  }, [currentTimezone]);
+  }, [currentTimezone, simulatedDate]);
 
   const handleAutoDetect = useCallback(() => {
     const detected = Intl.DateTimeFormat().resolvedOptions().timeZone;

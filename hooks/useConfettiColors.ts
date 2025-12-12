@@ -1,4 +1,3 @@
-// lib/hooks/useConfettiColors.ts
 import { useTheme } from 'next-themes';
 import { useEffect, useState, useCallback } from 'react';
 
@@ -27,8 +26,6 @@ function hexToRgba(hex: string, alpha: number): string {
     return `rgba(128,128,128,${alpha})`;
   }
 
-  const hexValue = parseInt(cleanHex, 16); // Check if valid hex parseable
-
   if (cleanHex.length === 3) {
     r = parseInt(cleanHex[0] + cleanHex[0], 16);
     g = parseInt(cleanHex[1] + cleanHex[1], 16);
@@ -42,6 +39,14 @@ function hexToRgba(hex: string, alpha: number): string {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
+/**
+ * Custom hook to generate a confetti color palette based on the current theme's primary color.
+ * 
+ * Returns an array of RGBA strings with varying opacities of the primary color.
+ * Updates dynamically when the theme changes.
+ * 
+ * @returns An array of color strings (e.g., ['rgba(255, 0, 0, 1)', ...]).
+ */
 export function useConfettiColors(): string[] {
   const { theme } = useTheme();
   const [colors, setColors] = useState<string[]>(['rgba(128,128,128,1.0)']); // Default to opaque grey
@@ -54,11 +59,9 @@ export function useConfettiColors(): string[] {
     if (primaryHex.startsWith('#') && (primaryHex.length === 7 || primaryHex.length === 4)) {
       effectivePrimaryHex = primaryHex;
     } else {
-      // If fetchedPrimaryHex is invalid or empty, log a warning and use a neutral default
-      console.warn(`useConfettiColors: Invalid or empty --primary value fetched ("${primaryHex}") for theme "${theme}". Falling back to transparent grey.`);
+      // If fetchedPrimaryHex is invalid or empty, use a neutral default
       effectivePrimaryHex = '#808080'; // Neutral grey to be converted to transparent
     }
-    console.log(`useConfettiColors: Using effectivePrimaryHex: "${effectivePrimaryHex}" for confetti in theme "${theme}".`);
 
     // Generate opacity variations from the effective primary hex
     const generatedColors = [

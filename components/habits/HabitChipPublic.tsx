@@ -7,6 +7,7 @@ import { ShineBorder } from '../ui/shine-border';
 import { HabitPileState } from '@/lib/enums'; // Import HabitPileState enum
 import { Flame, Skull } from 'lucide-react';
 import { differenceInCalendarDays } from 'date-fns';
+import { useSystemTime } from '@/components/providers/SystemTimeProvider';
 
 interface HabitChipPublicProps {
   habit: Habit;
@@ -19,6 +20,7 @@ interface HabitChipPublicProps {
 
 export const HabitChipPublic: React.FC<HabitChipPublicProps> = ({ habit, disableClick, rightAddon, isPrivate, isJunked, pileState }) => {
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
+  const { simulatedDate } = useSystemTime();
 
   const handleClick = () => {
     if (!disableClick) {
@@ -26,7 +28,9 @@ export const HabitChipPublic: React.FC<HabitChipPublicProps> = ({ habit, disable
     }
   };
   
-  const daysNeglected = isJunked && habit.junked_at ? differenceInCalendarDays(new Date(), new Date(habit.junked_at)) : 0;
+  const daysNeglected = isJunked && habit.junked_at 
+    ? differenceInCalendarDays(simulatedDate || new Date(), new Date(habit.junked_at)) 
+    : 0;
 
   return (
     <>

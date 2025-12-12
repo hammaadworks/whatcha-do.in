@@ -8,34 +8,54 @@ import { getStartOfTodayInTimezone } from '@/lib/date';
  */
 export function applyNextDayClearing(nodes: ActionNode[], timezone: string): ActionNode[] {
   const startOfToday = getStartOfTodayInTimezone(timezone);
-  return filterNodes(nodes, startOfToday);
+  const { kept } = partitionActionsByClearingStatus(nodes, startOfToday);
+  return kept;
 }
 
-// Helper for applyNextDayClearing
-export function filterNodes(nodes: ActionNode[], startOfToday: number): ActionNode[] {
-  const filtered: ActionNode[] = [];
+/**
+ * Recursively separates actions into those that should be kept and those that should be removed
+ * based on the "Next Day Clearing" logic.
+ * 
+ * @param nodes The list of actions to process.
+ * @param startOfToday The timestamp (ms) representing the start of the current day.
+ * @returns An object containing the 'kept' tree and a flat array of 'removed' nodes.
+ */
+export function partitionActionsByClearingStatus(nodes: ActionNode[], startOfToday: number): { kept: ActionNode[], removed: ActionNode[] } {
+  const kept: ActionNode[] = [];
+  const removed: ActionNode[] = [];
 
   for (const node of nodes) {
-    const filteredChildren = node.children ? filterNodes(node.children, startOfToday) : [];
-    const hasVisibleChildren = filteredChildren.length > 0;
-
-    let shouldClear = false;
-    if (node.completed && node.completed_at) {
-      const completedTime = new Date(node.completed_at).getTime();
-      if (completedTime < startOfToday) {
-        shouldClear = true;
-      }
-    }
+    const { kept: keptChildren, removed: removedChildren } = node.children 
+        ? partitionActionsByClearingStatus(node.children, startOfToday) 
+        : { kept: [], removed: [] };
     
+    // Add removed children to the global removed list
+    removed.push(...removedChildren);
+
+    const hasVisibleChildren = keptChildren.length > 0;
+    let shouldClear = false;
+    
+    if (node.completed && node.completed_at) {
+        const completedTime = new Date(node.completed_at).getTime();
+        if (completedTime < startOfToday) {
+            shouldClear = true;
+        }
+    }
+
     if (!shouldClear || hasVisibleChildren) {
-      filtered.push({
-        ...node,
-        children: filteredChildren
-      });
+        kept.push({
+            ...node,
+            children: keptChildren
+        });
+    } else {
+        // Node is removed. 
+        // Its children (if any) were either already removed (and added to removed list) 
+        // or the node had no children.
+        removed.push(node);
     }
   }
 
-  return filtered;
+  return { kept, removed };
 }
 
 /**

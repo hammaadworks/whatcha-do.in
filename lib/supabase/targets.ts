@@ -2,7 +2,14 @@ import {createClient} from './client';
 import {ActionNode} from './types';
 import {filterTreeByPublicStatus} from '@/lib/logic/actions/processors';
 
-export async function fetchTargets(userId: string, targetDate: string | null) {
+/**
+ * Fetches the target tree for a specific user and date bucket.
+ * 
+ * @param userId - The ID of the user.
+ * @param targetDate - The bucket date (e.g., "2023-10-01") or null for future targets.
+ * @returns A promise resolving to the list of ActionNodes in the target bucket.
+ */
+export async function fetchTargets(userId: string, targetDate: string | null): Promise<ActionNode[]> {
     const supabase = createClient();
 
     // Build query
@@ -31,6 +38,26 @@ export async function fetchTargets(userId: string, targetDate: string | null) {
     return (data.data as ActionNode[]) || [];
 }
 
+/**
+ * Fetches raw targets without any processing. 
+ * Alias for `fetchTargets` but explicit in intent for lifecycle use.
+ * 
+ * @param userId - The ID of the user.
+ * @param targetDate - The bucket date.
+ * @returns A promise resolving to the raw ActionNode tree.
+ */
+export async function fetchRawTargets(userId: string, targetDate: string | null): Promise<ActionNode[]> {
+    return fetchTargets(userId, targetDate);
+}
+
+/**
+ * Fetches the public view of a user's targets for a specific bucket.
+ * Filters out private nodes and counts them.
+ * 
+ * @param userId - The ID of the user.
+ * @param targetDate - The bucket date.
+ * @returns An object containing the filtered targets and a count of private items.
+ */
 export async function fetchPublicTargets(userId: string, targetDate: string | null): Promise<{
     targets: ActionNode[],
     privateCount: number
@@ -63,6 +90,13 @@ export async function fetchPublicTargets(userId: string, targetDate: string | nu
     return {targets: actions, privateCount};
 }
 
+/**
+ * Updates or inserts a target tree for a specific user and bucket.
+ * 
+ * @param userId - The ID of the user.
+ * @param targetDate - The bucket date.
+ * @param nodes - The new tree of ActionNodes.
+ */
 export async function updateTargets(userId: string, targetDate: string | null, nodes: ActionNode[]) {
     const supabase = createClient();
 

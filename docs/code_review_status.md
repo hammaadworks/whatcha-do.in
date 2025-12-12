@@ -9,7 +9,14 @@ You are stepping into the role of the **Lead Senior Developer** and **Code Quali
 2.  **Enforce "Clean Code":** Modularize large files, remove dead code, and strictly separate "Business Logic" from "UI Components" or "Generic Utils".
 3.  **Document Rigorously:** Every exported function MUST have a **Google-style docstring** explaining parameters, return values, and edge cases.
 4.  **Add Tests:** Logic changes must be backed by Unit Tests (`vitest`/`jest`). We want a robust system, not a house of cards.
-5.  **Optimize:** Look for performance bottlenecks or "time travel" logic gaps (we rely heavily on timezone-aware logic).
+5.  **Test What You Touch:** If you refactor or document a file, you **MUST** ensure a corresponding unit test exists and passes. If it doesn't exist, create it.
+6.  **DO NOT ASSUME!!:** If you encounter any ambiguity in code logic, requirements, or expected behavior, **ASK** the user for clarification. Do not make assumptions. Better to ask than to break.
+7.  **Optimize:** Look for performance bottlenecks or "time travel" logic gaps (we rely heavily on timezone-aware logic).
+8.  **Understand:** Read the code and make intelligent review decisions avoid code duplication or rework. You can also read context from @docs/architecture.md and @docs/PRD.md.
+9.  **Standardize Structure:** Follow industry-accepted naming conventions.
+    *   **Client vs. Server:** Explicitly suffix server-only modules with `.server.ts` (e.g., `targets.server.ts`). Client-side (or shared) modules stay as `.ts` (e.g., `targets.ts`).
+    *   **Naming:** Use `kebab-case` for file names (e.g., `user-profile.tsx`) or `camelCase` for utilities/hooks (e.g., `useAuth.tsx`), maintaining consistency within directories.
+    *   **Enums/Constants:** Always use the centralized `lib/enums.ts` and `lib/constants.ts` for shared values.
 
 ---
 
@@ -41,7 +48,7 @@ We are tackling this in phases to ensure consistency across the entire stack.
 
 ---
 
-## 📊 Progress Tracker (Phase 1)
+## 📊 Progress Tracker (Phase 1 & 2)
 
 **Legend:**
 - ✅ **Completed:** Refactored, Documented, and Tested.
@@ -52,19 +59,19 @@ We are tackling this in phases to ensure consistency across the entire stack.
 ```text
 /codespace/whatcha-do.in/
 ├── hooks/
-│   ├── ⏳ useActions.ts
-│   ├── ⏳ useAuth.tsx
-│   ├── ⏳ useConfettiColors.ts
-│   ├── ⏳ useDebounce.ts
-│   ├── ⏳ useMediaQuery.ts
-│   ├── ⏳ usePWAInstall.tsx
-│   ├── ⏳ useTargets.ts (Likely broken by the move)
-│   └── ⏳ useTreeStructure.ts (Likely broken by the move)
+│   ├── ✅ useActions.ts (Refactored & Typed & Tested)
+│   ├── ⏳ useAuth.tsx (Refactored & Documented)
+│   ├── ✅ useConfettiColors.ts (Refactored & Tested)
+│   ├── ✅ useDebounce.ts (Refactored & Tested)
+│   ├── ✅ useMediaQuery.ts (Refactored & Tested)
+│   ├── ✅ usePWAInstall.tsx (Refactored & Tested)
+│   ├── ✅ useTargets.ts (Refactored & Tested)
+│   └── ✅ useTreeStructure.ts (Refactored & Tested)
 └── lib/
-    ├── ⏳ constants.ts
+    ├── ✅ constants.ts (Documented)
     ├── ✅ date.ts (Refactored: Now a facade for lib/time/*)
-    ├── ⏳ enums.ts
-    ├── ⏳ mock-data.ts (Fixed imports)
+    ├── ✅ enums.ts (Documented)
+    ├── ✅ mock-data.ts (Refactored & Typed)
     ├── ⏳ utils.ts (The generic UI utils - check if clean)
     ├── email-templates/
     │   └── ⏳ ...
@@ -73,17 +80,25 @@ We are tackling this in phases to ensure consistency across the entire stack.
     ├── logger/
     │   └── ⏳ ...
     ├── logic/
-    │   ├── 🚧 actions/
-    │   │   ├── utils.ts
-    │   │   ├── processors.ts
-    │   │   ├── tree-utils.ts
-    │   │   └── lifecycle.ts
+    │   ├── ✅ actions/
+    │   │   ├── ✅ processors.ts (Tested)
+    │   │   ├── ✅ tree-utils.ts (Tested)
+    │   │   └── ✅ lifecycle.ts (Tested)
     │   └── ⏳ ...
     ├── store/
     │   └── ⏳ ...
     ├── supabase/
-    │   ├── ✅ actions.ts (Fixed imports)
-    │   └── ⏳ ... (Check targets.ts, actions.server.ts)
+    │   ├── ⏳ actions.ts (Fixed imports)
+    │   ├── ⏳ actions.server.ts (Refactored & Tested)
+    │   ├── ⏳ habit.ts (Refactored & Documented)
+    │   ├── ⏳ habit.server.ts (Documented)
+    │   ├── ⏳ identities.ts (Documented)
+    │   ├── ⏳ identities.server.ts (Documented)
+    │   ├── ⏳ journal.ts (Documented)
+    │   ├── ⏳ journal.server.ts (Documented)
+    │   ├── ⏳ targets.ts (Refactored & Documented)
+    │   ├── ⏳ targets.server.ts (Documented)
+    │   └── ⏳ user.client.ts / user.server.ts (Documented)
     ├── time/
         ├── ✅ format.ts
         ├── ✅ logic.ts
@@ -96,16 +111,18 @@ We are tackling this in phases to ensure consistency across the entire stack.
 ## 👨‍💻 Protocol for the Next Agent
 
 1.  **Fix the Build:** Execute the "Immediate First Step" defined above.
-2.  **Date/Time Logic Integration (Important):**
-    *   I refactored `lib/date.ts` to use the new `lib/time/*` modules. It is now a facade.
-    *   **Task:** You must update the app to **use the new capabilities**. Specifically, search for usages of date functions in `hooks/` or components (like `SettingsDrawer` or `useSystemTime`) and pass the `simulatedDate` (Time Travel) argument where available.
-    *   **Task:** For new code, import directly from `@/lib/time/physics` or `@/lib/time/logic`.
-3.  **Verify:** Run `npx tsc --noEmit` or a relevant test to ensure the refactor is stable.
-4.  **Continue the Sweep:** Pick the next file in `lib/` (e.g., `lib/utils.ts` or `lib/supabase/user.ts`) or `hooks/` (e.g., `useAuth.tsx`).
-5.  **Refactor:** Apply Google-style docstrings, strictly type everything, and extract complex logic into pure functions if possible.
-6.  **Update this Doc:** Keep this file alive. It is our map.
+2.  **Phase 2 Start (UI Components):**
+    *   **Goal:** Ensure all components are accessible, performant, and consistently styled.
+    *   **Task:** Systematically audit `components/`. Start with `components/shared/` or `components/ui/` (the foundational blocks).
+    *   **Task:** Standardize Tailwind usage (remove arbitrary values where possible, use `cn()` util).
+    *   **Task:** Ensure `aria` attributes are present for accessibility.
+    *   **Task:** Check for hardcoded logic that should be moved to hooks.
+    *   **Task:** Add/Update unit tests for every component touched ("Test What You Touch").
+3.  **Verify:** Run `npx tsc --noEmit` to ensure type safety after any changes.
+4.  **Refactor:** Apply Google-style docstrings to all exported components and hooks.
+5.  **Update this Doc:** Keep this file alive. It is our map.
 
 **Prompt to Trigger Retirement:**
-When you have completed a significant chunk of work (e.g., fixed the build and refactored 1-2 more modules), use the following prompt to hand over to the next session:
+When you have completed a significant chunk of work (e.g., refactored a component directory like components/shared), use the following prompt to hand over to the next session:
 
 > "I have completed my session. I have [list what you fixed]. The current status of the codebase is [Stable/Unstable]. Please update @docs/code_review_status.md with my latest progress, list any hanging tasks for the next person, and provide a handover prompt similar to the one I received. Then you may retire."

@@ -2,6 +2,12 @@
 import { createClient } from './client';
 import { JournalEntry, ActivityLogEntry } from './types'; // Import ActivityLogEntry
 
+/**
+ * Fetches all journal entries for a given user, ordered by date descending.
+ * 
+ * @param userId - The ID of the user.
+ * @returns A promise resolving to an array of JournalEntry objects.
+ */
 export async function fetchJournalEntries(userId: string): Promise<JournalEntry[]> {
   const supabase = createClient();
   const { data, error } = await supabase
@@ -17,6 +23,14 @@ export async function fetchJournalEntries(userId: string): Promise<JournalEntry[
   return data || [];
 }
 
+/**
+ * Fetches a single journal entry by date and public status.
+ * 
+ * @param userId - The ID of the user.
+ * @param date - The date string (YYYY-MM-DD).
+ * @param isPublic - Whether to fetch the public or private entry.
+ * @returns A promise resolving to the JournalEntry or null if not found.
+ */
 export async function fetchJournalEntryByDate(userId: string, date: string, isPublic: boolean): Promise<JournalEntry | null> {
   const supabase = createClient();
   const { data, error } = await supabase
@@ -34,6 +48,12 @@ export async function fetchJournalEntryByDate(userId: string, date: string, isPu
   return data;
 }
 
+/**
+ * Creates or updates a journal entry.
+ * 
+ * @param entry - Partial entry object. Must include user_id, entry_date, and is_public.
+ * @returns A promise resolving to the upserted JournalEntry.
+ */
 export async function upsertJournalEntry(entry: Partial<JournalEntry> & { user_id: string; entry_date: string; is_public: boolean }): Promise<JournalEntry> {
   const supabase = createClient();
   const { data, error } = await supabase
@@ -52,11 +72,13 @@ export async function upsertJournalEntry(entry: Partial<JournalEntry> & { user_i
 /**
  * Updates a specific ActivityLogEntry within a JournalEntry's activity_log array.
  * Fetches the journal entry, modifies the activity log, and then upserts the journal entry.
- * @param userId The ID of the user.
- * @param entryDate The date of the journal entry (e.g., 'YYYY-MM-DD').
- * @param journalIsPublic The public/private status of the parent journal entry.
- * @param activityLogId The unique ID of the activity log entry to update.
- * @param changes An object containing the properties to update in the activity log entry.
+ * 
+ * @param userId - The ID of the user.
+ * @param entryDate - The date of the journal entry (e.g., 'YYYY-MM-DD').
+ * @param journalIsPublic - The public/private status of the parent journal entry.
+ * @param activityLogId - The unique ID of the activity log entry to update.
+ * @param changes - An object containing the properties to update in the activity log entry.
+ * @param now - Optional Date object for the 'updated_at' timestamp (defaults to new Date()).
  * @returns The updated JournalEntry.
  */
 export async function updateActivityLogEntry(
@@ -64,7 +86,8 @@ export async function updateActivityLogEntry(
   entryDate: string,
   journalIsPublic: boolean,
   activityLogId: string,
-  changes: Partial<ActivityLogEntry>
+  changes: Partial<ActivityLogEntry>,
+  now: Date = new Date()
 ): Promise<JournalEntry> {
   const supabase = createClient();
 
@@ -86,7 +109,7 @@ export async function updateActivityLogEntry(
     .upsert({
       ...existingEntry,
       activity_log: updatedActivityLog,
-      updated_at: new Date().toISOString(), // Update the updated_at timestamp
+      updated_at: now.toISOString(), // Update the updated_at timestamp
     } as JournalEntry) // Cast to JournalEntry to satisfy types
     .select()
     .single();
@@ -102,17 +125,20 @@ export async function updateActivityLogEntry(
 /**
  * Deletes a specific ActivityLogEntry from a JournalEntry's activity_log array.
  * Fetches the journal entry, removes the activity log entry, and then upserts the journal entry.
- * @param userId The ID of the user.
- *   @param entryDate The date of the journal entry (e.g., 'YYYY-MM-DD').
- * @param journalIsPublic The public/private status of the parent journal entry.
- * @param activityLogId The unique ID of the activity log entry to delete.
+ * 
+ * @param userId - The ID of the user.
+ * @param entryDate - The date of the journal entry (e.g., 'YYYY-MM-DD').
+ * @param journalIsPublic - The public/private status of the parent journal entry.
+ * @param activityLogId - The unique ID of the activity log entry to delete.
+ * @param now - Optional Date object for the 'updated_at' timestamp (defaults to new Date()).
  * @returns The updated JournalEntry.
  */
 export async function deleteActivityLogEntry(
   userId: string,
   entryDate: string,
   journalIsPublic: boolean,
-  activityLogId: string
+  activityLogId: string,
+  now: Date = new Date()
 ): Promise<JournalEntry> {
   const supabase = createClient();
 
@@ -134,7 +160,7 @@ export async function deleteActivityLogEntry(
     .upsert({
       ...existingEntry,
       activity_log: updatedActivityLog,
-      updated_at: new Date().toISOString(), // Update the updated_at timestamp
+      updated_at: now.toISOString(), // Update the updated_at timestamp
     } as JournalEntry) // Cast to JournalEntry to satisfy types
     .select()
     .single();

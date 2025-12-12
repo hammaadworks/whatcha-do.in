@@ -1,10 +1,14 @@
 import {createClient} from './client';
-import {Habit, ActivityLogEntry} from './types'; // Import ActivityLogEntry
+import {Habit, ActivityLogEntry} from './types'; 
 import {CompletionData} from '@/components/habits/HabitCompletionModal';
-import { JournalActivityService } from '@/lib/logic/JournalActivityService'; // New import for JournalActivityService
+import { JournalActivityService } from '@/lib/logic/JournalActivityService';
 import { PostgrestError } from '@supabase/supabase-js';
 
-// Placeholder for createHabit if it was lost, or real implementation
+/**
+ * Creates a new habit record in the database.
+ * @param habit - Partial habit object containing initial fields.
+ * @returns Object containing the created data or an error.
+ */
 export const createHabit = async (habit: Partial<Habit>): Promise<{ data: Habit | null; error: PostgrestError | null }> => {
     const supabase = createClient();
     const {data, error} = await supabase
@@ -15,6 +19,15 @@ export const createHabit = async (habit: Partial<Habit>): Promise<{ data: Habit 
     return {data, error};
 };
 
+/**
+ * Marks a habit as completed for a specific date.
+ * Updates streak, inserts completion record, and logs to journal.
+ * 
+ * @param habitId - ID of the habit to complete.
+ * @param data - Completion details (mood, work value, etc.).
+ * @param date - The date of completion (defaults to now).
+ * @returns Object containing the new completion ID or error.
+ */
 export async function completeHabit(habitId: string, data: CompletionData, date: Date = new Date()): Promise<{ data: { id: string } | null; error: PostgrestError | null }> {
     const supabase = createClient();
     const journalActivityService = new JournalActivityService(supabase);
@@ -101,6 +114,12 @@ export async function completeHabit(habitId: string, data: CompletionData, date:
     return { data: { id: newCompletion?.id ?? null }, error: null };
 }
 
+/**
+ * Deletes a specific habit completion record and removes its journal entry.
+ * 
+ * @param completionId - ID of the completion to delete.
+ * @param userId - ID of the user owning the completion.
+ */
 export async function deleteHabitCompletion(completionId: string, userId: string): Promise<void> {
     const supabase = createClient();
     const journalActivityService = new JournalActivityService(supabase);
@@ -148,6 +167,11 @@ export async function deleteHabitCompletion(completionId: string, userId: string
 }
 
 
+/**
+ * Fetches all habits for a specific user (owner view).
+ * @param userId - ID of the user.
+ * @returns Array of habits.
+ */
 export async function fetchOwnerHabits(userId: string): Promise<Habit[]> {
     const supabase = createClient();
     const {data, error} = await supabase
@@ -162,6 +186,12 @@ export async function fetchOwnerHabits(userId: string): Promise<Habit[]> {
     return data || [];
 }
 
+/**
+ * Updates an existing habit.
+ * @param habitId - ID of the habit to update.
+ * @param updates - Partial object with fields to update.
+ * @returns The updated habit object.
+ */
 export async function updateHabit(habitId: string, updates: Partial<Habit>): Promise<Habit> {
     const supabase = createClient();
     const {data, error} = await supabase
@@ -178,6 +208,10 @@ export async function updateHabit(habitId: string, updates: Partial<Habit>): Pro
     return data;
 }
 
+/**
+ * Deletes a habit and all associated data.
+ * @param habitId - ID of the habit to delete.
+ */
 export async function deleteHabit(habitId: string): Promise<void> {
     const supabase = createClient();
     const {error} = await supabase
@@ -191,7 +225,15 @@ export async function deleteHabit(habitId: string): Promise<void> {
     }
 }
 
-export async function unmarkHabit(habitId: string, targetState: string): Promise<void> {
+/**
+ * Moves a habit to a new pile state and optionally removes the latest completion if it was "today".
+ * Used when dragging a habit out of the "Today" column (unmarking it).
+ * 
+ * @param habitId - ID of the habit.
+ * @param targetState - The new pile state (e.g., 'yesterday', 'pile').
+ * @param referenceDate - Optional reference date for "today" check (defaults to now).
+ */
+export async function unmarkHabit(habitId: string, targetState: string, referenceDate: Date = new Date()): Promise<void> {
     const supabase = createClient();
     
     // 1. Fetch habit
@@ -218,9 +260,8 @@ export async function unmarkHabit(habitId: string, targetState: string): Promise
     if (latestCompletion) {
        // We can check if `latestCompletion.completed_at` is today.
        const completionDate = new Date(latestCompletion.completed_at);
-       const today = new Date();
        
-       const isSameDay = completionDate.toDateString() === today.toDateString();
+       const isSameDay = completionDate.toDateString() === referenceDate.toDateString();
        
        if (isSameDay) {
            await deleteHabitCompletion(latestCompletion.id, habit.user_id);
@@ -242,6 +283,11 @@ export async function unmarkHabit(habitId: string, targetState: string): Promise
     }
 }
 
+/**
+ * Backdates a completion for a habit (Developer Tool).
+ * @param habitId - ID of the habit.
+ * @param completedAt - The date to backdate the completion to.
+ */
 export async function backdateHabitCompletion(habitId: string, completedAt: Date): Promise<void> {
     const supabase = createClient();
     const journalActivityService = new JournalActivityService(supabase);
@@ -294,4 +340,3 @@ export async function backdateHabitCompletion(habitId: string, completedAt: Date
         );
     }
 }
-

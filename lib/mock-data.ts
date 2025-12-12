@@ -1,24 +1,39 @@
 // lib/mock-data.ts
 
-import { Habit } from './supabase/types'; // Import ActionNode
-import { addOriginalIndexRecursively, ActionNodeWithOriginalIndex } from '@/lib/logic/actions/utils'; // Import from new utility
+import { Habit, ActionNode } from './supabase/types';
+
+export interface ActionNodeWithOriginalIndex extends ActionNode {
+    originalIndex?: number;
+}
+
+let globalIndexCounter = 0;
+
+const addOriginalIndexRecursively = (actions: ActionNodeWithOriginalIndex[]): ActionNodeWithOriginalIndex[] => {
+    return actions.map((action) => {
+        const newAction: ActionNodeWithOriginalIndex = {...action, originalIndex: globalIndexCounter++};
+        if (action.children && action.children.length > 0) {
+            newAction.children = addOriginalIndexRecursively(action.children);
+        }
+        return newAction;
+    });
+};
 
 export const mockActionsData: ActionNodeWithOriginalIndex[] = addOriginalIndexRecursively([
-  { id: "1", description: "Complete project proposal", completed: false, children: [
-      { id: "1.1", description: "Outline key sections", completed: false },
-      { id: "1.2", description: "Gather data", completed: false },
-      { id: "1.3", description: "Draft executive summary", completed: false },
+  { id: "1", description: "Complete project proposal", completed: false, is_public: true, completed_at: undefined, children: [
+      { id: "1.1", description: "Outline key sections", completed: false, is_public: true, completed_at: undefined },
+      { id: "1.2", description: "Gather data", completed: false, is_public: true, completed_at: undefined },
+      { id: "1.3", description: "Draft executive summary", completed: false, is_public: true, completed_at: undefined },
     ]
   },
-  { id: "2", description: "Buy groceries", completed: true, children: [
-      { id: "2.1", description: "Make shopping list", completed: true },
-      { id: "2.2", description: "Go to supermarket", completed: true },
+  { id: "2", description: "Buy groceries", completed: true, is_public: true, completed_at: new Date().toISOString(), children: [
+      { id: "2.1", description: "Make shopping list", completed: true, is_public: true, completed_at: new Date().toISOString() },
+      { id: "2.2", description: "Go to supermarket", completed: true, is_public: true, completed_at: new Date().toISOString() },
     ]
   },
-  { id: "3", description: "Plan weekend trip", completed: false },
-  { id: "4", description: "Call mom", completed: false },
-  { id: "5", description: "Read for 30 minutes", completed: true },
-  { id: "6", description: "Go for a run", completed: false }
+  { id: "3", description: "Plan weekend trip", completed: false, is_public: true, completed_at: undefined },
+  { id: "4", description: "Call mom", completed: false, is_public: true, completed_at: undefined },
+  { id: "5", description: "Read for 30 minutes", completed: true, is_public: true, completed_at: new Date().toISOString() },
+  { id: "6", description: "Go for a run", completed: false, is_public: true, completed_at: undefined }
 ]);
 
 export const mockHabitsData: Habit[] = [
@@ -91,19 +106,19 @@ export const mockHabitsData: Habit[] = [
 ];
 
 export const mockPublicActionsData: ActionNodeWithOriginalIndex[] = addOriginalIndexRecursively([
-  { id: "1", description: "Finish the weekly report", completed: false, children: [
-      { id: "1.1", description: "Collect sales figures", completed: false },
-      { id: "1.2", description: "Summarize marketing efforts", completed: false },
+  { id: "1", description: "Finish the weekly report", completed: false, is_public: true, completed_at: undefined, children: [
+      { id: "1.1", description: "Collect sales figures", completed: false, is_public: true, completed_at: undefined },
+      { id: "1.2", description: "Summarize marketing efforts", completed: false, is_public: true, completed_at: undefined },
     ]
   },
-  { id: "2", description: "Schedule a dentist appointment", completed: true },
-  { id: "3", description: "Go for a 30-minute run", completed: false },
-  { id: "4", description: "Read a chapter of 'Atomic Habits'", completed: false, children: [
-      { id: "4.1", description: "Identify key takeaways", completed: false },
+  { id: "2", description: "Schedule a dentist appointment", completed: true, is_public: true, completed_at: new Date().toISOString() },
+  { id: "3", description: "Go for a 30-minute run", completed: false, is_public: true, completed_at: undefined },
+  { id: "4", description: "Read a chapter of 'Atomic Habits'", completed: false, is_public: true, completed_at: undefined, children: [
+      { id: "4.1", description: "Identify key takeaways", completed: false, is_public: true, completed_at: undefined },
     ]
   },
-  { id: "5", description: "Plan meals for the week", completed: true },
-  { id: "6", description: "Water the plants", completed: false },
+  { id: "5", description: "Plan meals for the week", completed: true, is_public: true, completed_at: new Date().toISOString() },
+  { id: "6", description: "Water the plants", completed: false, is_public: true, completed_at: undefined },
 ]);
 
 export const mockPublicHabitsData: Habit[] = [

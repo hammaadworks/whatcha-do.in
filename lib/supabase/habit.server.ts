@@ -2,8 +2,11 @@ import { createServerSideClient } from './server';
 import { Habit } from '@/lib/supabase/types'; // Import Habit from centralized types
 
 /**
- * Fetches habits for a specific user.
- * Assumes RLS is configured to handle public/private filtering if userId is for owner or other.
+ * Fetches all habits for a specific user from the server-side.
+ * Used for authenticated views or owner dashboards.
+ * 
+ * @param userId - The ID of the user whose habits to fetch.
+ * @returns A promise resolving to an array of Habit objects.
  */
 export async function fetchOwnerHabitsServer(userId: string): Promise<Habit[]> {
   const supabase = await createServerSideClient();
@@ -20,7 +23,11 @@ export async function fetchOwnerHabitsServer(userId: string): Promise<Habit[]> {
 }
 
 /**
- * Fetches public habits for a specific user.
+ * Fetches only public habits for a specific user.
+ * Used for public profile views.
+ * 
+ * @param userId - The ID of the user whose public habits to fetch.
+ * @returns A promise resolving to an array of public Habit objects.
  */
 export async function fetchPublicHabitsServer(userId: string): Promise<Habit[]> {
   const supabase = await createServerSideClient();

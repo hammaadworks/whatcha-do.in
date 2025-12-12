@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { backdateHabitCompletion } from '@/lib/supabase/habit'; // This will be a new function we create
+import { useSystemTime } from '@/components/providers/SystemTimeProvider';
 
 interface HabitDebugPanelProps {
     habits: Habit[];
@@ -16,9 +17,22 @@ interface HabitDebugPanelProps {
 }
 
 const HabitDebugPanel: React.FC<HabitDebugPanelProps> = ({ habits, onHabitUpdated }) => {
+    const { simulatedDate } = useSystemTime();
     const [selectedHabitId, setSelectedHabitId] = useState<string | null>(null);
     const [localHabitState, setLocalHabitState] = useState<Partial<Habit>>({});
-    const [backdateCompletionDate, setBackdateCompletionDate] = useState<string>(new Date().toISOString().split('T')[0]);
+    
+    const initialDate = simulatedDate 
+        ? simulatedDate.toISOString().split('T')[0] 
+        : new Date().toISOString().split('T')[0];
+        
+    const [backdateCompletionDate, setBackdateCompletionDate] = useState<string>(initialDate);
+
+    // Update backdate picker when time travel changes
+    useEffect(() => {
+        if (simulatedDate) {
+            setBackdateCompletionDate(simulatedDate.toISOString().split('T')[0]);
+        }
+    }, [simulatedDate]);
 
     const selectedHabit = habits.find(h => h.id === selectedHabitId);
 

@@ -5,15 +5,12 @@ import { useAuth } from './useAuth';
 import { toast } from 'sonner';
 import { getMonthStartDate, isFirstDayOfMonth } from '@/lib/date';
 import { processTargetLifecycle } from '@/lib/logic/targetLifecycle';
-import { addActionToTree, deleteActionFromTree, findNodeAndContext, DeletedNodeContext, addActionAfterId, addExistingActionToTree } from '@/lib/logic/actions/tree-utils'; // Import DeletedNodeContext and addActionAfterId
+import { addActionToTree, deleteActionFromTree, findNodeAndContext, DeletedNodeContext, addActionAfterId, addExistingActionToTree } from '@/lib/logic/actions/tree-utils';
 import { useTreeStructure } from './useTreeStructure';
+import { useSystemTime } from '@/components/providers/SystemTimeProvider';
+import { parseISO, isBefore, isAfter, isEqual } from 'date-fns';
 
 export type TargetBucket = 'future' | 'current' | 'prev' | 'prev1';
-
-// Helper to find a node recursively (from actionTreeUtils.ts)
-const findNode = (nodes: ActionNode[], id: string): ActionNode | null => {
-  return findNodeAndContext(nodes, id)?.node || null;
-};
 
 // Define save data function for useTreeStructure
 const saveTargetData = async (userId: string, dateContext: string | null, newTree: ActionNode[]) => {
@@ -22,32 +19,32 @@ const saveTargetData = async (userId: string, dateContext: string | null, newTre
 
 export const useTargets = (isOwner: boolean, timezone: string = 'UTC', initialTargets?: ActionNode[]) => {
   const { user } = useAuth();
+  const { simulatedDate } = useSystemTime();
 
   // State to store deleted context, including the bucket it was deleted from
-  // This will store the context from useTreeStructure, plus the bucket info.
   const [lastDeletedTargetContext, setLastDeletedTargetContext] = useState<{ context: DeletedNodeContext | null, bucket: TargetBucket | null } | null>(null);
 
-  // Memoize date contexts
-  const currentMonthDate = useMemo(() => getMonthStartDate(0, timezone), [timezone]);
-  const prevMonthDate = useMemo(() => getMonthStartDate(-1, timezone), [timezone]);
-  const prev1MonthDate = useMemo(() => getMonthStartDate(-2, timezone), [timezone]);
+  // Memoize date contexts with simulatedDate support
+  const currentMonthDate = useMemo(() => getMonthStartDate(0, timezone, simulatedDate ?? undefined), [timezone, simulatedDate]);
+  const prevMonthDate = useMemo(() => getMonthStartDate(-1, timezone, simulatedDate ?? undefined), [timezone, simulatedDate]);
+  const prev1MonthDate = useMemo(() => getMonthStartDate(-2, timezone, simulatedDate ?? undefined), [timezone, simulatedDate]);
 
   // Use useTreeStructure for each bucket
   const future = useTreeStructure({
-    fetchData: (userId) => fetchTargets(userId, null), // null for future targets date context
+    fetchData: (userId) => fetchTargets(userId, null),
     saveData: (userId, _dc, newTree) => saveTargetData(userId, null, newTree),
-    processLifecycle: undefined, // Future targets don't have a specific lifecycle
+    processLifecycle: undefined,
     entityType: 'target',
     isOwner,
     timezone,
     toastPrefix: 'Target',
     ownerId: user?.id || '',
     dateContext: null,
-    initialData: initialTargets?.filter(t => t.completed_at == null) // Filter for future if initialTargets provided
+    initialData: initialTargets?.filter(t => t.completed_at == null)
   });
 
   const current = useTreeStructure({
-    fetchData: (userId, tz) => fetchTargets(userId, getMonthStartDate(0, tz)),
+    fetchData: (userId, tz) => fetchTargets(userId, getMonthStartDate(0, tz, simulatedDate ?? undefined)),
     saveData: (userId, _dc, newTree) => saveTargetData(userId, currentMonthDate, newTree),
     processLifecycle: processTargetLifecycle,
     entityType: 'target',
@@ -56,33 +53,50 @@ export const useTargets = (isOwner: boolean, timezone: string = 'UTC', initialTa
     toastPrefix: 'Target',
     ownerId: user?.id || '',
     dateContext: currentMonthDate,
-    initialData: initialTargets?.filter(t => t.completed_at != null && new Date(t.completed_at) >= new Date(currentMonthDate)) // Filter for current
+    initialData: initialTargets?.filter(t => {
+        if (!t.completed_at) return false;
+        const completedDate = parseISO(t.completed_at);
+        const monthDate = parseISO(currentMonthDate);
+        return isAfter(completedDate, monthDate) || isEqual(completedDate, monthDate);
+    })
   });
 
   const prev = useTreeStructure({
-    fetchData: (userId, tz) => fetchTargets(userId, getMonthStartDate(-1, tz)),
+    fetchData: (userId, tz) => fetchTargets(userId, getMonthStartDate(-1, tz, simulatedDate ?? undefined)),
     saveData: (userId, _dc, newTree) => saveTargetData(userId, prevMonthDate, newTree),
-    processLifecycle: undefined, // Lifecycles are managed by 'current' for previous months
+    processLifecycle: undefined,
     entityType: 'target',
     isOwner,
     timezone,
     toastPrefix: 'Target',
     ownerId: user?.id || '',
     dateContext: prevMonthDate,
-    initialData: initialTargets?.filter(t => t.completed_at != null && new Date(t.completed_at) >= new Date(prevMonthDate) && new Date(t.completed_at) < new Date(currentMonthDate)) // Filter for previous
+    initialData: initialTargets?.filter(t => {
+        if (!t.completed_at) return false;
+        const completedDate = parseISO(t.completed_at);
+        const thisMonthDate = parseISO(prevMonthDate);
+        const nextMonthDate = parseISO(currentMonthDate);
+        return (isAfter(completedDate, thisMonthDate) || isEqual(completedDate, thisMonthDate)) && isBefore(completedDate, nextMonthDate);
+    })
   });
 
   const prev1 = useTreeStructure({
-    fetchData: (userId, tz) => fetchTargets(userId, getMonthStartDate(-2, tz)),
+    fetchData: (userId, tz) => fetchTargets(userId, getMonthStartDate(-2, tz, simulatedDate ?? undefined)),
     saveData: (userId, _dc, newTree) => saveTargetData(userId, prev1MonthDate, newTree),
-    processLifecycle: undefined, // Lifecycles are managed by 'current' for previous months
+    processLifecycle: undefined,
     entityType: 'target',
     isOwner,
     timezone,
     toastPrefix: 'Target',
     ownerId: user?.id || '',
     dateContext: prev1MonthDate,
-    initialData: initialTargets?.filter(t => t.completed_at != null && new Date(t.completed_at) >= new Date(prev1MonthDate) && new Date(t.completed_at) < new Date(prevMonthDate)) // Filter for previous-1
+    initialData: initialTargets?.filter(t => {
+        if (!t.completed_at) return false;
+        const completedDate = parseISO(t.completed_at);
+        const thisMonthDate = parseISO(prev1MonthDate);
+        const nextMonthDate = parseISO(prevMonthDate);
+        return (isAfter(completedDate, thisMonthDate) || isEqual(completedDate, thisMonthDate)) && isBefore(completedDate, nextMonthDate);
+    })
   });
 
   // Map bucket names to their respective useTreeStructure instances
