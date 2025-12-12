@@ -6,7 +6,7 @@ import {CircularProgress} from '@/components/ui/circular-progress';
 import {Skeleton} from '@/components/ui/skeleton';
 import {ActionsList} from '@/components/shared/ActionsList';
 import {AddActionForm} from '@/components/shared/AddActionForm';
-import {DeletedNodeContext} from '@/lib/utils/actionTreeUtils';
+import {DeletedNodeContext} from '@/lib/logic/actions/tree-utils';
 import {CollapsibleSectionWrapper} from '@/components/ui/collapsible-section-wrapper';
 import { Confetti, ConfettiRef } from '@/components/ui/confetti'; // Import Confetti
 import { useConfettiColors } from '@/hooks/useConfettiColors'; // Import useConfettiColors

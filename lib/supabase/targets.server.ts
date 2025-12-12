@@ -1,6 +1,6 @@
 import {createServerSideClient} from './server';
 import {ActionNode} from './types';
-import {filterTreeByPublicStatus} from '@/lib/utils/actionProcessors';
+import {filterTreeByPublicStatus} from '@/lib/logic/actions/processors';
 
 export async function fetchPublicTargetsServer(userId: string, targetDate: string | null): Promise<{
     targets: ActionNode[],

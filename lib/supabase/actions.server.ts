@@ -1,6 +1,6 @@
 import { createServerSideClient } from './server';
 import { ActionNode } from '@/lib/supabase/types';
-import { applyNextDayClearing, filterTreeByPublicStatus } from '@/lib/utils/actionProcessors';
+import { applyNextDayClearing, filterTreeByPublicStatus } from '@/lib/logic/actions/processors';
 
 /**
  * Fetches the entire action tree for the specified user.

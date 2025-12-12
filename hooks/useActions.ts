@@ -4,7 +4,7 @@ import { useTreeStructure } from './useTreeStructure';
 import { fetchActions, updateActions } from '@/lib/supabase/actions';
 import { ActionNode } from '@/lib/supabase/types'; // Correct import for ActionNode
 import { useAuth } from './useAuth';
-import { processActionLifecycle } from '@/lib/logic/actionLifecycle';
+import { processActionLifecycle } from '@/lib/logic/actions/lifecycle';
 
 // Type for the save data function specific to actions
 const saveActionData = async (userId: string, _dateContext: string | null, newTree: ActionNode[]) => {

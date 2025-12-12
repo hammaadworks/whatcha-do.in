@@ -5,7 +5,7 @@ import { useAuth } from './useAuth';
 import { toast } from 'sonner';
 import { getMonthStartDate, isFirstDayOfMonth } from '@/lib/date';
 import { processTargetLifecycle } from '@/lib/logic/targetLifecycle';
-import { addActionToTree, deleteActionFromTree, findNodeAndContext, DeletedNodeContext, addActionAfterId, addExistingActionToTree } from '@/lib/utils/actionTreeUtils'; // Import DeletedNodeContext and addActionAfterId
+import { addActionToTree, deleteActionFromTree, findNodeAndContext, DeletedNodeContext, addActionAfterId, addExistingActionToTree } from '@/lib/logic/actions/tree-utils'; // Import DeletedNodeContext and addActionAfterId
 import { useTreeStructure } from './useTreeStructure';
 
 export type TargetBucket = 'future' | 'current' | 'prev' | 'prev1';

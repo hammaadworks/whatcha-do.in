@@ -19,7 +19,7 @@ import {
   restoreActionInTree,
   recalculateCompletionStatus,
   DeletedNodeContext // Moved here from types
-} from '@/lib/utils/actionTreeUtils'; // Import DeletedNodeContext from actionTreeUtils
+} from '@/lib/logic/actions/tree-utils'; // Import DeletedNodeContext from actionTreeUtils
 import { getMillisecondsUntilNextDay } from '@/lib/date';
 import { createClient } from '@/lib/supabase/client';
 import { JournalActivityService } from '@/lib/logic/JournalActivityService';

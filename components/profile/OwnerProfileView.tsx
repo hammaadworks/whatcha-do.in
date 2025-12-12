@@ -17,11 +17,8 @@ import {fetchOwnerHabits} from '@/lib/supabase/habit';
 import {fetchJournalEntries} from '@/lib/supabase/journal';
 import {ActionNode, Habit, Identity, JournalEntry} from '@/lib/supabase/types';
 import {VibeSelector} from '@/components/profile/VibeSelector';
-import IdentitySection from '@/components/profile/sections/IdentitySection';
-import TargetsSection from '@/components/profile/sections/TargetsSection';
-import BioSection from '@/components/profile/sections/BioSection';
 import CoreIdentitySection from '@/components/profile/sections/CoreIdentitySection';
-import { useKeyboardShortcuts } from '@/components/shared/KeyboardShortcutsProvider'; // Import the new hook
+import {useKeyboardShortcuts} from '@/components/shared/KeyboardShortcutsProvider'; // Import the new hook
 
 interface OwnerProfileViewProps {
     username: string;
@@ -47,7 +44,14 @@ export default function OwnerProfileView({
     const router = useRouter();
     const searchParams = useSearchParams();
     const {user: authenticatedUser, refreshUser} = useAuth();
-    const { isMeFolded, toggleMeFold, isActionsFolded, toggleActionsFold, isJournalFolded, toggleJournalFold, isTargetsFolded, toggleTargetsFold } = useKeyboardShortcuts(); // Destructure new targets folding props
+    const {
+        isMeFolded,
+        toggleMeFold,
+        isActionsFolded,
+        toggleActionsFold,
+        isJournalFolded,
+        toggleJournalFold
+    } = useKeyboardShortcuts(); // Destructure new targets folding props
 
 
     const [optimisticTimezone, setOptimisticTimezone] = useState<string | null>(null);
@@ -170,15 +174,13 @@ export default function OwnerProfileView({
         return <div>Error: User profile not found for owner.</div>;
     }
 
-    return (
-        <div className="relative pt-8 lg:pt-4 w-full max-w-6xl">
+    return (<div className="relative pt-8 lg:pt-4 w-full max-w-6xl">
             <VibeSelector
                 currentViewMode={currentViewMode}
                 onViewModeChange={handleViewModeChange}
             />
 
-            {currentViewMode === 'public' ? (
-                <div className="animate-in fade-in duration-300">
+            {currentViewMode === 'public' ? (<div className="animate-in fade-in duration-300">
                     <PublicPage
                         user={profileToDisplay}
                         publicActions={publicActions}
@@ -188,9 +190,7 @@ export default function OwnerProfileView({
                         publicTargets={publicTargets}
                         privateCount={privateCount}
                     />
-                </div>
-            ) : (
-                <ProfileLayout
+                </div>) : (<ProfileLayout
                     username={username}
                     isOwner={true}
                     isReadOnly={isReadOnly}
@@ -253,8 +253,6 @@ export default function OwnerProfileView({
                         isReadOnly={isReadOnly}
                         loading={false}
                     />
-                </ProfileLayout>
-            )}
-        </div>
-    );
+                </ProfileLayout>)}
+        </div>);
 }

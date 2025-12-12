@@ -1,6 +1,6 @@
 import { createClient } from './client';
 import { ActionNode } from '@/lib/supabase/types';
-import { applyNextDayClearing, filterTreeByPublicStatus } from '@/lib/utils/actionProcessors';
+import { applyNextDayClearing, filterTreeByPublicStatus } from '@/lib/logic/actions/processors';
 
 const supabase = createClient();
 

@@ -10,7 +10,7 @@ import { CircularProgress } from '@/components/ui/circular-progress';
 import { AddActionForm } from './AddActionForm';
 import { Input } from "@/components/ui/input";
 import { ActionNode } from '@/lib/supabase/types';
-import { areAllChildrenCompleted } from '@/lib/utils/actionTreeUtils';
+import { areAllChildrenCompleted } from '@/lib/logic/actions/tree-utils';
 
 interface ActionItemProps {
   action: ActionNode;

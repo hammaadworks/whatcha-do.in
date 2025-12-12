@@ -1,7 +1,7 @@
 // lib/mock-data.ts
 
-import { Habit, ActionNode } from './supabase/types'; // Import ActionNode
-import { addOriginalIndexRecursively, ActionNodeWithOriginalIndex } from '@/lib/utils/action-utils'; // Import from new utility
+import { Habit } from './supabase/types'; // Import ActionNode
+import { addOriginalIndexRecursively, ActionNodeWithOriginalIndex } from '@/lib/logic/actions/utils'; // Import from new utility
 
 export const mockActionsData: ActionNodeWithOriginalIndex[] = addOriginalIndexRecursively([
   { id: "1", description: "Complete project proposal", completed: false, children: [

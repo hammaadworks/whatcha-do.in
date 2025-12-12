@@ -10,6 +10,7 @@ export const LOCAL_STORAGE_USER_PROFILE_CACHE_KEY = 'whatcha_user_profile_cache_
 export const AUTHOR_NAME = "Mohammed Hammaad";
 export const AUTHOR_TWITTER_HANDLE = "@hammaadworks";
 export const EMAIL = "hammaadworks@gmail.com";
+
 // export const DOMAIN_URL = "https://whatcha-do.in";
 export const DOMAIN_URL = "https://whatcha-doin.hammaadworks.com";
 export const WHATSAPP_PHONE_NUMBER = "8310428923";
@@ -20,12 +21,12 @@ export const GITHUB_PROFILE_URL = "https://github.com/hammaadworks";
 export const LINKEDIN_PROFILE_URL = "https://www.linkedin.com/in/hammaadworks";
 export const PRODUCTHUNT_PROFILE_URL = "https://www.producthunt.com/@hammaadworks";
 export const WEBSITE_URL = "https://www.hammaadworks.com";
+export const PWA_PROTOCOL = "web+whadoin";
 
 export const ACTIVITIES_PER_PAGE = 10;
 
-export const LOCAL_STORAGE_ME_FOLDED_KEY = 'whatcha_me_folded';
-export const LOCAL_STORAGE_ACTIONS_FOLDED_KEY = 'whatcha_actions_folded';
-export const LOCAL_STORAGE_JOURNAL_FOLDED_KEY = 'whatcha_journal_folded';
-export const LOCAL_STORAGE_TARGETS_FOLDED_KEY = 'whatcha_targets_folded';
+export const LOCAL_STORAGE_ME_FOLDED_KEY = 'whadoin_me_folded';
+export const LOCAL_STORAGE_ACTIONS_FOLDED_KEY = 'whadoin_actions_folded';
+export const LOCAL_STORAGE_JOURNAL_FOLDED_KEY = 'whadoin_journal_folded';
 
 export const IDENTITY_START_PHRASE = "I am";
