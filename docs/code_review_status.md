@@ -147,6 +147,7 @@ We are tackling this in phases to ensure consistency across the entire stack.
         ├── ✅ logic.ts
         └── ✅ physics.ts
 ├── app/
+│   ├── ✅ layout.tsx (Refactored & Documented)
 │   ├── ✅ page.tsx (Refactored & Documented)
 │   ├── ✅ [username]/page.tsx (Refactored & Documented)
 │   ├── ✅ logins/page.tsx (Documented)

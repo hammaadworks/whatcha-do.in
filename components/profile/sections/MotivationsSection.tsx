@@ -28,6 +28,29 @@ interface MotivationsSectionProps {
 
 const defaultQuote: QuoteItem = { id: 'default', text: "Work on your dreams as if your life depends on it. Because it does." };
 
+const hardcoded_quotes = [
+    "Get up. Discipline is how ambition turns into money.",
+    "Consistency is boring,but it pays rent and freedom.",
+    "Your habits are literally designing your bank account.",
+    "Stand up and act like the disciplined version of you.",
+    "One focused action today builds tomorrow's income.",
+    "Discipline beats motivation, especially on lazy days.",
+    "Do the small habit now. Let compounding cook.",
+    "Your identity decides your income, move accordingly.",
+    "Lock in daily. Success loves predictable effort.",
+    "Consistency is how underachievers turn unstoppable.",
+    "Build habits that make success automatic.",
+    "Focus is currency, stop spending it on nothing.",
+    "Act broke in effort, rich in discipline.",
+    "You don't feel disciplined. You act disciplined.",
+    "Your routine is your wealth strategy.",
+    "Show up tired. Consistency still counts.",
+    "Discipline today funds freedom tomorrow.",
+    "Stack disciplined days. Watch money follow.",
+    "Habits don't ask how you feel. Neither should you.",
+    "Get up. Become the person who doesn't quit."
+];
+
 const MotivationsSection: React.FC<MotivationsSectionProps> = ({ username, loading, isOwner }) => {
     const { user, loading: isAuthLoading } = useAuth();
     const [isInteracting, setIsInteracting] = useState(false);
@@ -89,23 +112,17 @@ const MotivationsSection: React.FC<MotivationsSectionProps> = ({ username, loadi
     }, []);
 
     const handleShuffle = useCallback(() => {
-        if (motivations.length > 0) {
-            let randomIndex;
-            let newQuote;
-            do {
-                randomIndex = Math.floor(Math.random() * motivations.length);
-                newQuote = motivations[randomIndex];
-            } while (newQuote.id === currentQuote.id && motivations.length > 1); // Avoid repeating the same quote if there are others
-            setCurrentQuote(newQuote);
-            toast.success("New motivation loaded!");
-        } else if (motivations.length === 0 && currentQuote.id !== defaultQuote.id) {
-            // If no custom motivations but a user quote is still displayed, switch to default
-            setCurrentQuote(defaultQuote);
-            toast.info("No custom quotes. Displaying default motivation.");
-        } else {
-            toast.info("No custom quotes to shuffle.");
-        }
-    }, [motivations, currentQuote.id]);
+        // Pick a random quote from the hardcoded list
+        const randomIndex = Math.floor(Math.random() * hardcoded_quotes.length);
+        const randomText = hardcoded_quotes[randomIndex];
+        
+        setCurrentQuote({
+            id: `hardcoded-${Date.now()}`, // Temporary unique ID
+            text: randomText
+        });
+        
+        toast.info("Work in progress stay tuned");
+    }, []);
 
     const handleReset = useCallback(() => {
         setCurrentQuote(initialGuestQuote);
@@ -157,7 +174,7 @@ const MotivationsSection: React.FC<MotivationsSectionProps> = ({ username, loadi
         const selected = motivations.find(q => q.text === text);
         if (selected) {
             setCurrentQuote(selected);
-            toast.success("New motivation selected!");
+            // toast.success("New motivation selected!"); // Removed to avoid double toasts
         }
     }, [motivations]);
 

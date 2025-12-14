@@ -3,7 +3,7 @@
 import React from 'react';
 import AppHeader from "@/components/layout/AppHeader";
 import AppFooter from "@/components/layout/AppFooter";
-// import { Toaster } from "sonner"; // Removed Toaster import
+import { Toaster } from "sonner"; // Removed Toaster import
 import { useKeyboardShortcuts } from '@/components/shared/KeyboardShortcutsProvider';
 import { SettingsDrawer } from '@/components/layout/SettingsDrawer';
 import { TooltipProvider } from '@/components/ui/tooltip'; // Import TooltipProvider
@@ -19,7 +19,12 @@ export function LayoutContent({ children }: { children: React.ReactNode }) {
                 {children}
             </main>
             <AppFooter/>
-            {/* Removed Toaster component */}
+            <Toaster
+                position="top-center"
+                closeButton
+                richColors
+                theme="system"
+            />
         </TooltipProvider>
     );
 }

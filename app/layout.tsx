@@ -8,7 +8,6 @@ import AppFooter from "@/components/layout/AppFooter";
 import { createServerSideClient } from '@/lib/supabase/server';
 import logger from '@/lib/logger/server'; // Import the server logger
 import { Pointer } from "@/components/ui/pointer";
-import { Toaster } from "sonner";
 import {
     DOMAIN_URL,
     AUTHOR_NAME,
@@ -80,6 +79,19 @@ import { cookies } from 'next/headers';
 
 // ... other imports ...
 
+/**
+ * Root Layout Component
+ *
+ * This is the top-level layout for the entire application. It handles:
+ * - Global CSS imports (Tailwind, animations, fonts).
+ * - Metadata configuration (SEO, OpenGraph).
+ * - Core providers (Theme, Auth, Time, Keyboard Shortcuts).
+ * - Global UI elements (Pointer, Toaster).
+ *
+ * @param {Readonly<{ children: React.ReactNode }>} props - The component props.
+ * @param {React.ReactNode} props.children - The nested route content to render.
+ * @returns {Promise<JSX.Element>} The rendered HTML structure.
+ */
 export default async function RootLayout({children,}: Readonly<{ children: React.ReactNode; }>) {
     // ... existing async function content ...
 
