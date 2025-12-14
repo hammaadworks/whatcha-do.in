@@ -42,10 +42,12 @@ export function getCurrentDateInTimezone(
  * @param referenceDate Optional reference date for Time Travel.
  */
 export function isCompletedBeforeToday(
-  timestampISO: string, 
+  timestampISO: string | null | undefined, 
   timezone: string = 'UTC',
   referenceDate: Date | number = new Date()
 ): boolean {
+  if (!timestampISO) return false;
+  
   // It is before today if it is NOT "Today" (and we assume it's in the past).
   // Strictly: completed < startOfToday
   // Our logic module has `isCompletedToday`.

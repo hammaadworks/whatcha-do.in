@@ -16,6 +16,10 @@ interface HabitChipPrivateProps {
     columnId?: 'today' | 'yesterday' | 'pile';
 }
 
+/**
+ * A private view of a Habit Chip, allowing interaction (completion, editing).
+ * Used in the authenticated user's dashboard.
+ */
 export const HabitChipPrivate: React.FC<HabitChipPrivateProps> = ({
                                                                       habit,
                                                                       onHabitUpdated,
@@ -27,21 +31,6 @@ export const HabitChipPrivate: React.FC<HabitChipPrivateProps> = ({
     const [isCompletionModalOpen, setIsCompletionModalOpen] = useState(false);
 
     const canBeDeleted = columnId === 'pile';
-    const isCompletedToday = habit.pile_state === 'today' && habit.current_streak > 0; // Logic might vary based on exact state definitions, but usually "today" means completed for today?
-    // Wait, "Today" column usually means "Due Today" or "Done Today"?
-    // PRD: "Three-column layout (Today, Yesterday, The Pile)".
-    // Usually "Today" holds habits *to be done*.
-    // If completed, do they stay or move?
-    // PRD 2.9: "Automatically transition between Today and Yesterday at midnight".
-    // If completed, it stays in Today (marked done?).
-    // Let's assume "Today" column has both.
-    // But wait, usually apps move completed to "Done" section.
-    // Let's assume we show a Check button if it's NOT completed today.
-    // Ideally we check `last_completed_at`?
-    // For MVP, let's assume we can always "Complete" it to increment streak (maybe multiple times a day for some habits?).
-    // But typically once per day.
-
-    // Let's just add the check button.
 
     return (<>
             <div className="group relative flex items-center w-fit">

@@ -1,6 +1,6 @@
 import {notFound} from 'next/navigation';
 import {getUserByUsernameServer} from '@/lib/supabase/user.server';
-import PrivatePage from '@/components/profile/PrivatePage'; // Import from the correct path
+import {PrivatePage} from '@/components/profile/PrivatePage'; // Import from the correct path
 import {fetchPublicActionsServer} from '@/lib/supabase/actions.server'; // Use server-side actions
 import {fetchPublicHabitsServer} from '@/lib/supabase/habit.server'; // Use server-side habits
 import {fetchPublicJournalEntriesServer} from '@/lib/supabase/journal.server'; // Use server-side journal
@@ -15,6 +15,15 @@ type ProfilePageProps = {
     }>;
 };
 
+/**
+ * Server Component for the dynamic user profile route (`/[username]`).
+ * 
+ * Responsibilities:
+ * 1. Resolves the `username` from the URL.
+ * 2. Fetches public data (User profile, Habits, Actions, etc.) on the server for SEO and performance.
+ * 3. Passes this initial data to the client-side `PrivatePage` component.
+ * 4. Handles 404s if the user does not exist.
+ */
 export default async function ProfilePage({params}: ProfilePageProps) {
     const {username} = await params;
 

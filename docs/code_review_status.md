@@ -13,10 +13,41 @@ You are stepping into the role of the **Lead Senior Developer** and **Code Quali
 6.  **DO NOT ASSUME!!:** If you encounter any ambiguity in code logic, requirements, or expected behavior, **ASK** the user for clarification. Do not make assumptions. Better to ask than to break.
 7.  **Optimize:** Look for performance bottlenecks or "time travel" logic gaps (we rely heavily on timezone-aware logic).
 8.  **Understand:** Read the code and make intelligent review decisions avoid code duplication or rework. You can also read context from @docs/architecture.md and @docs/PRD.md.
-9.  **Standardize Structure:** Follow industry-accepted naming conventions.
-    *   **Client vs. Server:** Explicitly suffix server-only modules with `.server.ts` (e.g., `targets.server.ts`). Client-side (or shared) modules stay as `.ts` (e.g., `targets.ts`).
-    *   **Naming:** Use `kebab-case` for file names (e.g., `user-profile.tsx`) or `camelCase` for utilities/hooks (e.g., `useAuth.tsx`), maintaining consistency within directories.
-    *   **Enums/Constants:** Always use the centralized `lib/enums.ts` and `lib/constants.ts` for shared values.
+9.  **Standardize Structure:** Follow the **Engineering Standards & Conventions** section below for naming and file placement.
+10. Let's see @docs/wiki/strcutured_logging-guide.md to add relevant logs and clean up bad code.
+
+---
+
+## 📏 Engineering Standards & Conventions
+
+To ensure long-term maintainability, we adhere to the following strict conventions.
+
+### 1. File Naming
+*   **React Components (`.tsx`):** Use `PascalCase`.
+    *   *Example:* `UserProfile.tsx`, `SubmitButton.tsx`.
+    *   *Why:* Matches the import and usage syntax (`<UserProfile />`).
+*   **Hooks (`.ts` / `.tsx`):** Use `camelCase`, always starting with `use`.
+    *   *Example:* `useAuth.ts`, `useWindowSize.ts`.
+    *   *Why:* React standard for identifying hooks.
+*   **Logic, Utils, & Libraries (`.ts`):** Use `kebab-case`.
+    *   *Example:* `date-utils.ts`, `habit-logic.ts`, `api-client.ts`.
+    *   *Why:* Standard in the JS ecosystem for non-component modules; avoids casing issues on different OS file systems.
+*   **Server-Only Files:** Suffix with `.server.ts`.
+    *   *Example:* `habit.server.ts`, `db.server.ts`.
+    *   *Why:* Prevents accidental bundling of sensitive server code into client bundles.
+
+### 2. Directory Structure
+*   **Feature-Based Grouping:** Prefer grouping by feature over type.
+    *   *Good:* `components/habits/HabitList.tsx`
+    *   *Bad:* `components/lists/HabitList.tsx`
+*   **`lib/` vs `utils/`:**
+    *   `lib/`: Domain-specific business logic and data access (e.g., `lib/supabase/`, `lib/time/`).
+    *   `utils/` (or `lib/utils.ts`): Truly generic helpers (e.g., class name merger `cn()`, math helpers) that could be used in *any* project.
+
+### 3. Code Style
+*   **Exports:** Prefer **Named Exports** over Default Exports to ensure consistent naming across imports.
+    *   *Exception:* Next.js Pages (`page.tsx`) must use Default Exports.
+*   **Types:** Co-locate types if specific to a component. If shared, use `lib/types/` or `lib/supabase/types.ts`.
 
 ---
 
@@ -63,10 +94,22 @@ We are tackling this in phases to ensure consistency across the entire stack.
 │   ├── ⏳ useAuth.tsx (Refactored & Documented)
 │   ├── ✅ useConfettiColors.ts (Refactored & Tested)
 │   ├── ✅ useDebounce.ts (Refactored & Tested)
+│   ├── ✅ useHabitDnd.ts (Created & Tested)
 │   ├── ✅ useMediaQuery.ts (Refactored & Tested)
 │   ├── ✅ usePWAInstall.tsx (Refactored & Tested)
 │   ├── ✅ useTargets.ts (Refactored & Tested)
 │   └── ✅ useTreeStructure.ts (Refactored & Tested)
+└── components/
+    └── habits/
+        ├── ✅ EditHabitModal.tsx (Documented)
+        ├── ✅ HabitChipPrivate.tsx (Refactored & Documented)
+        ├── ✅ HabitChipPublic.tsx (Documented)
+        ├── ✅ HabitColumn.tsx (Created & Tested)
+        ├── ✅ HabitCompletionModal.tsx (Documented)
+        ├── ✅ HabitCreator.tsx (Documented)
+        ├── ✅ HabitCreatorModal.tsx (Documented)
+        ├── ✅ HabitInfoModal.tsx (Documented)
+        └── ✅ SortableHabit.tsx (Documented)
 └── lib/
     ├── ✅ constants.ts (Documented)
     ├── ✅ date.ts (Refactored: Now a facade for lib/time/*)
@@ -90,8 +133,8 @@ We are tackling this in phases to ensure consistency across the entire stack.
     ├── supabase/
     │   ├── ⏳ actions.ts (Fixed imports)
     │   ├── ⏳ actions.server.ts (Refactored & Tested)
-    │   ├── ⏳ habit.ts (Refactored & Documented)
-    │   ├── ⏳ habit.server.ts (Documented)
+    │   ├── ✅ habit.ts (Refactored & Tested)
+    │   ├── ✅ habit.server.ts (Refactored & Tested)
     │   ├── ⏳ identities.ts (Documented)
     │   ├── ⏳ identities.server.ts (Documented)
     │   ├── ⏳ journal.ts (Documented)
@@ -103,6 +146,46 @@ We are tackling this in phases to ensure consistency across the entire stack.
         ├── ✅ format.ts
         ├── ✅ logic.ts
         └── ✅ physics.ts
+├── app/
+│   ├── ✅ page.tsx (Refactored & Documented)
+│   ├── ✅ [username]/page.tsx (Refactored & Documented)
+│   ├── ✅ logins/page.tsx (Documented)
+│   ├── ✅ me/page.tsx (Documented)
+│   ├── ✅ not-found.tsx (Refactored)
+│   └── ⏳ ...
+├── components/
+    ├── auth/
+    │   └── ⏳ ...
+    ├── habits/
+        ├── ✅ EditHabitModal.tsx (Documented)
+        ├── ✅ HabitChipPrivate.tsx (Refactored & Documented)
+        ├── ✅ HabitChipPublic.tsx (Documented)
+        ├── ✅ HabitColumn.tsx (Created & Tested)
+        ├── ✅ HabitCompletionModal.tsx (Documented)
+        ├── ✅ HabitCreator.tsx (Documented)
+        ├── ✅ HabitCreatorModal.tsx (Documented)
+        ├── ✅ HabitInfoModal.tsx (Documented)
+        └── ✅ SortableHabit.tsx (Documented)
+    ├── journal/
+    │   └── ⏳ ...
+    ├── landing/
+    │   ├── ✅ PWASection.tsx (Refactored & Documented)
+    │   └── ⏳ ...
+    ├── layout/
+    │   └── ⏳ ...
+    ├── not-found/
+    │   ├── ✅ NotFoundLayout.tsx (Refactored & Documented)
+    │   ├── ✅ PageNotFoundContent.tsx (Refactored & Documented)
+    │   └── ✅ UserNotFoundContent.tsx (Refactored & Documented)
+    ├── profile/
+        ├── ✅ PrivatePage.tsx (Refactored & Documented)
+        └── ⏳ ...
+    ├── providers/
+    │   └── ⏳ ...
+    ├── shared/
+    │   └── ⏳ ...
+    ├── ui/
+    │   └── ⏳ ...
 
 ```
 

@@ -43,6 +43,10 @@ const predefinedUnits = [
   "Custom...",
 ];
 
+/**
+ * Modal component for editing an existing habit's details.
+ * Allows modifying name, visibility, and goal settings.
+ */
 const EditHabitModal: React.FC<EditHabitModalProps> = ({ isOpen, onClose, habit, onSave }) => {
   const [name, setName] = useState(habit.name);
   const [isPublic, setIsPublic] = useState(habit.is_public);
@@ -55,16 +59,14 @@ const EditHabitModal: React.FC<EditHabitModalProps> = ({ isOpen, onClose, habit,
 
   useEffect(() => {
     if (isOpen) {
-      setTimeout(() => {
-        setName(habit.name);
-        setIsPublic(habit.is_public);
-        setGoalValue(habit.goal_value);
-        setGoalUnit(habit.goal_unit && predefinedUnits.includes(habit.goal_unit) ? habit.goal_unit : "Custom...");
-        setCustomUnit(habit.goal_unit && !predefinedUnits.includes(habit.goal_unit) ? habit.goal_unit : "");
-        setNameError('');
-        setGoalValueError('');
-        setGoalUnitError('');
-      }, 0);
+      setName(habit.name);
+      setIsPublic(habit.is_public);
+      setGoalValue(habit.goal_value);
+      setGoalUnit(habit.goal_unit && predefinedUnits.includes(habit.goal_unit) ? habit.goal_unit : "Custom...");
+      setCustomUnit(habit.goal_unit && !predefinedUnits.includes(habit.goal_unit) ? habit.goal_unit : "");
+      setNameError('');
+      setGoalValueError('');
+      setGoalUnitError('');
     }
   }, [isOpen, habit]);
 

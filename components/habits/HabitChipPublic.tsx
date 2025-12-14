@@ -18,6 +18,11 @@ interface HabitChipPublicProps {
   pileState?: string; // New prop for pile state to control ShineBorder
 }
 
+/**
+ * A public-facing view of a Habit Chip.
+ * Displays the habit name, streak (if active), and visual status (junked/active).
+ * Can be used by both the owner (in read-only contexts) and public visitors.
+ */
 export const HabitChipPublic: React.FC<HabitChipPublicProps> = ({ habit, disableClick, rightAddon, isPrivate, isJunked, pileState }) => {
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
   const { simulatedDate } = useSystemTime();

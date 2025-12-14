@@ -58,7 +58,7 @@ describe('Supabase Actions Client', () => {
       const result = await fetchActions(userId);
 
       expect(result).toEqual([]);
-      expect(applyNextDayClearing).toHaveBeenCalledWith([], 'UTC');
+      expect(applyNextDayClearing).not.toHaveBeenCalled();
     });
 
     test('should throw on other errors', async () => {

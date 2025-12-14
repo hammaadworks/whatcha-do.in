@@ -27,6 +27,10 @@ export interface CompletionData {
     notes?: string;
 }
 
+/**
+ * Modal for logging the completion of a habit.
+ * Collects metadata like mood, duration, and notes.
+ */
 export const HabitCompletionModal: React.FC<HabitCompletionModalProps> = ({isOpen, onClose, habit, onConfirm}) => {
     const [mood, setMood] = useState(50); // 0-100
     const [workValue, setWorkValue] = useState<string>('');

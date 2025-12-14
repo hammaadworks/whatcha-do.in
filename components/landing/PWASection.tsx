@@ -8,7 +8,12 @@ import { Button } from '@/components/ui/button';
 import { Download, CheckCircle2 } from 'lucide-react';
 import LoginPromptModal from '@/components/shared/LoginPromptModal'; // Will create this component next
 
-const PWASection = () => {
+/**
+ * A section prompting the user to install the application as a PWA.
+ * Conditionally renders only if the app is NOT already installed.
+ * Handles iOS specific instructions and login checks.
+ */
+export const PWASection = () => {
     const { user, loading } = useAuth();
     const { promptInstall, isAppInstalled, isIOS, setInstallMessage, setShowInstallMessage } = usePWAInstall();
     const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
@@ -96,5 +101,3 @@ const PWASection = () => {
         </section>
     );
 };
-
-export default PWASection;

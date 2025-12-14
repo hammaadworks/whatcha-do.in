@@ -11,6 +11,10 @@ interface SortableHabitProps {
   className?: string;
 }
 
+/**
+ * A wrapper component that makes its children sortable using `@dnd-kit`.
+ * Used in the Habits Board for drag-and-drop functionality.
+ */
 export function SortableHabit({ id, children, disabled, className }: SortableHabitProps) {
   const {
     attributes,

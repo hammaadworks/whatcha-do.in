@@ -22,6 +22,10 @@ interface HabitInfoModalProps {
   canBeDeleted?: boolean;
 }
 
+/**
+ * A modal that displays detailed information about a habit (Stats, Streak, Goal).
+ * For private habits, it provides options to Edit or Delete.
+ */
 const HabitInfoModal: React.FC<HabitInfoModalProps> = ({
   habit,
   isOpen,

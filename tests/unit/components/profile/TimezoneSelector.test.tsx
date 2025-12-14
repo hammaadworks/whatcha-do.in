@@ -3,12 +3,19 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { TimezoneSelector } from '@/components/profile/TimezoneSelector';
+import { SystemTimeProvider } from '@/components/providers/SystemTimeProvider';
 
 // Mock Intl.DateTimeFormat for consistent auto-detect testing
 const mockResolvedOptions = jest.fn();
 global.Intl.DateTimeFormat = jest.fn(() => ({
   resolvedOptions: mockResolvedOptions,
 })) as any;
+
+const renderWithProvider = (ui: React.ReactElement) => {
+  return render(
+    <SystemTimeProvider>{ui}</SystemTimeProvider>
+  );
+};
 
 describe('TimezoneSelector Component', () => {
   const mockOnTimezoneChange = jest.fn();
@@ -19,17 +26,17 @@ describe('TimezoneSelector Component', () => {
   });
 
   it('renders correctly with default text', () => {
-    render(<TimezoneSelector onTimezoneChange={mockOnTimezoneChange} />);
+    renderWithProvider(<TimezoneSelector onTimezoneChange={mockOnTimezoneChange} />);
     expect(screen.getByText('Select timezone...')).toBeInTheDocument();
   });
 
   it('renders correctly with provided timezone', () => {
-    render(<TimezoneSelector currentTimezone="America/New_York" onTimezoneChange={mockOnTimezoneChange} />);
+    renderWithProvider(<TimezoneSelector currentTimezone="America/New_York" onTimezoneChange={mockOnTimezoneChange} />);
     expect(screen.getByText('America/New_York')).toBeInTheDocument();
   });
 
   it('displays local time (mocked)', async () => {
-    render(<TimezoneSelector currentTimezone="UTC" onTimezoneChange={mockOnTimezoneChange} />);
+    renderWithProvider(<TimezoneSelector currentTimezone="UTC" onTimezoneChange={mockOnTimezoneChange} />);
     // We check for the clock icon to ensure the time display section is rendered
     // Actual time string verification is flaky in JSDOM without heavy mocking, relying on integration test for visual
     const clockIcon = document.querySelector('.lucide-clock');
@@ -37,7 +44,7 @@ describe('TimezoneSelector Component', () => {
   });
 
   it('opens popover and lists timezones on click', async () => {
-    render(<TimezoneSelector onTimezoneChange={mockOnTimezoneChange} />);
+    renderWithProvider(<TimezoneSelector onTimezoneChange={mockOnTimezoneChange} />);
     
     const trigger = screen.getByRole('combobox');
     fireEvent.click(trigger);
@@ -49,7 +56,7 @@ describe('TimezoneSelector Component', () => {
   });
 
   it('calls onTimezoneChange when a timezone is selected', async () => {
-    render(<TimezoneSelector onTimezoneChange={mockOnTimezoneChange} />);
+    renderWithProvider(<TimezoneSelector onTimezoneChange={mockOnTimezoneChange} />);
     
     fireEvent.click(screen.getByRole('combobox'));
     
@@ -63,7 +70,7 @@ describe('TimezoneSelector Component', () => {
   });
 
   it('handles Auto-detect correctly', async () => {
-    render(<TimezoneSelector onTimezoneChange={mockOnTimezoneChange} />);
+    renderWithProvider(<TimezoneSelector onTimezoneChange={mockOnTimezoneChange} />);
     
     fireEvent.click(screen.getByRole('combobox'));
     

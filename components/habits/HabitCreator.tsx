@@ -29,6 +29,10 @@ const predefinedUnits = [
   "Custom...",
 ];
 
+/**
+ * A form component for creating new habits.
+ * Includes fields for name, goal tracking (value/unit), and visibility.
+ */
 export function HabitCreator({ onHabitCreated }: HabitCreatorProps) {
   const { user } = useAuth();
   const [habitName, setHabitName] = useState("");

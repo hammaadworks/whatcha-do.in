@@ -16,6 +16,12 @@ interface HabitDebugPanelProps {
     onHabitUpdated: () => void;
 }
 
+/**
+ * A developer-only panel for debugging and manipulating habit states.
+ * Allows force-setting streak values, changing pile states, and backdating completions ("Time Travel").
+ * 
+ * Visibility is controlled by `HabitsSection` based on the authenticated user.
+ */
 const HabitDebugPanel: React.FC<HabitDebugPanelProps> = ({ habits, onHabitUpdated }) => {
     const { simulatedDate } = useSystemTime();
     const [selectedHabitId, setSelectedHabitId] = useState<string | null>(null);
