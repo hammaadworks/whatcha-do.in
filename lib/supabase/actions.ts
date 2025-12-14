@@ -1,17 +1,12 @@
 import { createClient } from './client';
 import { ActionNode } from '@/lib/supabase/types';
 import { applyNextDayClearing, filterTreeByPublicStatus } from '@/lib/logic/actions/processors';
+import { withLogging } from '@/lib/logger/withLogging';
 
 /**
- * Fetches the entire action tree for the specified user from the client-side.
- * Applies "Next Day Clearing" logic based on the user's timezone.
- *
- * @param userId - The UUID of the user.
- * @param userTimezone - The IANA timezone string of the user (default: 'UTC').
- * @returns A promise resolving to the list of root ActionNodes.
- * @throws Error if the fetch fails (excluding 'PGRST116' no rows error).
+ * Internal function to fetch actions.
  */
-export async function fetchActions(userId: string, userTimezone: string = 'UTC'): Promise<ActionNode[]> {
+async function _fetchActions(userId: string, userTimezone: string = 'UTC'): Promise<ActionNode[]> {
   const supabase = createClient();
   const { data, error } = await supabase
     .from('actions')
@@ -32,13 +27,20 @@ export async function fetchActions(userId: string, userTimezone: string = 'UTC')
 }
 
 /**
- * Fetches the raw action tree for the specified user without applying any filtering.
- * Useful for lifecycle processing where we need to see what needs to be cleaned.
+ * Fetches the entire action tree for the specified user from the client-side.
+ * Applies "Next Day Clearing" logic based on the user's timezone.
  *
  * @param userId - The UUID of the user.
- * @returns A promise resolving to the raw list of ActionNodes.
+ * @param userTimezone - The IANA timezone string of the user (default: 'UTC').
+ * @returns A promise resolving to the list of root ActionNodes.
+ * @throws Error if the fetch fails (excluding 'PGRST116' no rows error).
  */
-export async function fetchRawActions(userId: string): Promise<ActionNode[]> {
+export const fetchActions = withLogging(_fetchActions, 'fetchActions');
+
+/**
+ * Internal function to fetch raw actions.
+ */
+async function _fetchRawActions(userId: string): Promise<ActionNode[]> {
   const supabase = createClient();
   const { data, error } = await supabase
     .from('actions')
@@ -58,14 +60,18 @@ export async function fetchRawActions(userId: string): Promise<ActionNode[]> {
 }
 
 /**
- * Fetches only the public actions for the specified user.
- * Does not apply "Next Day Clearing" as public view is historical.
- * Returns filtered actions and a count of private (hidden) actions.
+ * Fetches the raw action tree for the specified user without applying any filtering.
+ * Useful for lifecycle processing where we need to see what needs to be cleaned.
  *
  * @param userId - The UUID of the user.
- * @returns A promise resolving to an object containing public actions and private action count.
+ * @returns A promise resolving to the raw list of ActionNodes.
  */
-export async function fetchPublicActions(userId: string): Promise<{ actions: ActionNode[], privateCount: number }> {
+export const fetchRawActions = withLogging(_fetchRawActions, 'fetchRawActions');
+
+/**
+ * Internal function to fetch public actions.
+ */
+async function _fetchPublicActions(userId: string): Promise<{ actions: ActionNode[], privateCount: number }> {
   const supabase = createClient();
   const { data, error } = await supabase
     .from('actions')
@@ -86,13 +92,19 @@ export async function fetchPublicActions(userId: string): Promise<{ actions: Act
 }
 
 /**
- * Updates the entire action tree for the specified user.
+ * Fetches only the public actions for the specified user.
+ * Does not apply "Next Day Clearing" as public view is historical.
+ * Returns filtered actions and a count of private (hidden) actions.
  *
  * @param userId - The UUID of the user.
- * @param newTree - The new list of ActionNodes to save.
- * @returns A promise that resolves when the update is complete.
+ * @returns A promise resolving to an object containing public actions and private action count.
  */
-export async function updateActions(userId: string, newTree: ActionNode[]): Promise<void> {
+export const fetchPublicActions = withLogging(_fetchPublicActions, 'fetchPublicActions');
+
+/**
+ * Internal function to update actions.
+ */
+async function _updateActions(userId: string, newTree: ActionNode[]): Promise<void> {
   const supabase = createClient();
   const { error } = await supabase
     .from('actions')
@@ -103,3 +115,12 @@ export async function updateActions(userId: string, newTree: ActionNode[]): Prom
 
   if (error) throw error;
 }
+
+/**
+ * Updates the entire action tree for the specified user.
+ *
+ * @param userId - The UUID of the user.
+ * @param newTree - The new list of ActionNodes to save.
+ * @returns A promise that resolves when the update is complete.
+ */
+export const updateActions = withLogging(_updateActions, 'updateActions');

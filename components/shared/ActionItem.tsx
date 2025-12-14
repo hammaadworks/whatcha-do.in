@@ -12,30 +12,58 @@ import { Input } from "@/components/ui/input";
 import { ActionNode } from '@/lib/supabase/types';
 import { areAllChildrenCompleted } from '@/lib/logic/actions/tree-utils';
 
+/**
+ * Props for the ActionItem component.
+ * Handles display, interaction, and recursive rendering of action items.
+ */
 interface ActionItemProps {
+  /** The action node data to display. */
   action: ActionNode;
+  /** Callback to toggle the completion status of the action. */
   onActionToggled?: (id: string) => Promise<ActionNode | undefined>;
+  /** Callback to add a new sub-action. */
   onActionAdded?: (description: string, parentId?: string, isPublic?: boolean) => Promise<void>;
+  /** Callback to update the text of the action. */
   onActionUpdated?: (id: string, newText: string) => void;
+  /** Callback to delete the action. */
   onActionDeleted?: (id: string) => void;
+  /** Callback to indent (nest) the action. */
   onActionIndented?: (id: string) => Promise<void>;
+  /** Callback to outdent (un-nest) the action. */
   onActionOutdented?: (id: string) => void;
+  /** Callback to move the action up in the list. */
   onActionMovedUp?: (id: string) => void;
+  /** Callback to move the action down in the list. */
   onActionMovedDown?: (id: string) => void;
+  /** Callback to toggle the public/private status of the action. */
   onActionPrivacyToggled?: (id: string) => void;
+  /** Callback to add a new sibling action immediately after this one. */
   onActionAddedAfter?: (afterId: string, description: string, isPublic?: boolean) => Promise<string>;
-  onNavigateNext?: () => void; // New prop
-  onNavigatePrev?: () => void; // New prop
+  /** Handler to navigate focus to the next item in the flattened list. */
+  onNavigateNext?: () => void;
+  /** Handler to navigate focus to the previous item in the flattened list. */
+  onNavigatePrev?: () => void;
+  /** ID of an action that was just completed, for animation/highlighting purposes. */
   justCompletedId?: string | null;
+  /** The nesting level of this item (0 for root). */
   level: number;
+  /** The ID of the currently focused action in the list. */
   focusedActionId: string | null;
+  /** Function to set the focused action ID. */
   setFocusedActionId: (id: string | null) => void;
+  /** Flattened list of actions for keyboard navigation context. */
   flattenedActions: ActionNode[];
-  onConfettiTrigger?: (rect: DOMRect, isParent: boolean) => void; // New prop
-  newlyAddedActionId?: string | null; // New prop for focusing and editing a newly added item
-  onNewlyAddedActionProcessed?: (id: string) => void; // New prop to signal processing
+  /** Callback to trigger confetti animation. */
+  onConfettiTrigger?: (rect: DOMRect, isParent: boolean) => void;
+  /** ID of a newly added action to auto-focus/edit. */
+  newlyAddedActionId?: string | null;
+  /** Callback to signal that the newly added action has been processed (focused). */
+  onNewlyAddedActionProcessed?: (id: string) => void;
 }
 
+/**
+ * Helper to calculate completion statistics for a node's children.
+ */
 const getCompletionCounts = (action: ActionNode): { total: number; completed: number } => {
   if (!action.children || action.children.length === 0) {
     return { total: 0, completed: 0 };
@@ -54,6 +82,15 @@ const getCompletionCounts = (action: ActionNode): { total: number; completed: nu
   return { total, completed };
 };
 
+/**
+ * ActionItem Component
+ * 
+ * Represents a single node in the Action tree. It handles:
+ * - Rendering the action state (checkbox, text, metadata).
+ * - Inline editing.
+ * - Keyboard navigation (Arrow keys, Enter, etc.).
+ * - Recursive rendering of child actions via `ActionsList`.
+ */
 export const ActionItem: React.FC<ActionItemProps> = ({
   action,
   onActionToggled,
@@ -65,17 +102,17 @@ export const ActionItem: React.FC<ActionItemProps> = ({
   onActionMovedUp,
   onActionMovedDown,
   onActionPrivacyToggled,
-  onActionAddedAfter, // Destructure new prop
-  onNavigateNext, // Destructure new prop
-  onNavigatePrev, // Destructure new prop
+  onActionAddedAfter,
+  onNavigateNext,
+  onNavigatePrev,
   justCompletedId,
   level,
   focusedActionId,
   setFocusedActionId,
   flattenedActions,
-  onConfettiTrigger, // Destructure new prop
-  newlyAddedActionId, // Destructure new prop
-  onNewlyAddedActionProcessed // Destructure new prop
+  onConfettiTrigger,
+  newlyAddedActionId,
+  onNewlyAddedActionProcessed
 }) => {
   const [isExpanded, setIsExpanded] = useState(true);
   const [isAddingSubItem, setIsAddingSubItem] = useState(false);
@@ -92,12 +129,14 @@ export const ActionItem: React.FC<ActionItemProps> = ({
 
   const isPublic = action.is_public ?? true;
 
+  // Focus input when editing starts
   useEffect(() => {
     if (isEditing && editInputRef.current) {
       editInputRef.current.focus();
     }
   }, [isEditing]);
 
+  // Focus the item div when it becomes the focused action
   useEffect(() => {
     if (divRef.current && focusedActionId === action.id) {
       divRef.current.focus();
@@ -111,26 +150,25 @@ export const ActionItem: React.FC<ActionItemProps> = ({
       if (editInputRef.current) {
         editInputRef.current.focus();
       }
-      onNewlyAddedActionProcessed?.(action.id); // Signal parent that processing is complete
+      onNewlyAddedActionProcessed?.(action.id);
     }
   }, [newlyAddedActionId, focusedActionId, action.id, isEditing, onNewlyAddedActionProcessed]);
 
-  // Effect to synchronize local editText with action.description if description changes from parent
+  // Sync local editText with prop changes
   useEffect(() => {
     if (!isEditing && editText !== action.description) {
       setEditText(action.description);
     }
-  }, [action.description, isEditing, editText]); // Added editText to deps to prevent infinite loop
+  }, [action.description, isEditing, editText]);
 
 
   const handleEditSave = () => {
     if (editText.trim()) {
       onActionUpdated?.(action.id, editText.trim());
     } else {
-        onActionDeleted?.(action.id); // Delete the action if text is empty
+        onActionDeleted?.(action.id); // Delete if empty
     }
     setIsEditing(false);
-    // Use setTimeout to ensure the DOM updates (input removed) before trying to focus the div
     setTimeout(() => {
         divRef.current?.focus();
     }, 0);
@@ -144,9 +182,14 @@ export const ActionItem: React.FC<ActionItemProps> = ({
     }, 0);
   };
 
-  const handleKeyDown = async (e: React.KeyboardEvent<HTMLDivElement>) => { // Made async
+  /**
+   * Complex keyboard navigation handler.
+   * Supports navigation (Arrows), editing (Enter/Space), indentation (Tab), and structure mutation.
+   */
+  const handleKeyDown = async (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (isEditing) return;
 
+    // Prevent default browser scrolling/behavior for common navigation keys
     if (
         e.key === 'Enter' || e.key === ' ' || e.key === 'Tab' || e.key === 'Delete' || e.key === 'p' || e.key === 'P' ||
         (e.altKey && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) ||
@@ -158,28 +201,31 @@ export const ActionItem: React.FC<ActionItemProps> = ({
     switch (e.key) {
         case 'Enter':
             if (e.shiftKey) {
-                 // Add Below (Edit) - Shift + Enter
+                 // Shift + Enter: Add sibling below
                  if (onActionAddedAfter) {
-                     setIsAddingSubItem(false); // Close existing sub-item form if open
-                     const newActionId = await onActionAddedAfter(action.id, "", isPublic); // AWAIT HERE
-                     setFocusedActionId(newActionId); // Focus the newly created action
+                     setIsAddingSubItem(false);
+                     const newActionId = await onActionAddedAfter(action.id, "", isPublic);
+                     setFocusedActionId(newActionId);
                  }
             } else {
-                await onActionToggled?.(action.id); // AWAIT HERE
+                // Enter: Toggle completion
+                await onActionToggled?.(action.id);
             }
             break;
         case ' ':
+            // Space: Start editing
             if (onActionUpdated) setIsEditing(true);
             break;
         case 'p':
         case 'P':
+             // P: Toggle privacy
              onActionPrivacyToggled?.(action.id);
              break;
         case 'Tab':
             if (e.shiftKey) {
                 onActionOutdented?.(action.id);
             } else {
-                await onActionIndented?.(action.id); // AWAIT HERE
+                await onActionIndented?.(action.id);
             }
             break;
         case 'ArrowUp':
@@ -198,15 +244,13 @@ export const ActionItem: React.FC<ActionItemProps> = ({
             if (e.altKey) {
                 onActionMovedDown?.(action.id);
             } else {
-                // If expanded and has children, down means go to first child.
-                // The flattened list puts children immediately after parent.
+                // Navigation logic considering children visibility
                 if (hasChildren && isExpanded) {
                     const currentIndex = flattenedActions.findIndex(a => a.id === action.id);
                     if (currentIndex < flattenedActions.length - 1 && currentIndex !== -1) {
                         setFocusedActionId?.(flattenedActions[currentIndex + 1].id);
                     }
                 } else {
-                    // If collapsed or no children, down means go to next sibling (or parent exit).
                     if (onNavigateNext) {
                         onNavigateNext();
                     }
@@ -215,6 +259,7 @@ export const ActionItem: React.FC<ActionItemProps> = ({
             break;
         case 'Delete':
             onActionDeleted?.(action.id);
+            // Smart focus move after deletion
             const currentIndex = flattenedActions.findIndex(a => a.id === action.id);
             if (currentIndex >= 0 && flattenedActions.length > 1) {
                 const nextFocusIndex = currentIndex < flattenedActions.length - 1 ? currentIndex + 1 : currentIndex - 1;
@@ -227,13 +272,20 @@ export const ActionItem: React.FC<ActionItemProps> = ({
   };
 
   return (
-    <div key={action.id} className="mb-2">
+    <div 
+        key={action.id} 
+        className="mb-2"
+        role="listitem"
+        aria-expanded={hasChildren ? isExpanded : undefined}
+    >
       <div
         ref={divRef}
         tabIndex={0}
         onKeyDown={handleKeyDown}
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
+        role="button" // Indicates this element is interactive
+        aria-label={`${action.description} ${action.completed ? '(Completed)' : ''}`}
         className={cn(
           "flex items-center space-x-3 p-3 rounded-md border shadow-sm transition-all duration-300 group focus:outline-none",
           isFocused ? "border-primary-light ring-2 ring-primary-light" : "border-card-border",
@@ -248,10 +300,10 @@ export const ActionItem: React.FC<ActionItemProps> = ({
         <Checkbox
           id={action.id}
           checked={action.completed}
-          onCheckedChange={async () => { // Make async
+          onCheckedChange={async () => {
               if (onActionToggled) {
-                  // Confetti logic: only if becoming completed
-                  if (!action.completed && onConfettiTrigger) { // If it's about to be checked
+                  // Confetti triggers only when completing an item
+                  if (!action.completed && onConfettiTrigger) {
                       const checkboxElement = document.getElementById(action.id);
                       if (checkboxElement) {
                           const rect = checkboxElement.getBoundingClientRect();
@@ -259,8 +311,7 @@ export const ActionItem: React.FC<ActionItemProps> = ({
                           onConfettiTrigger(rect, !!isParentItem);
                       }
                   }
-                  const toggledNode = await onActionToggled(action.id); // AWAIT HERE and capture return
-                  // Now you can use toggledNode if needed, e.g., to trigger specific UI updates
+                  await onActionToggled(action.id);
               }
           }}
           disabled={isDisabledForCompletion && !action.completed}
@@ -271,6 +322,7 @@ export const ActionItem: React.FC<ActionItemProps> = ({
               "pointer-events-none": !onActionToggled
             }
           )}
+          aria-label={`Mark ${action.description} as completed`}
         />
         
         {isEditing ? (
@@ -284,9 +336,10 @@ export const ActionItem: React.FC<ActionItemProps> = ({
                         if (e.key === 'Escape') handleEditCancel();
                     }}
                     className="h-8 text-base"
+                    aria-label="Edit action description"
                 />
-                <button onClick={handleEditSave} className="text-green-500 hover:text-green-600"><Check size={16}/></button>
-                <button onClick={handleEditCancel} className="text-red-500 hover:text-red-600"><X size={16}/></button>
+                <button onClick={handleEditSave} className="text-green-500 hover:text-green-600" aria-label="Save"><Check size={16}/></button>
+                <button onClick={handleEditCancel} className="text-red-500 hover:text-red-600" aria-label="Cancel"><X size={16}/></button>
             </div>
         ) : (
             <Label
@@ -302,17 +355,18 @@ export const ActionItem: React.FC<ActionItemProps> = ({
             }}
             >
             {action.description}
-            {!isPublic && <Lock size={12} className="ml-2 text-yellow-600 dark:text-yellow-400 opacity-50" />}
+            {!isPublic && <Lock size={12} className="ml-2 text-yellow-600 dark:text-yellow-400 opacity-50" aria-label="Private" />}
             </Label>
         )}
 
         {/* Action Buttons (Visible on Hover) */}
-        <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity" role="group" aria-label="Action controls">
             {onActionPrivacyToggled && (
                 <button
                     onClick={() => onActionPrivacyToggled(action.id)}
                     className="p-1.5 rounded-md hover:bg-accent text-muted-foreground hover:text-foreground"
                     title={isPublic ? "Make Private" : "Make Public"}
+                    aria-label={isPublic ? "Make Private" : "Make Public"}
                 >
                     {isPublic ? <Globe size={14} /> : <Lock size={14} />}
                 </button>
@@ -322,6 +376,7 @@ export const ActionItem: React.FC<ActionItemProps> = ({
                     onClick={() => setIsEditing(true)}
                     className="p-1.5 rounded-md hover:bg-accent text-muted-foreground hover:text-foreground"
                     title="Edit"
+                    aria-label="Edit"
                 >
                     <Edit2 size={14} />
                 </button>
@@ -331,6 +386,7 @@ export const ActionItem: React.FC<ActionItemProps> = ({
                 onClick={() => setIsAddingSubItem(true)}
                 className="p-1.5 rounded-md hover:bg-accent text-muted-foreground hover:text-foreground"
                 title="Add Sub-action"
+                aria-label="Add Sub-action"
                 >
                 <Plus size={14} />
                 </button>
@@ -340,6 +396,7 @@ export const ActionItem: React.FC<ActionItemProps> = ({
                     onClick={() => onActionDeleted(action.id)}
                     className="p-1.5 rounded-md hover:bg-red-100 dark:hover:bg-red-900/30 text-muted-foreground hover:text-red-600"
                     title="Delete"
+                    aria-label="Delete"
                 >
                     <Trash2 size={14} />
                 </button>
@@ -347,7 +404,7 @@ export const ActionItem: React.FC<ActionItemProps> = ({
         </div>
 
         {hasChildren && total > 0 && (
-          <span className="flex items-center justify-center">
+          <span className="flex items-center justify-center" aria-label={`Progress: ${completed} of ${total} completed`}>
             <CircularProgress
               progress={progressPercentage}
               size={40}
@@ -363,6 +420,8 @@ export const ActionItem: React.FC<ActionItemProps> = ({
           <button
             onClick={() => setIsExpanded(!isExpanded)}
             className="p-1 rounded-sm hover:bg-gray-200/50 dark:hover:bg-gray-700/50"
+            aria-label={isExpanded ? "Collapse" : "Expand"}
+            aria-expanded={isExpanded}
           >
             <ChevronDown size={16} className={cn("transition-transform", { "rotate-180": isExpanded })} />
           </button>
@@ -384,7 +443,7 @@ export const ActionItem: React.FC<ActionItemProps> = ({
       )}
       
       {hasChildren && isExpanded && (
-        <div className="ml-4 mt-2 border-l-2 border-border pl-2">
+        <div className="ml-4 mt-2 border-l-2 border-border pl-2" role="group">
           <ActionsList
             actions={action.children!}
             onActionToggled={onActionToggled}

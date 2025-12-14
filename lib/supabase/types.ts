@@ -116,6 +116,10 @@ export interface Identity {
     updated_at: string;
 }
 
+export interface IdentityWithCount extends Identity {
+    backingCount: number;
+}
+
 export interface Target {
     id: string;
     user_id: string;

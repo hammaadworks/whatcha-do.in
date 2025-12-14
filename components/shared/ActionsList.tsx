@@ -3,11 +3,15 @@
 import { useState, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { ActionItem } from "./ActionItem";
-import { ActionNode } from '@/lib/supabase/types'; // Import ActionNode from centralized types
+import { ActionNode } from '@/lib/supabase/types';
 import { ChevronDown, ChevronRight } from "lucide-react";
 
+/**
+ * Props for the ActionsList component.
+ */
 interface ActionsListProps {
-  actions: ActionNode[]; // Use ActionNode
+  /** Array of ActionNodes to display in this list. */
+  actions: ActionNode[];
   onActionToggled?: (id: string) => Promise<ActionNode | undefined>;
   onActionAdded?: (description: string, parentId?: string, isPublic?: boolean) => Promise<void>;
   onActionUpdated?: (id: string, newText: string) => void;
@@ -16,19 +20,21 @@ interface ActionsListProps {
   onActionOutdented?: (id: string) => void;
   onActionMovedUp?: (id: string) => void;
   onActionMovedDown?: (id: string) => void;
-  onActionPrivacyToggled?: (id: string) => void; // New prop
-  onActionAddedAfter?: (afterId: string, description: string, isPublic?: boolean) => Promise<string>; // Now async, returns Promise<string>
-  newlyAddedActionId?: string | null; // New prop for focusing and editing a newly added item
+  onActionPrivacyToggled?: (id: string) => void;
+  onActionAddedAfter?: (afterId: string, description: string, isPublic?: boolean) => Promise<string>;
+  newlyAddedActionId?: string | null;
   justCompletedId?: string | null;
   level?: number;
   focusedActionId: string | null;
   setFocusedActionId: (id: string | null) => void;
+  /** Flattened list passed from parent (if any), currently re-calculated locally for navigation context. */
   flattenedActions: ActionNode[];
-  onConfettiTrigger?: (rect: DOMRect, isParent: boolean) => void; // New prop
-  onNewlyAddedActionProcessed?: (id: string) => void; // New prop
-  parentId?: string; // New prop for unique Yay button ID
-  onNavigateNext?: () => void; // New prop
-  onNavigatePrev?: () => void; // New prop
+  onConfettiTrigger?: (rect: DOMRect, isParent: boolean) => void;
+  onNewlyAddedActionProcessed?: (id: string) => void;
+  /** Parent ID to uniquely identify the "Yay" toggle button. */
+  parentId?: string;
+  onNavigateNext?: () => void;
+  onNavigatePrev?: () => void;
 }
 
 // Helper to flatten action tree (duplicated from ActionsSection, ideally move to utils)
@@ -43,6 +49,10 @@ const flattenActionTree = (nodes: ActionNode[]): ActionNode[] => {
     return flattened;
 };
 
+/**
+ * Recursive list component that renders a list of `ActionItem`s.
+ * Handles separating active vs. completed items and the "Yay!" completed toggle.
+ */
 export const ActionsList: React.FC<ActionsListProps> = ({ 
   actions, 
   onActionToggled,
@@ -60,22 +70,16 @@ export const ActionsList: React.FC<ActionsListProps> = ({
   level = 0,
   focusedActionId,
   setFocusedActionId,
-  flattenedActions: _ignoredFlattenedActions, // Ignore global flat list, we compute local ones
+  flattenedActions: _ignoredFlattenedActions, // Kept to satisfy interface but we re-compute locally for this level context
   onConfettiTrigger,
   onNewlyAddedActionProcessed,
   parentId = 'root',
-  onNavigateNext, // Prop from parent to handle exit
-  onNavigatePrev, // Prop from parent to handle exit
+  onNavigateNext,
+  onNavigatePrev,
 }) => {
   const [showCompleted, setShowCompleted] = useState(false);
   const yayButtonRef = useRef<HTMLButtonElement>(null);
   const yayButtonId = `yay-toggle-${parentId}`;
-
-  console.log('ActionsList render:', { 
-    total: actions?.length, 
-    active: actions?.filter(a => !a.completed).length, 
-    completed: actions?.filter(a => a.completed).length 
-  });
 
   if (!actions) return <div>No actions prop provided</div>;
 
@@ -162,12 +166,7 @@ export const ActionsList: React.FC<ActionsListProps> = ({
       onNavigatePrev={
           isCompletedGroup
             ? () => {
-                // Start of Completed List -> Go to Yay (if we are the first item, Yay is above us)
-                // Wait, ActionItem calls onNavigatePrev when it hits TOP.
-                // If this is the first item in completed list, above is Yay.
-                // But ActionItem doesn't know it's first.
-                // Actually, if flattenedCompletedForNavigation works, ArrowUp handles siblings.
-                // onNavigatePrev is only called if ArrowUp hits boundary.
+                // Start of Completed List -> Go to Yay
                 setFocusedActionId(yayButtonId);
             }
             : onNavigatePrev // Start of Active List -> Go to Parent Prev
@@ -176,7 +175,7 @@ export const ActionsList: React.FC<ActionsListProps> = ({
   );
 
   return (
-    <div className={cn("grid grid-cols-1 gap-y-2")}>
+    <div className={cn("grid grid-cols-1 gap-y-2")} role="list">
       {/* Active Actions */}
       {activeActions.map((a, index) => {
           const next = activeActions[index + 1];
@@ -191,6 +190,8 @@ export const ActionsList: React.FC<ActionsListProps> = ({
             id={yayButtonId}
             onClick={() => setShowCompleted(!showCompleted)}
             onKeyDown={handleYayKeyDown}
+            aria-expanded={showCompleted}
+            aria-controls={`completed-list-${parentId}`}
             className={cn(
                 "flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-2 select-none focus:outline-none focus:ring-2 focus:ring-primary/50 rounded-sm px-1 py-0.5",
                 focusedActionId === yayButtonId && "ring-2 ring-primary/50"
@@ -201,7 +202,11 @@ export const ActionsList: React.FC<ActionsListProps> = ({
           </button>
           
           {showCompleted && (
-            <div className="grid grid-cols-1 gap-y-2 opacity-75">
+            <div 
+                id={`completed-list-${parentId}`}
+                className="grid grid-cols-1 gap-y-2 opacity-75" 
+                role="list"
+            >
               {completedActions.map((a, index) => {
                   const next = completedActions[index + 1];
                   return renderAction(a, true, next?.id);

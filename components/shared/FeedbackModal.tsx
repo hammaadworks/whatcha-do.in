@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import BaseModal from './BaseModal'; // Import the new BaseModal
+import BaseModal from './BaseModal';
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,12 +26,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { LifeBuoy } from "lucide-react"; // Import LifeBuoy icon
+import { LifeBuoy } from "lucide-react";
 
 interface FeedbackModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onOpenContact: () => void; // New prop for interlinking
+  /** Callback to switch to the Contact Support modal. */
+  onOpenContact: () => void;
 }
 
 const formSchema = z.object({
@@ -43,10 +44,9 @@ const formSchema = z.object({
   contactMethod: z.enum(["email", "whatsapp", "link", "anonymous"], {
     required_error: "Please select a contact method.",
   }),
-  contactDetail: z.string().optional(), // Make contactDetail optional initially
+  contactDetail: z.string().optional(),
 }).superRefine((data, ctx) => {
   if (data.contactMethod !== "anonymous") {
-    // If not anonymous, contactDetail is required
     if (!data.contactDetail || data.contactDetail.length === 0) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -65,10 +65,8 @@ const formSchema = z.object({
       });
     }
   } else if (data.contactMethod === "whatsapp") {
-    // Basic WhatsApp number validation (e.g., +1234567890, 123-456-7890, 1234567890)
-    // This regex allows for an optional leading '+' and then digits, spaces, hyphens, or parentheses.
-    const whatsappRegex = /^\+?[0-9\s\-()]{7,20}$/; 
-    if (!whatsappRegex.test(data.contactDetail || "")) { // Added || "" for type safety
+    const whatsappRegex = /^\+?[0-9\s\-()]{7,20}$/;
+    if (!whatsappRegex.test(data.contactDetail || "")) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: "Invalid WhatsApp number format. Please include country code if applicable (e.g., +1234567890).",
@@ -76,7 +74,7 @@ const formSchema = z.object({
       });
     }
   } else if (data.contactMethod === "link") {
-    if ((data.contactDetail || "").length < 5) { // Added || "" for type safety
+    if ((data.contactDetail || "").length < 5) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: "Link must be at least 5 characters.",
@@ -84,7 +82,6 @@ const formSchema = z.object({
       });
     }
   } else if (data.contactMethod === "anonymous") {
-    // Ensure contactDetail is empty for anonymous submissions
     if (data.contactDetail && data.contactDetail.length > 0) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -95,12 +92,16 @@ const formSchema = z.object({
   }
 });
 
+/**
+ * Modal for users to submit feedback or bug reports.
+ * Includes form validation and multiple contact methods.
+ */
 const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose, onOpenContact }) => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       message: "",
-      contactMethod: "email", // Default value
+      contactMethod: "email",
       contactDetail: "",
     },
   });
@@ -108,14 +109,15 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose, onOpenCo
   const [isLoading, setIsLoading] = useState(false);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-                setIsLoading(true);
-              try {
-                const response = await fetch("/api/feedback", {
-                  method: "POST",
-                  headers: {
-                    "Content-Type": "application/json",
-                  },
-                  body: JSON.stringify(values),      });
+    setIsLoading(true);
+    try {
+      const response = await fetch("/api/feedback", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(values),
+      });
 
       if (!response.ok) {
         throw new Error("Failed to send feedback.");
@@ -144,7 +146,7 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose, onOpenCo
       description="Share your thoughts, feature requests, or bug reports with us."
       footerContent={
         <div className="flex justify-end space-x-2">
-          <Button onClick={onOpenContact} variant="outline" className="w-auto"> {/* Interlink button */}
+          <Button onClick={onOpenContact} variant="outline" className="w-auto">
               <LifeBuoy className="h-4 w-4 mr-2" /> Contact Support
           </Button>
           <Button type="button" variant="outline" onClick={onClose} disabled={isLoading} className="w-auto">
@@ -192,7 +194,7 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose, onOpenCo
                     onValueChange={(value) => {
                       field.onChange(value);
                       if (value === "anonymous") {
-                        form.setValue("contactDetail", ""); // Clear contactDetail when anonymous is selected
+                        form.setValue("contactDetail", "");
                       }
                     }}
                     defaultValue={field.value}
