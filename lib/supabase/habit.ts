@@ -232,6 +232,8 @@ export async function unmarkHabit(habitId: string): Promise<void> {
     if (habitError || !habit) throw habitError;
     if (habit.habit_state != HabitState.TODAY) throw new Error("Action not allowed. You can only unmark habits in your 'Today' list.");
 
+    const completionDate = habit.last_completed_date ? new Date(habit.last_completed_date) : new Date();
+
     // 2. Update streak and state
     habit.streak = habit.last_non_today_streak;
     habit.longest_streak = Math.max(habit.streak, habit.longest_streak)
@@ -253,5 +255,5 @@ export async function unmarkHabit(habitId: string): Promise<void> {
         throw updateError;
     }
     // 4. Delete activity record
-    await journalActivityService.removeActivity(habit.user_id, today_date, habit.id, 'habit', habit.is_public);
+    await journalActivityService.removeActivity(habit.user_id, completionDate, habit.id, 'habit', habit.is_public);
 }

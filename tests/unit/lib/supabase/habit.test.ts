@@ -160,10 +160,18 @@ describe('Supabase Habit Client', () => {
 
     describe('unmarkHabit', () => {
         test('should unmark habit and delete today\'s completion', async () => {
-            const mockHabit = {
-                id: mockHabitId, user_id: mockUserId, current_streak: 5, habit_state: HabitState.TODAY, is_public: true
-            };
             const now = new Date();
+            const mockHabit = {
+                id: mockHabitId,
+                user_id: mockUserId,
+                streak: 5,
+                longest_streak: 5,
+                last_non_today_streak: 4,
+                habit_state: HabitState.TODAY,
+                last_non_today_state: HabitState.YESTERDAY,
+                is_public: true,
+                last_completed_date: now.toISOString()
+            };
             const mockCompletion = {
                 id: mockCompletionId, habit_id: mockHabitId, completed_at: now.toISOString() // Same day
             };
@@ -174,50 +182,19 @@ describe('Supabase Habit Client', () => {
             mockEq.mockReturnValueOnce({single: mockSingle});
             mockSingle.mockResolvedValueOnce({data: mockHabit, error: null});
 
-            // 2. Find Latest Completion
-            mockSupabase.from.mockImplementationOnce(() => ({select: mockSelect}));
-            mockSelect.mockReturnValueOnce({eq: mockEq});
-            mockEq.mockReturnValueOnce({order: mockOrder});
-            mockOrder.mockReturnValueOnce({limit: mockLimit});
-            mockLimit.mockReturnValueOnce({single: mockSingle});
-            mockSingle.mockResolvedValueOnce({data: mockCompletion, error: null});
-
-            // 3. Delete Completion (inside deleteHabitCompletion call)
-            // It calls fetch completion then fetch habit then delete
-            // We need to carefuly mock the sequence or just mock the dependencies of unmarkHabit.
-            // Since we are unit testing unmarkHabit and it calls deleteHabitCompletion which is in the same file...
-            // It's technically testing both.
-            // Let's adjust mocks for the sequence inside deleteHabitCompletion
-
-            // 3a. fetch completion (in deleteHabitCompletion)
-            mockSupabase.from.mockImplementationOnce(() => ({select: mockSelect}));
-            mockSelect.mockReturnValueOnce({eq: mockEq});
-            mockEq.mockReturnValueOnce({single: mockSingle});
-            mockSingle.mockResolvedValueOnce({data: mockCompletion, error: null});
-
-            // 3b. fetch habit (in deleteHabitCompletion)
-            mockSupabase.from.mockImplementationOnce(() => ({select: mockSelect}));
-            mockSelect.mockReturnValueOnce({eq: mockEq});
-            mockEq.mockReturnValueOnce({single: mockSingle});
-            mockSingle.mockResolvedValueOnce({data: mockHabit, error: null});
-
-            // 3c. delete (in deleteHabitCompletion)
-            mockSupabase.from.mockImplementationOnce(() => ({delete: mockDelete}));
-            mockDelete.mockReturnValueOnce({eq: mockEq});
-            mockEq.mockReturnValueOnce({eq: mockEq}); // second eq
-            mockEq.mockResolvedValueOnce({error: null});
-
-            // 4. Update Habit
+            // 2. Update Habit
             mockSupabase.from.mockImplementationOnce(() => ({update: mockUpdate}));
             mockUpdate.mockReturnValueOnce({eq: mockEq});
             mockEq.mockResolvedValueOnce({error: null});
 
-            await unmarkHabit(mockHabitId, HabitState.YESTERDAY, now);
+            await unmarkHabit(mockHabitId);
 
             // Verify update was called with decremented streak
             expect(mockUpdate).toHaveBeenCalledWith({
-                current_streak: 4, // 5 - 1
-                habit_state: HabitState.YESTERDAY
+                streak: 4, // 5 - 1
+                longest_streak: 5, // max(4, 5)
+                habit_state: HabitState.YESTERDAY,
+                last_completed_date: null
             });
         });
     });

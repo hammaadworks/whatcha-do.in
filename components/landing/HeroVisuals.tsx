@@ -59,9 +59,10 @@ const mockHabits: Habit[] = [
     habit_state: HabitState.TODAY,
     goal_value: 1,
     goal_unit: "adventure",
-    last_completed_date: new Date().toISOString(),
-    last_resolved_date: new Date().toISOString(),
-    last_non_today_state: null,
+    last_completed_date: new Date(),
+    last_resolved_date: new Date(),
+    last_non_today_state: HabitState.LIVELY,
+    last_non_today_streak: 103,
   },
   {
     id: "h2",
@@ -76,9 +77,10 @@ const mockHabits: Habit[] = [
     habit_state: HabitState.TODAY,
     goal_value: 1,
     goal_unit: "invention",
-    last_completed_date: new Date().toISOString(),
-    last_resolved_date: new Date().toISOString(),
-    last_non_today_state: null,
+    last_completed_date: new Date(),
+    last_resolved_date: new Date(),
+    last_non_today_state: HabitState.LIVELY,
+    last_non_today_streak: 11,
   }
 ];
 
