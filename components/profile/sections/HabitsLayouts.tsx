@@ -17,6 +17,10 @@ interface HabitsLayoutProps {
     hasMoreHabits?: boolean;
 }
 
+/**
+ * Mobile-optimized layout for the Habits section.
+ * Stacks boxes vertically: Today, Yesterday, then The Pile.
+ */
 export const MobileHabitsLayout: React.FC<HabitsLayoutProps> = ({
                                                                     todayHabits,
                                                                     yesterdayHabits,
@@ -79,6 +83,10 @@ export const MobileHabitsLayout: React.FC<HabitsLayoutProps> = ({
     );
 };
 
+/**
+ * Desktop-optimized layout for the Habits section.
+ * Uses a grid layout to display boxes side-by-side.
+ */
 export const DesktopHabitsLayout: React.FC<HabitsLayoutProps> = ({
                                                                      todayHabits,
                                                                      yesterdayHabits,

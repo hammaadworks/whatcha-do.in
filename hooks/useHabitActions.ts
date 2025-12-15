@@ -10,9 +10,19 @@ interface UseHabitActionsProps {
     habits: Habit[];
 }
 
+/**
+ * Custom hook to handle Habit CRUD operations (Update, Delete, Create, Complete).
+ * Encapsulates the Supabase calls and Toast notifications.
+ *
+ * @param props - Configuration props including callbacks for activity logging and state updates.
+ * @returns Object containing handler functions for habit actions.
+ */
 export const useHabitActions = ({onActivityLogged, setOptimisticHabits, habits}: UseHabitActionsProps) => {
     const {simulatedDate} = useSystemTime();
 
+    /**
+     * Updates an existing habit's details.
+     */
     const handleHabitUpdate = async (habitId: string, name: string, isPublic: boolean, goalValue?: number | null, goalUnit?: string | null) => {
         try {
             await updateHabit(habitId, {name, is_public: isPublic, goal_value: goalValue, goal_unit: goalUnit});
@@ -24,6 +34,9 @@ export const useHabitActions = ({onActivityLogged, setOptimisticHabits, habits}:
         }
     };
 
+    /**
+     * Deletes a habit and updates the local optimistic state.
+     */
     const handleHabitDelete = async (habitId: string) => {
         try {
             await deleteHabit(habitId);
@@ -39,12 +52,18 @@ export const useHabitActions = ({onActivityLogged, setOptimisticHabits, habits}:
         }
     };
 
+    /**
+     * Handles post-creation logic for habits (closing modal, logging).
+     */
     const handleCreateHabit = (setIsCreateHabitModalOpen: (open: boolean) => void) => {
         setIsCreateHabitModalOpen(false);
         toast.success('Habit created!');
         onActivityLogged?.();
     };
 
+    /**
+     * Marks a habit as complete for the simulated date.
+     */
     const handleHabitComplete = async (habitId: string, data: CompletionsData) => {
         try {
             await completeHabit(habitId, data, simulatedDate || new Date());

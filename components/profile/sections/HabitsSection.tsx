@@ -14,7 +14,7 @@ import {closestCorners, DndContext, DragOverlay} from '@dnd-kit/core';
 import {useHabitDnd} from '@/hooks/useHabitDnd';
 import {HabitBoxType, HabitState} from '@/lib/enums';
 import UnmarkConfirmationModal from '@/components/habits/UnmarkConfirmationModal';
-import {useHabitActions} from './useHabitActions';
+import {useHabitActions} from '@/hooks/useHabitActions';
 import {DesktopHabitsLayout, MobileHabitsLayout} from './HabitsLayouts';
 
 interface HabitsSectionProps {
@@ -29,14 +29,20 @@ interface HabitsSectionProps {
  * The main container for the Habits feature on the user profile.
  * Manages the "Today", "Yesterday", and "Pile" columns.
  * Handles drag-and-drop reordering and state transitions.
+ *
+ * @param isOwner - Whether the current user owns this profile.
+ * @param isReadOnly - If true, interactions are disabled (public view).
+ * @param habits - List of habits to display.
+ * @param loading - Loading state.
+ * @param onActivityLogged - Callback when an action occurs (completion, update, etc.).
  */
-const HabitsSection: React.FC<HabitsSectionProps> = ({
-                                                         isOwner,
-                                                         isReadOnly = false,
-                                                         habits: propHabits,
-                                                         loading,
-                                                         onActivityLogged
-                                                     }) => {
+export const HabitsSection: React.FC<HabitsSectionProps> = ({
+                                                                isOwner,
+                                                                isReadOnly = false,
+                                                                habits: propHabits,
+                                                                loading,
+                                                                onActivityLogged
+                                                            }) => {
 
     const baseHabits = propHabits ?? (isOwner ? mockHabitsData : mockPublicHabitsData);
 
@@ -251,5 +257,3 @@ const HabitsSection: React.FC<HabitsSectionProps> = ({
         </>)}
     </div>);
 };
-
-export default HabitsSection;

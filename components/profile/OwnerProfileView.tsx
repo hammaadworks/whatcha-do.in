@@ -5,7 +5,7 @@ import React, {useCallback, useEffect, useState} from 'react';
 import {useRouter, useSearchParams} from 'next/navigation';
 import ProfileLayout from '@/components/profile/ProfileLayout';
 import ActionsSection from '@/components/profile/sections/ActionsSection';
-import HabitsSection from '@/components/profile/sections/HabitsSection';
+import {HabitsSection} from '@/components/profile/sections/HabitsSection';
 import JournalSection from '@/components/profile/sections/JournalSection';
 import MotivationsSection from '@/components/profile/sections/MotivationsSection';
 import {useActions} from '@/hooks/useActions';

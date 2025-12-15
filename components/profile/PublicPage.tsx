@@ -3,7 +3,7 @@
 import {ActionNode, Habit, Identity, JournalEntry, PublicUserDisplay} from '@/lib/supabase/types'; // Import ActionNode, Habit, JournalEntry, Identity
 import ProfileLayout from '@/components/profile/ProfileLayout';
 import ActionsSection from '@/components/profile/sections/ActionsSection';
-import HabitsSection from '@/components/profile/sections/HabitsSection';
+import {HabitsSection} from '@/components/profile/sections/HabitsSection';
 import JournalSection from '@/components/profile/sections/JournalSection';
 import MotivationsSection from '@/components/profile/sections/MotivationsSection';
 import IdentitySection from '@/components/profile/sections/IdentitySection'; // Import
