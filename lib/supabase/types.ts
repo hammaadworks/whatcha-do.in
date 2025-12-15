@@ -13,10 +13,11 @@ export interface Habit {
     goal_value: number | null;
     goal_unit: string | null;
     habit_state: HabitState;
-    junked_at: string | null;
-    last_non_today_state: string | null;
-    last_completed_date: string | null;
-    last_resolved_date: string | null;
+    junked_at: Date | null;
+    last_non_today_streak: number;
+    last_non_today_state: HabitState;
+    last_completed_date: Date | null;
+    last_resolved_date: Date | null;
     created_at: string;
     updated_at: string;
 }
