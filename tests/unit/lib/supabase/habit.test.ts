@@ -2,6 +2,7 @@
 import { createHabit, completeHabit, deleteHabitCompletion, fetchOwnerHabits, updateHabit, deleteHabit, unmarkHabit, backdateHabitCompletion } from '@/lib/supabase/habit';
 import { createClient } from '@/lib/supabase/client';
 import { JournalActivityService } from '@/lib/logic/JournalActivityService';
+import { HabitState } from '@/lib/enums';
 
 jest.mock('@/lib/supabase/client');
 jest.mock('@/lib/logic/JournalActivityService');
@@ -73,7 +74,7 @@ describe('Supabase Habit Client', () => {
                 id: mockHabitId, 
                 user_id: mockUserId, 
                 current_streak: 2, 
-                pile_state: 'active',
+                habit_state: HabitState.PILE_LIVELY,
                 name: 'Habit Name',
                 is_public: true,
                 goal_value: 10 
@@ -162,7 +163,7 @@ describe('Supabase Habit Client', () => {
                 id: mockHabitId, 
                 user_id: mockUserId, 
                 current_streak: 5, 
-                pile_state: 'today',
+                habit_state: HabitState.TODAY,
                 is_public: true
             };
             const now = new Date();
@@ -216,12 +217,12 @@ describe('Supabase Habit Client', () => {
             mockUpdate.mockReturnValueOnce({ eq: mockEq });
             mockEq.mockResolvedValueOnce({ error: null });
 
-            await unmarkHabit(mockHabitId, 'yesterday', now);
+            await unmarkHabit(mockHabitId, HabitState.YESTERDAY, now);
             
             // Verify update was called with decremented streak
             expect(mockUpdate).toHaveBeenCalledWith({
                 current_streak: 4, // 5 - 1
-                pile_state: 'yesterday'
+                habit_state: HabitState.YESTERDAY
             });
         });
     });

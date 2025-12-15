@@ -48,7 +48,7 @@ const HabitDebugPanel: React.FC<HabitDebugPanelProps> = ({ habits, onHabitUpdate
                 name: selectedHabit.name,
                 is_public: selectedHabit.is_public,
                 current_streak: selectedHabit.current_streak,
-                pile_state: selectedHabit.pile_state,
+                habit_state: selectedHabit.habit_state,
                 // Add other editable fields here if needed
             });
         } else {
@@ -131,8 +131,8 @@ const HabitDebugPanel: React.FC<HabitDebugPanelProps> = ({ habits, onHabitUpdate
                     <div>
                         <Label htmlFor="habit-pile-state" className="block text-sm font-medium text-gray-300 mb-1">Pile State:</Label>
                         <Select
-                            value={localHabitState.pile_state || ''}
-                            onValueChange={(value) => handleFieldChange('pile_state', value)}
+                            value={localHabitState.habit_state || ''}
+                            onValueChange={(value) => handleFieldChange('habit_state', value)}
                         >
                             <SelectTrigger id="habit-pile-state" className="w-full bg-gray-800 border-gray-700 text-white">
                                 <SelectValue placeholder="Select pile state" />

@@ -14,6 +14,7 @@ import { createHabit } from "@/lib/supabase/habit"; // Import createHabit
 import { useAuth } from "@/hooks/useAuth";
 import { Switch } from "@/components/ui/switch"; // Import Switch
 import { Label } from "@/components/ui/label"; // Import Label
+import { HabitState } from "@/lib/enums";
 
 interface HabitCreatorProps {
   onHabitCreated: () => void; // New prop to notify parent
@@ -66,6 +67,7 @@ export function HabitCreator({ onHabitCreated }: HabitCreatorProps) {
         goal_unit: showGoalInput && finalGoalUnit ? finalGoalUnit : undefined,
         user_id: user.id,
         is_public: isPublic, // Pass isPublic state
+        habit_state: HabitState.PILE_LIVELY,
       });
       onHabitCreated(); // Notify parent that habit was created
       // Reset form

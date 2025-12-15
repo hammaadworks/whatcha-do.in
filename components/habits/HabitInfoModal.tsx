@@ -113,7 +113,7 @@ const HabitInfoModal: React.FC<HabitInfoModalProps> = ({
           </div>
            <div className="flex justify-between items-center">
             <span className="text-muted-foreground">State</span>
-            <span className="font-semibold capitalize">{habit.pile_state}</span>
+            <span className="font-semibold capitalize">{habit.habit_state}</span>
           </div>
           <div className="flex justify-between items-center">
             <span className="text-muted-foreground">Created</span>

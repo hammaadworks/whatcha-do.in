@@ -10,7 +10,7 @@ export interface Habit {
     last_streak: number;
     goal_value: number | null;
     goal_unit: string | null;
-    pile_state: string;
+    habit_state: string;
     junked_at: string | null;
     created_at: string;
     updated_at: string;

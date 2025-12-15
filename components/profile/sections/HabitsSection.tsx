@@ -1,6 +1,6 @@
 'use client';
 
-import React, {useState} from 'react';
+import React, {useState, useRef} from 'react';
 import {HabitChipPrivate} from '@/components/habits/HabitChipPrivate';
 import {HabitChipPublic} from '@/components/habits/HabitChipPublic';
 import {mockHabitsData, mockPublicHabitsData} from '@/lib/mock-data';
@@ -10,7 +10,7 @@ import {Habit} from '@/lib/supabase/types';
 import {Skeleton} from '@/components/ui/skeleton';
 import {completeHabit, deleteHabit, updateHabit} from '@/lib/supabase/habit';
 import {toast} from 'sonner';
-import {CompletionData} from '@/components/habits/HabitCompletionModal';
+import {CompletionData, HabitCompletionModal} from '@/components/habits/HabitCompletionModal';
 import {Plus} from 'lucide-react';
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip";
 import {HabitCreatorModal} from '@/components/habits/HabitCreatorModal';
@@ -20,6 +20,8 @@ import {useAuth} from '@/hooks/useAuth';
 import { useSystemTime } from '@/components/providers/SystemTimeProvider';
 import { useHabitDnd } from '@/hooks/useHabitDnd';
 import { HabitColumn } from '@/components/habits/HabitColumn';
+import { HabitState } from '@/lib/enums';
+import UnmarkConfirmationModal from '@/components/habits/UnmarkConfirmationModal';
 
 interface HabitsSectionProps {
     isOwner: boolean;
@@ -46,6 +48,34 @@ const HabitsSection: React.FC<HabitsSectionProps> = ({
     
     const baseHabits = propHabits ? propHabits : (isOwner ? mockHabitsData : mockPublicHabitsData);
 
+    const [activeHabitForCompletion, setActiveHabitForCompletion] = useState<Habit | null>(null);
+    const completionSuccessRef = useRef(false);
+
+    // Unmark Confirmation State
+    const [unmarkModalState, setUnmarkModalState] = useState<{
+        habit: Habit | null;
+        onConfirm: () => Promise<void>;
+        onCancel: () => void;
+        isOpen: boolean;
+    }>({ habit: null, onConfirm: async () => {}, onCancel: () => {}, isOpen: false });
+
+    const handleDragCompletion = (habitId: string) => {
+        const habit = baseHabits.find(h => h.id === habitId);
+        if (habit) {
+            completionSuccessRef.current = false;
+            setActiveHabitForCompletion(habit);
+        }
+    };
+
+    const handleUnmarkConfirmation = (habit: Habit, onConfirm: () => Promise<void>, onCancel: () => void) => {
+        setUnmarkModalState({
+            habit,
+            onConfirm,
+            onCancel,
+            isOpen: true
+        });
+    };
+
     const { 
         sensors, 
         handleDragStart, 
@@ -56,14 +86,16 @@ const HabitsSection: React.FC<HabitsSectionProps> = ({
         activeId 
     } = useHabitDnd({ 
         habits: baseHabits, 
-        onHabitMoved: onActivityLogged 
+        onHabitMoved: onActivityLogged,
+        onCompleteHabit: !isReadOnly ? handleDragCompletion : undefined,
+        onUnmarkConfirmation: !isReadOnly ? handleUnmarkConfirmation : undefined
     });
 
     const habits = optimisticHabits || baseHabits;
 
-    const todayHabits = habits.filter(h => h.pile_state === 'today');
-    const yesterdayHabits = habits.filter(h => h.pile_state === 'yesterday');
-    const pileHabits = habits.filter(h => h.pile_state === 'lively' || h.pile_state === 'junked' || h.pile_state === 'pile' || h.pile_state === 'active');
+    const todayHabits = habits.filter(h => h.habit_state === HabitState.TODAY);
+    const yesterdayHabits = habits.filter(h => h.habit_state === HabitState.YESTERDAY);
+    const pileHabits = habits.filter(h => h.habit_state === HabitState.PILE_LIVELY || h.habit_state === HabitState.PILE_JUNKED || h.habit_state === 'pile' || h.habit_state === 'active');
 
     const HabitChipComponent = isOwner ? HabitChipPrivate : HabitChipPublic;
 
@@ -117,6 +149,32 @@ const HabitsSection: React.FC<HabitsSectionProps> = ({
         }
     };
 
+    const handleCompletionConfirm = async (data: CompletionData) => {
+        if (activeHabitForCompletion) {
+            await handleHabitComplete(activeHabitForCompletion.id, data);
+            completionSuccessRef.current = true;
+        }
+    };
+
+    const handleCompletionClose = () => {
+        setActiveHabitForCompletion(null);
+        if (!completionSuccessRef.current) {
+            setOptimisticHabits(null); // Revert drag if cancelled
+        }
+        completionSuccessRef.current = false;
+    };
+
+    const handleUnmarkModalClose = () => {
+        // If simply closed without confirming, treat as cancel
+        unmarkModalState.onCancel();
+        setUnmarkModalState(prev => ({ ...prev, isOpen: false }));
+    };
+
+    const handleUnmarkConfirm = async () => {
+        await unmarkModalState.onConfirm();
+        // State cleanup happens in close or after
+    };
+
     const noopOnHabitUpdated = () => {};
     const noopOnHabitDeleted = () => {};
     const noopOnHabitCompleted = () => {};
@@ -127,7 +185,7 @@ const HabitsSection: React.FC<HabitsSectionProps> = ({
             onHabitUpdated={!isReadOnly ? handleHabitUpdate : noopOnHabitUpdated}
             onHabitDeleted={!isReadOnly ? handleHabitDelete : noopOnHabitDeleted}
             onHabitCompleted={!isReadOnly ? handleHabitComplete : noopOnHabitCompleted}
-            columnId={h.pile_state === 'today' ? 'today' : h.pile_state === 'yesterday' ? 'yesterday' : 'pile'}
+            columnId={h.habit_state === HabitState.TODAY ? 'today' : h.habit_state === HabitState.YESTERDAY ? 'yesterday' : 'pile'}
         />
     );
 
@@ -289,11 +347,27 @@ const HabitsSection: React.FC<HabitsSectionProps> = ({
             </DndContext>
 
             {isOwner && !isReadOnly && (
-                <HabitCreatorModal
-                    isOpen={isCreateHabitModalOpen}
-                    onClose={() => setIsCreateHabitModalOpen(false)}
-                    onHabitCreated={handleCreateHabit}
-                />
+                <>
+                    <HabitCreatorModal
+                        isOpen={isCreateHabitModalOpen}
+                        onClose={() => setIsCreateHabitModalOpen(false)}
+                        onHabitCreated={handleCreateHabit}
+                    />
+                    {activeHabitForCompletion && (
+                        <HabitCompletionModal
+                            isOpen={!!activeHabitForCompletion}
+                            onClose={handleCompletionClose}
+                            habit={activeHabitForCompletion}
+                            onConfirm={handleCompletionConfirm}
+                        />
+                    )}
+                    <UnmarkConfirmationModal
+                        isOpen={unmarkModalState.isOpen}
+                        onClose={handleUnmarkModalClose}
+                        habit={unmarkModalState.habit}
+                        onConfirm={handleUnmarkConfirm}
+                    />
+                </>
             )}
 
             {isOwner && !isReadOnly && process.env.NEXT_PUBLIC_DEV_USER === user?.username && (

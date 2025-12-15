@@ -219,7 +219,7 @@ users, habits, todos, and journal entries.
   `email`, `bio`, `timezone`, `grace_screen_shown_for_date`, `username`).
 * **Habits:** Will store recurring habit details (e.g., `habit_id`, `user_id`, `name`, `is_public`, `current_streak`,
   `last_streak`, `created_at`, `goal_value`, `goal_unit`, `last_recorded_mood`, `last_recorded_work_value`,
-  `last_recorded_work_unit`, `pile_state`, `junked_at`).
+  `last_recorded_work_unit`, `habit_state`, `junked_at`).
 * **Habit Completions (NEW Table):** A new table `habit_completions` will store each instance of a habit being
   completed.
     * `completion_id`: Unique identifier.

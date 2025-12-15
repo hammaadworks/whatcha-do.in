@@ -26,7 +26,7 @@ CREATE TABLE public.habits (
     last_recorded_mood integer,
     last_recorded_work_value numeric,
     last_recorded_work_unit text,
-    pile_state text,
+    habit_state text,
     junked_at timestamp with time zone,
     updated_at timestamp with time zone
 );

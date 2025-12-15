@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { Habit } from '@/lib/supabase/types';
 import HabitInfoModal from './HabitInfoModal';
 import { ShineBorder } from '../ui/shine-border';
-import { HabitPileState } from '@/lib/enums'; // Import HabitPileState enum
+import { HabitState } from '@/lib/enums'; // Import HabitState enum
 import { Flame, Skull } from 'lucide-react';
 import { differenceInCalendarDays } from 'date-fns';
 import { useSystemTime } from '@/components/providers/SystemTimeProvider';
@@ -15,7 +15,6 @@ interface HabitChipPublicProps {
   rightAddon?: React.ReactNode;
   isPrivate?: boolean;
   isJunked?: boolean; // New prop for junked state
-  pileState?: string; // New prop for pile state to control ShineBorder
 }
 
 /**
@@ -23,7 +22,7 @@ interface HabitChipPublicProps {
  * Displays the habit name, streak (if active), and visual status (junked/active).
  * Can be used by both the owner (in read-only contexts) and public visitors.
  */
-export const HabitChipPublic: React.FC<HabitChipPublicProps> = ({ habit, disableClick, rightAddon, isPrivate, isJunked, pileState }) => {
+export const HabitChipPublic: React.FC<HabitChipPublicProps> = ({ habit, disableClick, rightAddon, isPrivate, isJunked }) => {
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
   const { simulatedDate } = useSystemTime();
 
@@ -68,9 +67,6 @@ export const HabitChipPublic: React.FC<HabitChipPublicProps> = ({ habit, disable
           )}
         </div>
         {rightAddon} {/* Render rightAddon here */}
-        {pileState !== HabitPileState.JUNKED && (
-            <ShineBorder shineColor={isPrivate ? "hsl(var(--secondary))" : "hsl(var(--primary))"} className="z-10" />
-        )}
       </div>
 
       {/* Modal */}

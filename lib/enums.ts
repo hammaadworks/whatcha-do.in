@@ -9,10 +9,11 @@
  * - `LIVELY`: Habits in the main pile that are active but not currently selected for the day.
  * - `JUNKED`: Habits that have been discarded or archived.
  */
-export enum HabitPileState {
-    IN_PROGRESS = 'in_progress', 
-    LIVELY = 'lively',
-    JUNKED = 'junked',
+export enum HabitState {
+    TODAY = 'today',
+    YESTERDAY = 'yesterday',
+    PILE_LIVELY = 'lively',
+    PILE_JUNKED = 'junked',
 }
 
 /**

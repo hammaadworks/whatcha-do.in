@@ -59,7 +59,7 @@ This section allows you to generate completion records (`habit_completions`) for
 *   **"Complete on Selected Date" (Button):**
     *   **Action:** Creates a new row in the `habit_completions` table for the selected habit and the selected date.
     *   **Use Case:** Backfilling streaks, testing future journaling, or verifying that completing a task "Yesterday" correctly saves the streak.
-    *   **Note:** This does *not* automatically change the `pile_state` or `current_streak` of the habit itself unless the system logic triggers (which usually happens on page load or completion action). This button is strictly for creating the *record* of completion.
+    *   **Note:** This does *not* automatically change the `habit_state` or `current_streak` of the habit itself unless the system logic triggers (which usually happens on page load or completion action). This button is strictly for creating the *record* of completion.
 
 ## 4. Reproduction Recipes (The 2-Day Rule)
 

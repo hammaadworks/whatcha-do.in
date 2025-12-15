@@ -3,6 +3,7 @@ import { useHabitDnd } from '@/hooks/useHabitDnd';
 import { updateHabit, unmarkHabit } from '@/lib/supabase/habit';
 import { toast } from 'sonner';
 import { Habit } from '@/lib/supabase/types';
+import { HabitState } from '@/lib/enums';
 
 jest.mock('@/lib/supabase/habit');
 jest.mock('sonner', () => ({
@@ -20,8 +21,8 @@ jest.mock('@dnd-kit/core', () => ({
 
 describe('useHabitDnd', () => {
     const mockHabits: Habit[] = [
-        { id: '1', name: 'Habit 1', pile_state: 'pile' } as Habit,
-        { id: '2', name: 'Habit 2', pile_state: 'today' } as Habit,
+        { id: '1', name: 'Habit 1', habit_state: HabitState.PILE_LIVELY } as Habit,
+        { id: '2', name: 'Habit 2', habit_state: HabitState.TODAY } as Habit,
     ];
 
     beforeEach(() => {
@@ -61,7 +62,7 @@ describe('useHabitDnd', () => {
             } as any);
         });
 
-        expect(updateHabit).toHaveBeenCalledWith('1', { pile_state: 'today' });
+        expect(updateHabit).toHaveBeenCalledWith('1', { habit_state: HabitState.TODAY });
         expect(onMoved).toHaveBeenCalled();
         expect(toast.success).toHaveBeenCalled();
     });
@@ -77,7 +78,7 @@ describe('useHabitDnd', () => {
          });
          
          expect(window.confirm).toHaveBeenCalled();
-         expect(unmarkHabit).toHaveBeenCalledWith('2', 'pile');
+         expect(unmarkHabit).toHaveBeenCalledWith('2', HabitState.PILE_LIVELY);
     });
 
     it('should handle unmark move cancellation', async () => {

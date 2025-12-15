@@ -51,7 +51,7 @@ const mockHabits: Habit[] = [
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
     junked_at: null, // Keep this property
-    pile_state: "today",
+    habit_state: "today",
     goal_value: 1,
     goal_unit: "adventure",
   },
@@ -65,7 +65,7 @@ const mockHabits: Habit[] = [
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
     junked_at: null, // Keep this property
-    pile_state: "today",
+    habit_state: "today",
     goal_value: 1,
     goal_unit: "invention",
   }
@@ -81,13 +81,13 @@ export function HeroVisuals({ className }: { className?: string }) {
   return (
     <div className={cn("relative w-full max-w-[500px] mx-auto", className)}>
       {/* Main Card representing the Dashboard */}
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 20, rotate: -2 }}
         animate={{ opacity: 1, y: 0, rotate: -2 }}
         transition={{ duration: 0.8, ease: "easeOut" }}
         className="relative z-10"
       >
-        <MagicCard 
+        <MagicCard
           className="flex flex-col gap-6 p-6 border shadow-2xl bg-background/80 backdrop-blur-md"
           gradientColor="#FF6B6B20"
         >
@@ -108,8 +108,8 @@ export function HeroVisuals({ className }: { className?: string }) {
             <div className="space-y-2">
               {mockActions.map(action => (
                 <div key={action.id} className="pointer-events-none">
-                    <ActionItem 
-                        action={action} 
+                    <ActionItem
+                        action={action}
                         level={0}
                         focusedActionId={null}
                         setFocusedActionId={() => {}}

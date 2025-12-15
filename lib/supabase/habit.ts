@@ -3,6 +3,7 @@ import { Habit, ActivityLogEntry } from './types';
 import { CompletionData } from '@/components/habits/HabitCompletionModal';
 import { JournalActivityService } from '@/lib/logic/JournalActivityService';
 import { PostgrestError } from '@supabase/supabase-js';
+import { HabitState } from '@/lib/enums';
 
 /**
  * Creates a new habit record in the database.
@@ -12,9 +13,27 @@ import { PostgrestError } from '@supabase/supabase-js';
  */
 export const createHabit = async (habit: Partial<Habit>): Promise<{ data: Habit | null; error: PostgrestError | null }> => {
     const supabase = createClient();
+    
+    // Check for duplicates
+    const { data: existingHabits } = await supabase
+        .from('habits')
+        .select('id')
+        .eq('user_id', habit.user_id)
+        .ilike('name', habit.name as string); // Case-insensitive check
+
+    if (existingHabits && existingHabits.length > 0) {
+        throw new Error(`A habit with the name "${habit.name}" already exists.`);
+    }
+    
+    // Ensure habit_state defaults to PILE_LIVELY if not provided
+    const habitData = {
+        ...habit,
+        habit_state: habit.habit_state || HabitState.PILE_LIVELY
+    };
+
     const { data, error } = await supabase
         .from('habits')
-        .insert([habit])
+        .insert([habitData])
         .select()
         .single();
     return { data, error };
@@ -51,7 +70,7 @@ export async function completeHabit(
 
     // 2. Calculate new streak
     let newStreak = habit.current_streak + 1;
-    if (habit.pile_state === 'junked') {
+    if (habit.habit_state === HabitState.PILE_JUNKED) {
         newStreak = 1; // Reset if junked
     }
 
@@ -82,7 +101,7 @@ export async function completeHabit(
         .from('habits')
         .update({
             current_streak: newStreak,
-            pile_state: 'today',
+            habit_state: HabitState.TODAY,
         })
         .eq('id', habitId);
 
@@ -290,7 +309,7 @@ export async function unmarkHabit(habitId: string, targetState: string, referenc
         .from('habits')
         .update({
             current_streak: newStreak,
-            pile_state: targetState
+            habit_state: targetState
         })
         .eq('id', habitId);
 

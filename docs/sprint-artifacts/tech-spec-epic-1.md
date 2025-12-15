@@ -73,7 +73,7 @@ The implementation of Epic-1 will align with the established system architecture
 | `last_recorded_mood`        | `integer`                      | Last recorded mood score (0-100)                                                                              |
 | `last_recorded_work_value`  | `numeric`                      | Last recorded work value for a quantitative habit                                                             |
 | `last_recorded_work_unit`   | `text`                         | Unit for last recorded work value                                                                             |
-| `pile_state`                | `text` (`'Lively'`, `'Junked'`) | State of the habit if it's in 'The Pile' due to missed days                                                   |
+| `habit_state`                | `text` (`'Lively'`, `'Junked'`) | State of the habit if it's in 'The Pile' due to missed days                                                   |
 | `junked_at`                 | `timestamp with time zone`     | Timestamp when the habit entered the 'Junked' state                                                           |
 
 **Habit Completions Table (NEW):**
@@ -158,8 +158,8 @@ The primary API will be Supabase's auto-generated PostgREST API, providing RESTf
 
 5.  **"Two-Day Rule" Enforcement (Supabase Function `enforce_two_day_rule`):**
     *   Identifies habits in "Yesterday" not completed.
-    *   Moves them to "The Pile" and sets `pile_state = 'Lively'`.
-    *   After 24 hours in 'Lively' state, transitions to `pile_state = 'Junked'`, resets `current_streak`, and sets `last_streak`.
+    *   Moves them to "The Pile" and sets `habit_state = 'Lively'`.
+    *   After 24 hours in 'Lively' state, transitions to `habit_state = 'Junked'`, resets `current_streak`, and sets `last_streak`.
 
 6.  **Undo Habit Completion:**
     *   User long-presses a habit in "Today" (client-side).
