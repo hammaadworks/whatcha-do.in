@@ -90,12 +90,12 @@ const HabitInfoModal: React.FC<HabitInfoModalProps> = ({
           <div className="flex justify-between items-center">
             <span className="text-muted-foreground">Current Streak</span>
             <Badge variant="default" className="text-lg">
-              🔥 {habit.current_streak}
+              🔥 {habit.streak}
             </Badge>
           </div>
           <div className="flex justify-between items-center">
             <span className="text-muted-foreground">Longest Streak</span>
-            <span className="font-semibold">{habit.last_streak} days</span>
+            <span className="font-semibold">{habit.longest_streak} days</span>
           </div>
           {habit.goal_value && habit.goal_unit && (
             <div className="flex justify-between items-center">

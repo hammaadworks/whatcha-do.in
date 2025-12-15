@@ -133,7 +133,7 @@ I want to click on a habit chip (public or private) to view a read-only informat
 **So that** I can quickly review its details without entering edit mode.
 
 **Acceptance Criteria:**
-1.  **Trigger:** Clicking on a habit chip (either `HabitChipPublic` or `HabitChipPrivate`).
+1.  **Trigger:** Clicking on a habit chip (either `HabitChip`).
 2.  **Modal Content:** The modal (`HabitInfoModal`) displays read-only details such as:
     *   Habit Name
     *   Current Streak

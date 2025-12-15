@@ -44,7 +44,7 @@ Each object in the `activity_log` array represents a single completed or uncompl
     "is_public": true,                // Privacy status of the original item
     "details": {                      // Optional, item-type specific metadata
       // For Actions/Targets (could be empty or contain progress info)
-      // For Habits (e.g., from HabitCompletionModal)
+      // For Habits (e.g., from HabitCompletionsModal)
       "mood": "happy",
       "notes": "Felt great about this!",
       "value": 5,                     // e.g., for quantitative goals (5 pages, 10 reps)

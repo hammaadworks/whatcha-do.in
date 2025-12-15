@@ -10,7 +10,10 @@ interface SystemTimeContextType {
 
 const SystemTimeContext = createContext<SystemTimeContextType | undefined>(undefined);
 
-export function SystemTimeProvider({ children, initialSimulatedDate }: { children: React.ReactNode, initialSimulatedDate?: string | null }) {
+export function SystemTimeProvider({ children, initialSimulatedDate }: Readonly<{
+    children: React.ReactNode,
+    initialSimulatedDate?: string | null
+}>) {
   const [simulatedDate, setSimulatedDate] = useState<Date | null>(
     initialSimulatedDate ? new Date(initialSimulatedDate) : null
   );

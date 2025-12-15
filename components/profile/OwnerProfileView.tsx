@@ -17,7 +17,7 @@ import {fetchOwnerHabits} from '@/lib/supabase/habit';
 import {fetchJournalEntries} from '@/lib/supabase/journal';
 import {ActionNode, Habit, Identity, JournalEntry} from '@/lib/supabase/types';
 import {VibeSelector} from '@/components/profile/VibeSelector';
-import CoreIdentitySection from '@/components/profile/sections/CoreIdentitySection';
+import MeSection from '@/components/profile/sections/MeSection.tsx';
 import {useKeyboardShortcuts} from '@/components/shared/KeyboardShortcutsProvider'; // Import the new hook
 
 interface OwnerProfileViewProps {
@@ -45,12 +45,7 @@ export default function OwnerProfileView({
     const searchParams = useSearchParams();
     const {user: authenticatedUser, refreshUser} = useAuth();
     const {
-        isMeFolded,
-        toggleMeFold,
-        isActionsFolded,
-        toggleActionsFold,
-        isJournalFolded,
-        toggleJournalFold
+        isMeFolded, toggleMeFold, isActionsFolded, toggleActionsFold, isJournalFolded, toggleJournalFold
     } = useKeyboardShortcuts(); // Destructure new targets folding props
 
 
@@ -175,84 +170,84 @@ export default function OwnerProfileView({
     }
 
     return (<div className="relative pt-8 lg:pt-4 w-full max-w-6xl">
-            <VibeSelector
-                currentViewMode={currentViewMode}
-                onViewModeChange={handleViewModeChange}
+        <VibeSelector
+            currentViewMode={currentViewMode}
+            onViewModeChange={handleViewModeChange}
+        />
+
+        {currentViewMode === 'public' ? (<div className="animate-in fade-in duration-300">
+            <PublicPage
+                user={profileToDisplay}
+                publicActions={publicActions}
+                publicHabits={publicHabits}
+                publicJournalEntries={publicJournalEntries}
+                publicIdentities={publicIdentities}
+                publicTargets={publicTargets}
+                privateCount={privateCount}
+            />
+        </div>) : (<ProfileLayout
+            username={username}
+            isOwner={true}
+            isReadOnly={isReadOnly}
+            timezone={optimisticTimezone || profileToDisplay.timezone}
+            onTimezoneChange={handleTimezoneChange}
+        >
+            <MeSection
+                isCollapsible={isCollapsible}
+                isReadOnly={isReadOnly}
+                username={username}
+                profileToDisplay={profileToDisplay}
+                ownerHabits={ownerHabits}
+                onBioUpdate={handleBioUpdate}
+                onActivityLogged={handleActivityLogged}
+                timezone={optimisticTimezone || profileToDisplay.timezone || 'UTC'}
+                isFolded={isMeFolded}
+                toggleFold={toggleMeFold}
             />
 
-            {currentViewMode === 'public' ? (<div className="animate-in fade-in duration-300">
-                    <PublicPage
-                        user={profileToDisplay}
-                        publicActions={publicActions}
-                        publicHabits={publicHabits}
-                        publicJournalEntries={publicJournalEntries}
-                        publicIdentities={publicIdentities}
-                        publicTargets={publicTargets}
-                        privateCount={privateCount}
-                    />
-                </div>) : (<ProfileLayout
-                    username={username}
-                    isOwner={true}
-                    isReadOnly={isReadOnly}
-                    timezone={optimisticTimezone || profileToDisplay.timezone}
-                    onTimezoneChange={handleTimezoneChange}
-                >
-                    <CoreIdentitySection
-                        isCollapsible={isCollapsible}
-                        isReadOnly={isReadOnly}
-                        username={username}
-                        profileToDisplay={profileToDisplay}
-                        ownerHabits={ownerHabits}
-                        onBioUpdate={handleBioUpdate}
-                        onActivityLogged={handleActivityLogged}
-                        timezone={optimisticTimezone || profileToDisplay.timezone || 'UTC'}
-                        isFolded={isMeFolded}
-                        toggleFold={toggleMeFold}
-                    />
-
-                    <ActionsSection
-                        isOwner={true}
-                        isReadOnly={isReadOnly}
-                        actions={actions}
-                        loading={actionsLoading}
-                        onActionToggled={handleActionToggled}
-                        onActionAdded={addAction}
-                        onActionUpdated={updateActionText}
-                        onActionDeleted={handleActionDeleted}
-                        undoDeleteAction={undoDeleteAction}
-                        onActionIndented={indentAction}
-                        onActionOutdented={outdentAction}
-                        onActionMovedUp={moveActionUp}
-                        onActionMovedDown={moveActionDown}
-                        onActionPrivacyToggled={toggleActionPrivacy}
-                        onActionAddedAfter={addActionAfter}
-                        timezone={optimisticTimezone || profileToDisplay.timezone || 'UTC'}
-                        isCollapsible={isCollapsible}
-                        isFolded={isActionsFolded}
-                        toggleFold={toggleActionsFold}
-                    />
-                    <HabitsSection
-                        isOwner={true}
-                        isReadOnly={isReadOnly}
-                        habits={ownerHabits}
-                        loading={ownerHabitsLoading}
-                        onActivityLogged={handleActivityLogged}
-                    />
-                    <JournalSection
-                        isOwner={true}
-                        isReadOnly={isReadOnly}
-                        journalEntries={ownerJournalEntries}
-                        loading={ownerJournalEntriesLoading}
-                        isCollapsible={isCollapsible}
-                        isFolded={isJournalFolded}
-                        toggleFold={toggleJournalFold}
-                    />
-                    <MotivationsSection
-                        username={username}
-                        isOwner={true}
-                        isReadOnly={isReadOnly}
-                        loading={false}
-                    />
-                </ProfileLayout>)}
-        </div>);
+            <ActionsSection
+                isOwner={true}
+                isReadOnly={isReadOnly}
+                actions={actions}
+                loading={actionsLoading}
+                onActionToggled={handleActionToggled}
+                onActionAdded={addAction}
+                onActionUpdated={updateActionText}
+                onActionDeleted={handleActionDeleted}
+                undoDeleteAction={undoDeleteAction}
+                onActionIndented={indentAction}
+                onActionOutdented={outdentAction}
+                onActionMovedUp={moveActionUp}
+                onActionMovedDown={moveActionDown}
+                onActionPrivacyToggled={toggleActionPrivacy}
+                onActionAddedAfter={addActionAfter}
+                timezone={optimisticTimezone || profileToDisplay.timezone || 'UTC'}
+                isCollapsible={isCollapsible}
+                isFolded={isActionsFolded}
+                toggleFold={toggleActionsFold}
+            />
+            <HabitsSection
+                isOwner={true}
+                isReadOnly={isReadOnly}
+                habits={ownerHabits}
+                loading={ownerHabitsLoading}
+                onActivityLogged={handleActivityLogged}
+            />
+            <JournalSection
+                isOwner={true}
+                isReadOnly={isReadOnly}
+                journalEntries={ownerJournalEntries}
+                loading={ownerJournalEntriesLoading}
+                isCollapsible={isCollapsible}
+                isFolded={isJournalFolded}
+                toggleFold={toggleJournalFold}
+            />
+            <MotivationsSection
+                username={username}
+                isOwner={true}
+                isReadOnly={isReadOnly}
+                loading={false}
+            />
+        </ProfileLayout>)}
+    </div>);
 }

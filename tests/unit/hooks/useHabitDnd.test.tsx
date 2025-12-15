@@ -21,7 +21,7 @@ jest.mock('@dnd-kit/core', () => ({
 
 describe('useHabitDnd', () => {
     const mockHabits: Habit[] = [
-        { id: '1', name: 'Habit 1', habit_state: HabitState.PILE_LIVELY } as Habit,
+        { id: '1', name: 'Habit 1', habit_state: HabitState.LIVELY } as Habit,
         { id: '2', name: 'Habit 2', habit_state: HabitState.TODAY } as Habit,
     ];
 
@@ -78,7 +78,7 @@ describe('useHabitDnd', () => {
          });
          
          expect(window.confirm).toHaveBeenCalled();
-         expect(unmarkHabit).toHaveBeenCalledWith('2', HabitState.PILE_LIVELY);
+         expect(unmarkHabit).toHaveBeenCalledWith('2', HabitState.LIVELY);
     });
 
     it('should handle unmark move cancellation', async () => {

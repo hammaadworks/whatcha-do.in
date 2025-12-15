@@ -1,9 +1,9 @@
-import { createClient } from './client';
-import { Habit, ActivityLogEntry } from './types';
-import { CompletionData } from '@/components/habits/HabitCompletionModal';
-import { JournalActivityService } from '@/lib/logic/JournalActivityService';
-import { PostgrestError } from '@supabase/supabase-js';
-import { HabitState } from '@/lib/enums';
+import {createClient} from './client';
+import {ActivityLogEntry, Habit} from './types';
+import {CompletionsData} from '@/components/habits/HabitCompletionsModal.tsx';
+import {JournalActivityService} from '@/lib/logic/JournalActivityService';
+import {PostgrestError} from '@supabase/supabase-js';
+import {HabitState} from '@/lib/enums';
 
 /**
  * Creates a new habit record in the database.
@@ -11,11 +11,13 @@ import { HabitState } from '@/lib/enums';
  * @param habit - A partial habit object containing at least the required fields (name, user_id).
  * @returns A promise resolving to an object containing the created habit data or an error.
  */
-export const createHabit = async (habit: Partial<Habit>): Promise<{ data: Habit | null; error: PostgrestError | null }> => {
+export const createHabit = async (habit: Partial<Habit>): Promise<{
+    data: Habit | null; error: PostgrestError | null
+}> => {
     const supabase = createClient();
-    
+
     // Check for duplicates
-    const { data: existingHabits } = await supabase
+    const {data: existingHabits} = await supabase
         .from('habits')
         .select('id')
         .eq('user_id', habit.user_id)
@@ -24,19 +26,13 @@ export const createHabit = async (habit: Partial<Habit>): Promise<{ data: Habit 
     if (existingHabits && existingHabits.length > 0) {
         throw new Error(`A habit with the name "${habit.name}" already exists.`);
     }
-    
-    // Ensure habit_state defaults to PILE_LIVELY if not provided
-    const habitData = {
-        ...habit,
-        habit_state: habit.habit_state || HabitState.PILE_LIVELY
-    };
 
-    const { data, error } = await supabase
+    const {data, error} = await supabase
         .from('habits')
-        .insert([habitData])
+        .insert([habit])
         .select()
         .single();
-    return { data, error };
+    return {data, error};
 };
 
 /**
@@ -44,20 +40,18 @@ export const createHabit = async (habit: Partial<Habit>): Promise<{ data: Habit 
  * and logs the activity to the journal.
  *
  * @param habitId - The UUID of the habit to complete.
- * @param data - The completion details (mood, work value, duration, notes).
+ * @param completions_data - The completion details (mood, work value, duration, notes).
  * @param date - The date of completion (defaults to the current system time).
  * @returns A promise resolving to an object containing the new completion ID or an error.
  */
-export async function completeHabit(
-    habitId: string,
-    data: CompletionData,
-    date: Date = new Date()
-): Promise<{ data: { id: string } | null; error: PostgrestError | null }> {
+export async function completeHabit(habitId: string, completions_data: CompletionsData, date: Date): Promise<{
+    data: { id: string } | null; error: PostgrestError | null
+}> {
     const supabase = createClient();
     const journalActivityService = new JournalActivityService(supabase);
 
     // 1. Fetch current habit state
-    const { data: habit, error: fetchError } = await supabase
+    const {data: habit, error: fetchError} = await supabase
         .from('habits')
         .select('*')
         .eq('id', habitId)
@@ -68,40 +62,32 @@ export async function completeHabit(
         throw fetchError;
     }
 
-    // 2. Calculate new streak
-    let newStreak = habit.current_streak + 1;
-    if (habit.habit_state === HabitState.PILE_JUNKED) {
-        newStreak = 1; // Reset if junked
+    // 2. Calculate new streak and longest streak
+    habit.streak = habit.streak + 1;
+    if (habit.habit_state === HabitState.JUNKED) {
+        habit.streak = 1;
     }
+    habit.longest_streak = Math.max(habit.longest_streak, habit.streak);
 
-    // 3. Insert completion record
-    const { data: newCompletion, error: insertError } = await supabase
-        .from('habit_completions')
-        .insert({
-            habit_id: habitId,
-            user_id: habit.user_id,
-            mood_score: data.mood_score,
-            work_value: data.work_value,
-            duration_value: data.duration_value,
-            duration_unit: data.duration_unit,
-            notes: data.notes,
-            completed_at: date.toISOString(), // Explicitly set completion time
-            goal_at_completion: habit.goal_value // Record what the goal was at this time
-        })
-        .select('id') // Select 'id' to return it
-        .single();
 
-    if (insertError) {
-        console.error("Error inserting completion:", insertError);
-        throw insertError;
-    }
+    // 3. Log activity to Journal
+    const logEntryDetails: ActivityLogEntry['details'] = {
+        mood: completions_data.mood,
+        work_value: completions_data.work_value,
+        time_taken: completions_data.time_taken,
+        time_taken_unit: completions_data.time_taken_unit,
+        notes: completions_data.notes,
+    };
 
     // 4. Update habit state
-    const { error: updateError } = await supabase
+    const {error: updateError} = await supabase
         .from('habits')
         .update({
-            current_streak: newStreak,
+            streak: habit.streak,
+            longest_streak: habit.longest_streak,
             habit_state: HabitState.TODAY,
+            last_non_today_state: habit.habit_state,
+            last_completed_date: date,
         })
         .eq('id', habitId);
 
@@ -110,31 +96,17 @@ export async function completeHabit(
         throw updateError;
     }
 
-    // 5. Log activity to Journal
-    const logEntryDetails: ActivityLogEntry['details'] = {
-        mood_score: data.mood_score,
-        work_value: data.work_value,
-        duration_value: data.duration_value,
-        duration_unit: data.duration_unit,
-        notes: data.notes,
-    };
+    await journalActivityService.logActivity(habit.user_id, date, {
+        id: habit.id,
+        type: 'habit',
+        description: habit.name,
+        is_public: habit.is_public,
+        status: 'completed',
+        details: logEntryDetails,
+    });
 
-    if (newCompletion?.id) {
-        await journalActivityService.logActivity(
-            habit.user_id,
-            date,
-            {
-                id: newCompletion.id,
-                type: 'habit',
-                description: habit.name,
-                is_public: habit.is_public,
-                status: 'completed',
-                details: logEntryDetails,
-            }
-        );
-    }
 
-    return { data: { id: newCompletion?.id ?? null }, error: null };
+    return {data: null, error: null};
 }
 
 /**
@@ -149,7 +121,7 @@ export async function deleteHabitCompletion(completionId: string, userId: string
     const journalActivityService = new JournalActivityService(supabase);
 
     // 1. Get details before deletion to pass to removeActivity
-    const { data: completion, error: fetchError } = await supabase
+    const {data: completion, error: fetchError} = await supabase
         .from('habit_completions')
         .select('habit_id, completed_at')
         .eq('id', completionId)
@@ -161,7 +133,7 @@ export async function deleteHabitCompletion(completionId: string, userId: string
     }
 
     // 2. Determine public status by fetching the habit itself
-    const { data: habit, error: habitError } = await supabase
+    const {data: habit, error: habitError} = await supabase
         .from('habits')
         .select('is_public')
         .eq('id', completion.habit_id)
@@ -173,7 +145,7 @@ export async function deleteHabitCompletion(completionId: string, userId: string
     }
 
     // 3. Delete from database
-    const { error } = await supabase
+    const {error} = await supabase
         .from('habit_completions')
         .delete()
         .eq('id', completionId)
@@ -186,13 +158,7 @@ export async function deleteHabitCompletion(completionId: string, userId: string
 
     // 4. Remove from Journal
     const completionDate = new Date(completion.completed_at);
-    await journalActivityService.removeActivity(
-        userId,
-        completionDate,
-        completionId,
-        'habit',
-        habit.is_public
-    );
+    await journalActivityService.removeActivity(userId, completionDate, completionId, 'habit', habit.is_public);
 }
 
 /**
@@ -204,7 +170,7 @@ export async function deleteHabitCompletion(completionId: string, userId: string
  */
 export async function fetchOwnerHabits(userId: string): Promise<Habit[]> {
     const supabase = createClient();
-    const { data, error } = await supabase
+    const {data, error} = await supabase
         .from('habits')
         .select('*')
         .eq('user_id', userId);
@@ -227,7 +193,7 @@ export async function updateHabit(habitId: string, updates: Partial<Habit>): Pro
     const supabase = createClient();
 
     // Fetch the existing habit to get user_id and current name
-    const { data: existingHabit, error: fetchError } = await supabase
+    const {data: existingHabit, error: fetchError} = await supabase
         .from('habits')
         .select('id, name, user_id')
         .eq('id', habitId)
@@ -240,7 +206,7 @@ export async function updateHabit(habitId: string, updates: Partial<Habit>): Pro
 
     // Check for duplicate name if name is being updated
     if (updates.name && updates.name !== existingHabit.name) {
-        const { data: duplicateHabits, error: duplicateError } = await supabase
+        const {data: duplicateHabits, error: duplicateError} = await supabase
             .from('habits')
             .select('id')
             .eq('user_id', existingHabit.user_id)
@@ -257,7 +223,7 @@ export async function updateHabit(habitId: string, updates: Partial<Habit>): Pro
         }
     }
 
-    const { data, error } = await supabase
+    const {data, error} = await supabase
         .from('habits')
         .update(updates)
         .eq('id', habitId)
@@ -272,12 +238,7 @@ export async function updateHabit(habitId: string, updates: Partial<Habit>): Pro
     // If the habit name was updated, also update it in the journal activity log
     if (updates.name && updates.name !== existingHabit.name) {
         const journalActivityService = new JournalActivityService(supabase);
-        await journalActivityService.updateHabitNameInJournal(
-            existingHabit.user_id,
-            habitId,
-            existingHabit.name,
-            updates.name
-        );
+        await journalActivityService.updateHabitNameInJournal(existingHabit.user_id, habitId, existingHabit.name, updates.name);
     }
     return data;
 }
@@ -289,7 +250,7 @@ export async function updateHabit(habitId: string, updates: Partial<Habit>): Pro
  */
 export async function deleteHabit(habitId: string): Promise<void> {
     const supabase = createClient();
-    const { error } = await supabase
+    const {error} = await supabase
         .from('habits')
         .delete()
         .eq('id', habitId);
@@ -316,7 +277,7 @@ export async function unmarkHabit(habitId: string, targetState: string, referenc
     const supabase = createClient();
 
     // 1. Fetch habit
-    const { data: habit, error: habitError } = await supabase
+    const {data: habit, error: habitError} = await supabase
         .from('habits')
         .select('*')
         .eq('id', habitId)
@@ -325,11 +286,11 @@ export async function unmarkHabit(habitId: string, targetState: string, referenc
     if (habitError || !habit) throw habitError;
 
     // 2. Find latest completion
-    const { data: latestCompletion } = await supabase
+    const {data: latestCompletion} = await supabase
         .from('habit_completions')
         .select('*')
         .eq('habit_id', habitId)
-        .order('completed_at', { ascending: false })
+        .order('completed_at', {ascending: false})
         .limit(1)
         .single();
 
@@ -348,11 +309,10 @@ export async function unmarkHabit(habitId: string, targetState: string, referenc
     }
 
     // 3. Update habit state
-    const { error: updateError } = await supabase
+    const {error: updateError} = await supabase
         .from('habits')
         .update({
-            current_streak: newStreak,
-            habit_state: targetState
+            current_streak: newStreak, habit_state: targetState
         })
         .eq('id', habitId);
 
@@ -362,7 +322,7 @@ export async function unmarkHabit(habitId: string, targetState: string, referenc
 }
 
 /**
- * Backdates a completion for a habit. 
+ * Backdates a completion for a habit.
  * This is primarily a **Developer Tool** or used for "Yesterday" corrections.
  *
  * @param habitId - The UUID of the habit.
@@ -373,7 +333,7 @@ export async function backdateHabitCompletion(habitId: string, completedAt: Date
     const journalActivityService = new JournalActivityService(supabase);
 
     // 1. Fetch current habit state to get user_id and name
-    const { data: habit, error: fetchError } = await supabase
+    const {data: habit, error: fetchError} = await supabase
         .from('habits')
         .select('id, user_id, name, is_public, goal_value')
         .eq('id', habitId)
@@ -385,7 +345,7 @@ export async function backdateHabitCompletion(habitId: string, completedAt: Date
     }
 
     // 2. Insert completion record with the backdated time
-    const { data: newCompletion, error: insertError } = await supabase
+    const {data: newCompletion, error: insertError} = await supabase
         .from('habit_completions')
         .insert({
             habit_id: habitId,
@@ -403,17 +363,13 @@ export async function backdateHabitCompletion(habitId: string, completedAt: Date
 
     // 3. Log activity for the backdated completion
     if (newCompletion?.id) {
-        await journalActivityService.logActivity(
-            habit.user_id,
-            completedAt,
-            {
-                id: newCompletion.id,
-                type: 'habit',
-                description: habit.name,
-                is_public: habit.is_public,
-                status: 'completed',
-                details: {}, // No specific details for basic backdated completion
-            }
-        );
+        await journalActivityService.logActivity(habit.user_id, completedAt, {
+            id: newCompletion.id,
+            type: 'habit',
+            description: habit.name,
+            is_public: habit.is_public,
+            status: 'completed',
+            details: {}, // No specific details for basic backdated completion
+        });
     }
 }

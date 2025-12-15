@@ -3,10 +3,10 @@ import { useDroppable } from '@dnd-kit/core';
 import { SortableContext, rectSortingStrategy } from '@dnd-kit/sortable';
 import { SortableHabit } from './SortableHabit';
 import { Habit } from '@/lib/supabase/types';
+import {HabitBoxType} from "@/lib/enums.ts";
 
-interface HabitColumnProps {
-  id: string;
-  title: string;
+interface HabitBoxProps {
+  id: HabitBoxType;
   habits: Habit[];
   renderHabit: (habit: Habit) => React.ReactNode;
   className?: string;
@@ -20,9 +20,8 @@ interface HabitColumnProps {
  * A reusable column component for the Habits Board.
  * Handles Droppable logic and Sortable list rendering.
  */
-export function HabitColumn({
+export function HabitBox({
   id,
-  title,
   habits,
   renderHabit,
   className,
@@ -30,13 +29,13 @@ export function HabitColumn({
   emptyMessage = "No habits here.",
   headerContent,
   footerContent,
-}: HabitColumnProps) {
+}: Readonly<HabitBoxProps>) {
   const { setNodeRef } = useDroppable({ id });
 
   return (
     <div ref={setNodeRef} className={className}>
       <div className="flex justify-between items-center mb-4">
-        <h3 className="text-xl font-semibold text-foreground">{title}</h3>
+        <h3 className="text-xl font-semibold text-foreground">{id}</h3>
         {headerContent}
       </div>
       
