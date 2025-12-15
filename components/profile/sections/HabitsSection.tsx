@@ -3,23 +3,19 @@
 import React, {useRef, useState} from 'react';
 import {HabitChip} from '@/components/habits/HabitChip';
 import {mockHabitsData, mockPublicHabitsData} from '@/lib/mock-data';
-import {MovingBorder} from '@/components/ui/moving-border';
 import {Button} from '@/components/ui/button';
 import {Habit} from '@/lib/supabase/types';
 import {Skeleton} from '@/components/ui/skeleton';
-import {completeHabit, deleteHabit, updateHabit} from '@/lib/supabase/habit';
-import {toast} from 'sonner';
-import {CompletionsData, HabitCompletionsModal} from '@/components/habits/HabitCompletionsModal.tsx';
+import {CompletionsData, HabitCompletionsModal} from '@/components/habits/HabitCompletionsModal';
 import {Plus} from 'lucide-react';
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip";
 import {HabitCreatorModal} from '@/components/habits/HabitCreatorModal';
 import {closestCorners, DndContext, DragOverlay} from '@dnd-kit/core';
-import {useAuth} from '@/hooks/useAuth';
-import {useSystemTime} from '@/components/providers/SystemTimeProvider';
 import {useHabitDnd} from '@/hooks/useHabitDnd';
-import {HabitBox} from '@/components/habits/HabitBox';
 import {HabitBoxType, HabitState} from '@/lib/enums';
 import UnmarkConfirmationModal from '@/components/habits/UnmarkConfirmationModal';
+import {useHabitActions} from './useHabitActions';
+import {DesktopHabitsLayout, MobileHabitsLayout} from './HabitsLayouts';
 
 interface HabitsSectionProps {
     isOwner: boolean;
@@ -41,8 +37,6 @@ const HabitsSection: React.FC<HabitsSectionProps> = ({
                                                          loading,
                                                          onActivityLogged
                                                      }) => {
-    const {user} = useAuth();
-    const {simulatedDate} = useSystemTime();
 
     const baseHabits = propHabits ?? (isOwner ? mockHabitsData : mockPublicHabitsData);
 
@@ -77,11 +71,26 @@ const HabitsSection: React.FC<HabitsSectionProps> = ({
     } = useHabitDnd({
         habits: baseHabits,
         onHabitMoved: onActivityLogged,
-        onCompleteHabit: !isReadOnly ? handleDragCompletion : undefined,
-        onUnmarkConfirmation: !isReadOnly ? handleUnmarkConfirmation : undefined
+        onCompleteHabit: isReadOnly ? undefined : handleDragCompletion,
+        onUnmarkConfirmation: isReadOnly ? undefined : handleUnmarkConfirmation
     });
 
     const habits = optimisticHabits || baseHabits;
+
+    const {
+        handleHabitUpdate,
+        handleHabitDelete,
+        handleCreateHabit: onHabitCreated,
+        handleHabitComplete: onHabitCompleted
+    } = useHabitActions({
+        onActivityLogged,
+        setOptimisticHabits,
+        habits
+    });
+
+    const handleCreateHabit = () => {
+        onHabitCreated(setIsCreateHabitModalOpen);
+    };
 
     const todayHabits = habits.filter(h => h.habit_state === HabitState.TODAY);
     const yesterdayHabits = habits.filter(h => h.habit_state === HabitState.YESTERDAY);
@@ -94,52 +103,9 @@ const HabitsSection: React.FC<HabitsSectionProps> = ({
 
     const [isCreateHabitModalOpen, setIsCreateHabitModalOpen] = useState(false);
 
-    // -- Handlers --
-
-    const handleHabitUpdate = async (habitId: string, name: string, isPublic: boolean, goalValue?: number | null, goalUnit?: string | null) => {
-        try {
-            await updateHabit(habitId, {name, is_public: isPublic, goal_value: goalValue, goal_unit: goalUnit});
-            toast.success('Habit updated');
-            onActivityLogged?.();
-        } catch (error) {
-            console.error('Failed to update habit:', error);
-            toast.error('Failed to update habit');
-        }
-    };
-
-    const handleHabitDelete = async (habitId: string) => {
-        try {
-            await deleteHabit(habitId);
-            toast.success('Habit deleted');
-            // Remove locally for UI responsiveness
-            setOptimisticHabits(habits.filter(h => h.id !== habitId));
-            onActivityLogged?.();
-        } catch (error) {
-            console.error('Failed to delete habit:', error);
-            toast.error('Failed to delete habit');
-        }
-    };
-
-    const handleCreateHabit = () => {
-        setIsCreateHabitModalOpen(false);
-        toast.success('Habit created!');
-        onActivityLogged?.();
-    };
-
-    const handleHabitComplete = async (habitId: string, data: CompletionsData) => {
-        try {
-            await completeHabit(habitId, data, simulatedDate || new Date());
-            toast.success('Habit completed! 🔥');
-            onActivityLogged?.();
-        } catch (error) {
-            console.error('Failed to complete habit:', error);
-            toast.error('Failed to complete habit');
-        }
-    };
-
     const handleCompletionConfirm = async (data: CompletionsData) => {
         if (activeHabitForCompletion) {
-            await handleHabitComplete(activeHabitForCompletion.id, data);
+            await onHabitCompleted(activeHabitForCompletion.id, data);
             completionSuccessRef.current = true;
         }
     };
@@ -175,7 +141,7 @@ const HabitsSection: React.FC<HabitsSectionProps> = ({
         isOwner={isOwner}
         onHabitUpdated={isReadOnly ? noopOnHabitUpdated : handleHabitUpdate}
         onHabitDeleted={isReadOnly ? noopOnHabitDeleted : handleHabitDelete}
-        onHabitCompleted={isReadOnly ? noopOnHabitCompleted : handleHabitComplete}
+        onHabitCompleted={isReadOnly ? noopOnHabitCompleted : onHabitCompleted}
         box={h.habit_state === HabitState.TODAY ? HabitBoxType.TODAY : h.habit_state === HabitState.YESTERDAY ? HabitBoxType.YESTERDAY : HabitBoxType.PILE}
     />);
 
@@ -222,100 +188,34 @@ const HabitsSection: React.FC<HabitsSectionProps> = ({
             onDragEnd={handleDragEnd}
         >
             {isOwner ? (<>
-                {/* Mobile Layout */}
-                <div className="md:hidden flex flex-col gap-4">
-                    <div className="relative overflow-hidden rounded-xl shadow">
-                        <HabitBox
-                            id={HabitBoxType.TODAY}
-                            habits={todayHabits}
-                            renderHabit={renderHabitChip}
-                            className="p-4 bg-background border border-primary rounded-xl z-10 relative min-h-[100px]"
-                            disabled={isReadOnly}
-                            emptyMessage={!activeId ? "No habits for today." : ""}
-                        />
-                        <div className="absolute inset-0 rounded-[inherit] z-20 pointer-events-none">
-                            <MovingBorder duration={8000} rx="6" ry="6">
-                                <div
-                                    className="h-1 w-8 bg-[radial-gradient(var(--primary)_60%,transparent_100%)] opacity-100 shadow-[0_0_25px_var(--primary)]"/>
-                            </MovingBorder>
-                        </div>
-                    </div>
-
-                    <HabitColumn
-                        id="yesterday"
-                        title="Yesterday"
-                        habits={yesterdayHabits}
-                        renderHabit={renderHabitChip}
-                        className={`p-4 bg-background border border-card-border rounded-xl shadow relative overflow-hidden min-h-[100px] ${yesterdayHabits.length > 0 ? 'border-orange-500/50 bg-orange-500/5' : ''}`}
-                        disabled={isReadOnly}
-                        emptyMessage={!activeId ? "No habits from yesterday." : ""}
-                        headerContent={yesterdayHabits.length > 0 ? <span
-                            className="text-xs text-orange-500 font-bold animate-pulse">Complete to save streak!</span> : null}
-                    />
-
-                    <HabitColumn
-                        id="pile"
-                        title="The Pile"
-                        habits={habitsToDisplay}
-                        renderHabit={renderHabitChip}
-                        className="p-4 bg-background border border-card-border rounded-xl shadow relative overflow-hidden min-h-[100px]"
-                        disabled={isReadOnly}
-                        emptyMessage={!activeId ? "The Pile is empty." : ""}
-                        footerContent={hasMoreHabits && (<Button
-                            variant="ghost"
-                            onClick={() => setShowAllPileHabits(!showAllPileHabits)}
-                            className="mt-2 w-full"
-                        >
-                            {showAllPileHabits ? 'Show Less' : 'Show More'}
-                        </Button>)}
-                    />
-                </div>
-
-                {/* Desktop Layout */}
-                <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-2 gap-4">
-                    <div className="relative overflow-hidden rounded-xl shadow">
-                        <HabitColumn
-                            id="today"
-                            title="Today"
-                            habits={todayHabits}
-                            renderHabit={renderHabitChip}
-                            className="p-4 bg-background border border-primary rounded-xl z-10 relative min-h-[100px]"
-                            disabled={isReadOnly}
-                            emptyMessage={!activeId ? "No habits for today." : ""}
-                        />
-                        <div className="absolute inset-0 rounded-[inherit] z-20 pointer-events-none">
-                            <MovingBorder duration={8000} rx="6" ry="6">
-                                <div
-                                    className="h-1 w-8 bg-[radial-gradient(var(--primary)_60%,transparent_100%)] opacity-100 shadow-[0_0_25px_var(--primary)]"/>
-                            </MovingBorder>
-                        </div>
-                    </div>
-
-                    <HabitColumn
-                        id="yesterday"
-                        title="Yesterday"
-                        habits={yesterdayHabits}
-                        renderHabit={renderHabitChip}
-                        className={`p-4 bg-background border border-card-border rounded-xl shadow relative overflow-hidden min-h-[100px] ${yesterdayHabits.length > 0 ? 'border-orange-500/50 bg-orange-500/5' : ''}`}
-                        disabled={isReadOnly}
-                        emptyMessage={!activeId ? "No habits from yesterday." : ""}
-                        headerContent={yesterdayHabits.length > 0 ? <span
-                            className="text-xs text-orange-500 font-bold animate-pulse">Complete to save streak!</span> : null}
-                    />
-
-                    <HabitColumn
-                        id="pile"
-                        title="The Pile"
-                        habits={pileHabits}
-                        renderHabit={renderHabitChip}
-                        className="p-4 bg-background border border-card-border rounded-xl shadow md:col-span-full lg:col-span-2 min-h-[100px]"
-                        disabled={isReadOnly}
-                        emptyMessage={!activeId ? "The Pile is empty." : ""}
-                    />
-                </div>
+                <MobileHabitsLayout
+                    todayHabits={todayHabits}
+                    yesterdayHabits={yesterdayHabits}
+                    pileHabits={habitsToDisplay}
+                    renderHabitChip={renderHabitChip}
+                    isReadOnly={isReadOnly}
+                    activeId={activeId}
+                    showAllPileHabits={showAllPileHabits}
+                    setShowAllPileHabits={setShowAllPileHabits}
+                    hasMoreHabits={hasMoreHabits}
+                />
+                <DesktopHabitsLayout
+                    todayHabits={todayHabits}
+                    yesterdayHabits={yesterdayHabits}
+                    pileHabits={pileHabits}
+                    renderHabitChip={renderHabitChip}
+                    isReadOnly={isReadOnly}
+                    activeId={activeId}
+                />
             </>) : (<div className="habit-grid flex flex-wrap gap-4">
                 {habits.filter(h => h.is_public).map((habit) => (
-                    <HabitChip key={habit.id} habit={habit} isOwner={false} disableClick={false}/>))}
+                    <HabitChip
+                        key={habit.id}
+                        habit={habit}
+                        isOwner={false}
+                        disableClick={false}
+                        box={HabitBoxType.PILE}
+                    />))}
             </div>)}
 
             <DragOverlay>
@@ -325,7 +225,7 @@ const HabitsSection: React.FC<HabitsSectionProps> = ({
                     onHabitUpdated={noopOnHabitUpdated}
                     onHabitDeleted={noopOnHabitDeleted}
                     onHabitCompleted={noopOnHabitCompleted}
-                    columnId="today"
+                    box={HabitBoxType.TODAY}
                 />) : null}
             </DragOverlay>
         </DndContext>
