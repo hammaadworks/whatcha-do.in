@@ -1,17 +1,22 @@
 // lib/supabase/types.ts
 
 
+import {HabitState} from "@/lib/enums.ts";
+
 export interface Habit {
     id: string;
     user_id: string; // Added user_id
     name: string;
     is_public: boolean;
-    current_streak: number;
-    last_streak: number;
+    streak: number;
+    longest_streak: number;
     goal_value: number | null;
     goal_unit: string | null;
-    habit_state: string;
+    habit_state: HabitState;
     junked_at: string | null;
+    last_non_today_state: string | null;
+    last_completed_date: string | null;
+    last_resolved_date: string | null;
     created_at: string;
     updated_at: string;
 }
