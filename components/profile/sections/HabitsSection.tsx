@@ -227,6 +227,7 @@ const HabitsSection: React.FC<HabitsSectionProps> = ({
                     </TooltipProvider>
                 )}
             </div>
+            <p className="text-sm text-muted-foreground mb-4">Drag habits across boxes to mark or long tap for options.</p>
             
             <DndContext 
                 sensors={sensors} 

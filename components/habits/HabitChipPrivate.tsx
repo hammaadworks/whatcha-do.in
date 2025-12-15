@@ -34,15 +34,7 @@ export const HabitChipPrivate: React.FC<HabitChipPrivateProps> = ({
 
     return (<>
             <div className="group relative flex items-center w-fit">
-                <div className="absolute left-[-12px] z-20 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button
-                        onClick={() => setIsCompletionModalOpen(true)}
-                        className="bg-primary text-primary-foreground rounded-full p-1 shadow-md hover:scale-110 transition-transform"
-                        title="Mark Complete"
-                    >
-                        <CheckCircle2 size={16}/>
-                    </button>
-                </div>
+
 
                 {/* The public chip provides the base visuals */}
                 <HabitChipPublic

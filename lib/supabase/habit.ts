@@ -225,6 +225,38 @@ export async function fetchOwnerHabits(userId: string): Promise<Habit[]> {
  */
 export async function updateHabit(habitId: string, updates: Partial<Habit>): Promise<Habit> {
     const supabase = createClient();
+
+    // Fetch the existing habit to get user_id and current name
+    const { data: existingHabit, error: fetchError } = await supabase
+        .from('habits')
+        .select('id, name, user_id')
+        .eq('id', habitId)
+        .single();
+
+    if (fetchError || !existingHabit) {
+        console.error("Error fetching existing habit for update:", fetchError);
+        throw fetchError;
+    }
+
+    // Check for duplicate name if name is being updated
+    if (updates.name && updates.name !== existingHabit.name) {
+        const { data: duplicateHabits, error: duplicateError } = await supabase
+            .from('habits')
+            .select('id')
+            .eq('user_id', existingHabit.user_id)
+            .ilike('name', updates.name)
+            .neq('id', habitId); // Exclude the current habit from the check
+
+        if (duplicateError) {
+            console.error("Error checking for duplicate habit names:", duplicateError);
+            throw duplicateError;
+        }
+
+        if (duplicateHabits && duplicateHabits.length > 0) {
+            throw new Error(`A habit with the name "${updates.name}" already exists.`);
+        }
+    }
+
     const { data, error } = await supabase
         .from('habits')
         .update(updates)
@@ -235,6 +267,17 @@ export async function updateHabit(habitId: string, updates: Partial<Habit>): Pro
     if (error) {
         console.error("Error updating habit:", error);
         throw error;
+    }
+
+    // If the habit name was updated, also update it in the journal activity log
+    if (updates.name && updates.name !== existingHabit.name) {
+        const journalActivityService = new JournalActivityService(supabase);
+        await journalActivityService.updateHabitNameInJournal(
+            existingHabit.user_id,
+            habitId,
+            existingHabit.name,
+            updates.name
+        );
     }
     return data;
 }

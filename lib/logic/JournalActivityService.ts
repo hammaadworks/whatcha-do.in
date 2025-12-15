@@ -177,9 +177,76 @@ export class JournalActivityService {
     return activities;
   }
 
+  /**
+   * Updates the habit name in activity log entries within the journal.
+   * Finds all journal entries for a user that contain the old habit name
+   * and replaces it with the new habit name for entries of type 'habit'
+   * and matching habitId.
+   *
+   * @param userId - The ID of the user.
+   * @param habitId - The ID of the habit being renamed.
+   * @param oldHabitName - The previous name of the habit.
+   * @param newHabitName - The new name of the habit.
+   */
+  private async _updateHabitNameInJournal(
+    userId: string,
+    habitId: string,
+    oldHabitName: string,
+    newHabitName: string
+  ): Promise<void> {
+    this.logger.info({ userId, habitId, oldHabitName, newHabitName }, 'Updating habit name in journal entries.');
+
+    // Fetch today's journal entry for the user
+    const today = new Date(); // Assuming "today's activity" refers to the current date
+    const formattedDate = format(today, 'yyyy-MM-dd');
+
+    // We need to fetch both public and private journal entries
+    // Using Promise.allSettled to ensure both are attempted even if one fails or doesn't exist
+    const [publicEntryResult, privateEntryResult] = await Promise.allSettled([
+      this.supabase.from('journal_entries').select('*').eq('user_id', userId).eq('entry_date', formattedDate).eq('is_public', true).single(),
+      this.supabase.from('journal_entries').select('*').eq('user_id', userId).eq('entry_date', formattedDate).eq('is_public', false).single(),
+    ]);
+
+    const entriesToUpdate: JournalEntry[] = [];
+    if (publicEntryResult.status === 'fulfilled' && publicEntryResult.value.data) {
+        entriesToUpdate.push(publicEntryResult.value.data as JournalEntry);
+    }
+    if (privateEntryResult.status === 'fulfilled' && privateEntryResult.value.data) {
+        entriesToUpdate.push(privateEntryResult.value.data as JournalEntry);
+    }
+    
+    for (const journalEntry of entriesToUpdate) {
+        let activityLog = journalEntry.activity_log || [];
+        let needsUpdate = false;
+
+        const updatedActivityLog = activityLog.map(activity => {
+            // Ensure `activity.id` and `activity.description` are treated as strings
+            if (activity.type === 'habit' && String(activity.id) === habitId && String(activity.description) === oldHabitName) {
+                needsUpdate = true;
+                return { ...activity, description: newHabitName };
+            }
+            return activity;
+        });
+
+        if (needsUpdate) {
+            const { error } = await this.supabase
+                .from('journal_entries')
+                .update({ activity_log: updatedActivityLog })
+                .eq('id', journalEntry.id);
+
+            if (error) {
+                this.logger.error({ err: error, journalEntryId: journalEntry.id, userId, habitId, oldHabitName, newHabitName }, 'Error updating habit name in journal entry.');
+                throw error;
+            }
+            this.logger.debug({ journalEntryId: journalEntry.id, userId, habitId }, 'Successfully updated habit name in journal entry.');
+        }
+    }
+  }
+
   // Wrapped public methods for logging
   public getOrCreateJournalEntry = withLogging(this._getOrCreateJournalEntry.bind(this), 'JournalActivityService.getOrCreateJournalEntry');
   public logActivity = withLogging(this._logActivity.bind(this), 'JournalActivityService.logActivity');
   public removeActivity = withLogging(this._removeActivity.bind(this), 'JournalActivityService.removeActivity');
   public getActivitiesForDate = withLogging(this._getActivitiesForDate.bind(this), 'JournalActivityService.getActivitiesForDate');
+  public updateHabitNameInJournal = withLogging(this._updateHabitNameInJournal.bind(this), 'JournalActivityService.updateHabitNameInJournal');
 }
