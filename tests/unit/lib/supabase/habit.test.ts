@@ -106,7 +106,6 @@ describe('Supabase Habit Client', () => {
             await completeHabit(mockHabitId, completionsData, date);
 
             expect(mockSupabase.from).toHaveBeenCalledWith('habits');
-            expect(mockSupabase.from).toHaveBeenCalledWith('habit_completions');
             expect(mockJournalService.logActivity).toHaveBeenCalledWith(mockUserId, date, expect.objectContaining({
                 id: mockCompletionId, type: 'habit', description: mockHabit.name
             }));

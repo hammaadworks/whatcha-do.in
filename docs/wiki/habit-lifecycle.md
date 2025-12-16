@@ -1,225 +1,350 @@
-# Habit Lifecycle — Canonical Ruleset (AI-Safe Spec)
+# Habit Lifecycle
 
-This document defines the **single source of truth** for the Habit lifecycle.
-All logic MUST follow this spec exactly. No implicit assumptions are allowed.
+This document defines the COMPLETE habit lifecycle. It is the single source of truth for all remaining implementations.
 
----
-
-## The 3-Box System (User-Facing)
-
-1. **Today** — Habits completed for the current calendar day.
-2. **Yesterday** — Habits eligible for a one-day grace period.
-3. **The Pile** — All other habits (lively or junked).
+All logic MUST follow this document exactly. Creativity, inference, or shortcuts are forbidden.
 
 ---
 
-## Canonical Habit States (Internal)
+## 1. Core Philosophy (Binding)
+
+- Grace must be earned
+- Undo must be lossless
+- Streaks reflect **truth**, not motivation
+- Failure compounds (negative streaks)
+
+---
+
+## 2. Canonical States
 
 ```ts
-export enum HabitState {
-    TODAY = 'today', YESTERDAY = 'yesterday', LIVELY = 'lively', JUNKED = 'junked',
+enum HabitState {
+    TODAY = 'today', YESTERDAY = 'yesterday', LIVELY = 'lively', JUNKED = 'junked'
 }
+
 ````
 
 ---
 
-## Required Habit Fields (Non-Negotiable)
-
-Each habit MUST contain:
+## 3. Source-of-Truth Fields (From Schema)
 
 ```ts
-state: HabitState
-streak: number
-lastCompletedDate: Date | null
-lastNonTodayState: 'yesterday' | 'lively' | 'junked'
-```
+habit_state: HabitState
 
-`lastNonTodayState` exists solely to make **Undo deterministic**.
+streak: number                   // can be positive, zero, or negative
+longest_streak: number           // analytics only, never decreases
+
+last_non_today_state: HabitState
+last_non_today_streak: number
+
+last_completed_date: Date | null
+last_resolved_date: Date | null
+
+junked_at: Date | null
+```
 
 ---
 
-## System Events (Explicit)
+## 4. Time Model (Non-Negotiable)
 
-The system recognizes ONLY the following events:
+* All logic operates on **calendar DATE**, not timestamps
+* A habit can be resolved **once per date only**
+* “Day t+1 / t+2” is calculated using DATE difference
+
+---
+
+## 5. Global Invariants (Hard Errors)
+
+The AI MUST enforce ALL of the following:
+
+1. `today → yesterday` is the ONLY way to enter `yesterday`
+2. `lively → yesterday` is forbidden
+3. `junked → yesterday` is forbidden
+4. Streak increases ONLY via `USER_COMPLETE`
+5. At most ONE completion per calendar day
+6. Undo restores EXACT prior state and streak
+7. `longest_streak` NEVER decreases
+8. If habit is `junked`, streak MUST be ≤ 0
+9. Negative streaks ONLY occur in `junked`
+10. No state mutation without an event
+
+Violations MUST throw errors.
+
+---
+
+## 6. Events (Exhaustive)
 
 ```ts
 USER_COMPLETE
 USER_UNDO
 DAY_ROLLOVER
 DAILY_RESOLUTION
+AUTO_RESOLVE
 ```
 
-No other implicit events are allowed.
+---
+
+## 7. Transition Engine Contract
+
+ALL changes must go through:
+
+```ts
+transitionHabit(habit, event, todayDate)
+```
+
+State is a pure function of:
+
+* previous habit record
+* event
+* todayDate
 
 ---
 
-## Invariants (Must Always Hold)
+## 8. USER_COMPLETE (Already Implemented) [Reference](/lib/supabase/habit.ts)
 
-1. A habit may exist in **Yesterday for at most one calendar day**.
-2. A habit may enter **Yesterday ONLY from Today**.
-3. **Pile → Yesterday is strictly forbidden**.
-4. Streak can only increase via `USER_COMPLETE`.
-5. Streak can increase **at most once per calendar day**.
-6. Any habit in `junked` MUST have `streak = 0`.
-7. Direct state mutation is forbidden — all changes go through transitions.
+### Valid From
 
----
+* lively
+* yesterday
+* junked
 
-## Event Rules
+### Rules
 
----
+```ts
+if (last_completed_date === todayDate) abort
+```
 
-### 1. USER_COMPLETE (User marks habit done)
+```ts
+last_non_today_state = habit_state
+last_non_today_streak = streak
 
-#### Valid Transitions
+habit_state = today
+last_completed_date = todayDate
+junked_at = null
+```
 
-* `lively → today`
-* `junked → today`
-* `yesterday → today`
+#### Streak Logic
 
-#### Effects
+* From junked → `streak = 1`
+* Else → `streak += 1`
 
-* `streak += 1`
-* `lastCompletedDate = today`
-* If previous state was `junked`, streak resets to `1`
-* `lastNonTodayState` is preserved
-
----
-
-### 2. USER_UNDO (User unmarks habit)
-
-Undo MUST return the habit to its **previous non-today state**.
-
-#### Valid Transitions
-
-* `today → lastNonTodayState`
-
-#### Effects
-
-* `streak -= 1`
-* Delete completion record for today
-* Restore exact prior state (`yesterday`, `lively`, or `junked`)
-
-#### Constraint
-
-* If `lastNonTodayState = yesterday`, the habit MUST return to Yesterday
-* User is never allowed to choose the destination manually
+```ts
+longest_streak = max(longest_streak, streak)
+```
 
 ---
 
-### 3. DAY_ROLLOVER (System, calendar boundary)
+## 9. USER_UNDO (Already Implemented) [Reference](/lib/supabase/habit.ts)
+
+### Preconditions
+
+* habit_state === today
+* last_non_today_state IS NOT NULL
+
+### Logic
+
+```ts
+habit_state = last_non_today_state
+streak = last_non_today_streak
+last_completed_date = null
+```
+
+> `longest_streak` is NEVER modified by undo.
+
+---
+
+## 10. DAY_ROLLOVER (System Event)
 
 Triggered at:
 
-* Local midnight OR
 * First app open after midnight
 
-#### Rules
+### Valid Transition
 
-* Every habit in `today` moves to `yesterday`
-* Only habits completed on day `t` are eligible
-* No streak changes occur
+```md
+today → yesterday
+```
 
-#### Valid Transition
-
-* `today → yesterday`
-
----
-
-### 4. DAILY_RESOLUTION (System, once per day per habit)
-
-Triggered **once per habit per calendar day**, on first app open.
-
-This resolves habits left incomplete.
-
----
-
-## DAILY_RESOLUTION — Case A: Habit in Yesterday
-
-### Scenario A1 — App opened on day `t+1`
-
-User is shown a grace-period modal.
-
-* **User marks Complete**
-
-    * `yesterday → today`
-    * `streak += 1` (streak saved)
-
-* **User marks Incomplete**
-
-    * `yesterday → lively`
-    * `streak unchanged`
-
-### Scenario A2 — App opened on day `t+2` or later
-
-* Auto-resolve as incomplete
-
-    * `yesterday → lively`
-    * `streak unchanged`
-
----
-
-## DAILY_RESOLUTION — Case B: Habit in Pile (Lively)
-
-### Scenario B1 — App opened on day `t+1`
-
-User is shown a grace-period modal.
-
-* **User marks Complete**
-
-    * `lively → today`
-    * `streak += 1`
-
-* **User marks Incomplete**
-
-    * `lively → junked`
-    * `streak = 0`
-
-### Scenario B2 — App opened on day `t+2` or later
-
-* Auto-resolve as incomplete
-
-    * `lively → junked`
-    * `streak = 0`
-
----
-
-## Forbidden Transitions (Hard Errors)
-
-The following MUST NEVER occur:
-
-* `lively → yesterday`
-* `junked → yesterday`
-* `pile → yesterday` (any form)
-* Any state change without a declared event
-* Any streak increment without `USER_COMPLETE`
-
-If encountered, the system must throw an error.
-
----
-
-## Canonical Transition Contract
-
-All logic MUST flow through the following function:
+### Rules
 
 ```ts
-transitionHabit(habit, event, currentDate)
+habit_state = yesterday
+last_non_today_state = null
 ```
 
-* Direct state mutation is forbidden
-* UI actions emit events
-* System actions emit events
-* State is a pure function of `(previousState, event, date)`
+* No streak changes
+* No resolution happens here
 
 ---
 
-## Design Intent (Non-Functional, Mandatory)
+## 11. DAILY_RESOLUTION (System Guard)
 
-* Yesterday is **earned**, never granted.
-* Grace is **limited**, never stackable.
-* Time cannot be gamed.
-* The system favors **honesty over streak preservation**.
+Triggered ONCE per habit per calendar day.
 
-This intent MUST guide all future extensions.
-
+```ts
+if (last_resolved_date === todayDate) abort
+last_resolved_date = todayDate
 ```
+
+Resolution depends on current state and date delta.
+
+---
+
+## 12. DAILY_RESOLUTION — YESTERDAY
+
+### Case A: App opened on day t+1
+
+User must choose.
+
+#### A1. User marks COMPLETE
+
+Equivalent to `USER_COMPLETE`.
+
+#### A2. User marks INCOMPLETE
+
+```ts
+habit_state = lively
+// streak unchanged
+```
+
+---
+
+### Case B: App opened on day t+2 or later (AUTO)
+
+```ts
+habit_state = lively
+// streak unchanged
+```
+
+---
+
+## 13. DAILY_RESOLUTION — LIVELY
+
+### Case A: App opened on day t+1
+
+User must choose.
+
+#### A1. User marks COMPLETE
+
+Equivalent to `USER_COMPLETE`.
+
+#### A2. User marks INCOMPLETE → JUNK
+
+```ts
+habit_state = junked
+junked_at = now()
+streak = 0
+```
+
+---
+
+### Case B: App opened on day t+2 or later (AUTO)
+
+```ts
+habit_state = junked
+junked_at = now()
+streak = 0
+```
+
+---
+
+## 14. NEGATIVE STREAK RULE (NEW — CRITICAL)
+
+Once a habit is in `junked`:
+
+### Rule 1: Streak becomes 0 on entry
+
+Already enforced.
+
+### Rule 2: Each subsequent unresolved day DECREASES streak
+
+On every DAILY_RESOLUTION where:
+
+* habit_state === junked
+* habit is NOT completed
+* last_completed_date < todayDate
+
+Apply:
+
+```ts
+streak -= 1
+```
+
+This results in:
+
+* Day 1 junked → streak = 0
+* Day 2 junked → streak = -1
+* Day 3 junked → streak = -2
+* …
+
+### Rule 3: Negative streaks ONLY exist in junked
+
+If habit leaves junked via completion:
+
+* streak resets to `1`
+
+---
+
+## 15. AUTO_RESOLVE — JUNKED (Silent)
+
+Junked habits NEVER show grace UI.
+
+On DAILY_RESOLUTION:
+
+```ts
+if (habit_state === junked && last_completed_date < todayDate) {
+    streak -= 1
+}
+```
+
+---
+
+## 16. Forbidden Transitions (Hard Fail)
+
+```ts
+lively  → yesterday
+junked  → yesterday
+any     → today(without
+USER_COMPLETE
+)
+negative
+streak
+outside
+junked
+undo
+without
+saved
+state
+```
+
+---
+
+## 17. Transition Summary (Truth Table)
+
+| From      | Event              | To        | Streak Effect |
+|-----------|--------------------|-----------|---------------|
+| lively    | USER_COMPLETE      | today     | +1            |
+| yesterday | USER_COMPLETE      | today     | +1            |
+| junked    | USER_COMPLETE      | today     | reset → 1     |
+| today     | USER_UNDO          | prev      | restore       |
+| today     | DAY_ROLLOVER       | yesterday | none          |
+| yesterday | RESOLVE_INCOMPLETE | lively    | none          |
+| lively    | RESOLVE_INCOMPLETE | junked    | → 0           |
+| junked    | DAILY_RESOLUTION   | junked    | −1/day        |
+
+---
+
+## 18. Final Guarantees
+
+If implemented exactly as above:
+
+* Undo is mathematically exact
+* Streaks never lie
+* Failure compounds visibly
+* AI agents cannot invent paths
+* Timeline integrity is preserved
+
+This document is FINAL.
+Any deviation is a bug.
+
+---
