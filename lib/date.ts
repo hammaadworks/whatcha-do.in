@@ -1,100 +1,200 @@
 /**
- * @fileoverview Legacy Entry Point for Date/Time Logic.
- * 
- * DEPRECATED: Prefer importing directly from `@/lib/time/physics`, `@/lib/time/logic`, or `@/lib/time/format`.
- * This file delegates to the new modular architecture.
+ * ============================================================================
+ * 🧠 CANONICAL DATE SYSTEM — FINAL (NON-F***ABLE)
+ * ============================================================================
+ *
+ * ARCHITECTURE CONTRACT (NON-NEGOTIABLE):
+ *
+ * 1. "Today" is derived, never stored
+ * 2. UI / Server ONLY provide a reference Date ("now")
+ * 3. Timezone resolution happens EXACTLY ONCE
+ * 4. Business logic runs ONLY on ISODate (YYYY-MM-DD)
+ * 5. DB stores ISODate, NEVER timestamps for streak logic
+ * 6. NEVER cache "today"
+ * 7. NEVER call new Date() outside this file
+ *
+ * Violate this and you WILL introduce midnight / DST bugs.
+ * ============================================================================
  */
 
-import { getStartOfDayInTimezone, getEndOfDayInTimezone } from './time/physics';
-import { isCompletedToday } from './time/logic';
-import { getCurrentDateInTimezone as formatCurrentDate, getMonthStartDate as formatMonthStart, isFirstDayOfMonth as checkFirstDay } from './time/format';
+import {format} from "date-fns";
+import {fromZonedTime, toZonedTime} from "date-fns-tz";
+
+/* -------------------------------------------------------------------------- */
+/* TYPES */
+/* -------------------------------------------------------------------------- */
+
+export type ISODate = `${number}-${number}-${number}`;
+
+/* -------------------------------------------------------------------------- */
+
+/* SECTION 1 — REFERENCE TIME PROVIDERS
+ * Purpose: Answer ONLY “what is now?”
+ * -------------------------------------------------------------------------- */
 
 /**
- * Returns the start of the current day (00:00:00.000) for a specific timezone.
- * Returns the timestamp in milliseconds.
- * 
- * @param timezone The IANA timezone string (e.g., 'America/New_York'). Defaults to 'UTC'.
- * @param referenceDate Optional reference date for Time Travel.
+ * Server reference time
+ * - cookieValue is simulated_date cookie (ISO string)
  */
-export function getStartOfTodayInTimezone(
-  timezone: string = 'UTC', 
-  referenceDate: Date | number = new Date()
-): number {
-  return getStartOfDayInTimezone(timezone, referenceDate);
+export function getReferenceDateServer(cookieValue?: string): Date {
+    if (!cookieValue) return new Date();
+    const d = parseISO(cookieValue as ISODate);
+    return Number.isNaN(d.getTime()) ? new Date() : d;
 }
 
 /**
- * Returns the current date string (YYYY-MM-DD) for a specific timezone.
+ * UI reference time
+ * - simulatedDate comes from the provider
  */
-export function getCurrentDateInTimezone(
-  timezone: string = 'UTC',
-  referenceDate: Date | number = new Date()
-): string {
-  return formatCurrentDate(timezone, referenceDate);
+export function getReferenceDateUI(simulatedDate: Date | null): Date {
+    return simulatedDate ?? new Date();
+}
+
+/* -------------------------------------------------------------------------- */
+
+/* SECTION 2 — TIMEZONE PHYSICS (PRIVATE)
+ * -------------------------------------------------------------------------- */
+
+function getZonedParts(timezone: string, referenceDate: Date | number) {
+    const zoned = toZonedTime(new Date(referenceDate), timezone);
+    return {
+        year: zoned.getFullYear(), month: zoned.getMonth(), // 0-indexed
+        day: zoned.getDate(),
+    };
+}
+
+function utcFromZonedParts(y: number, m: number, d: number, h: number, min: number, s: number, timezone: string): number {
+    const pad = (n: number) => n.toString().padStart(2, "0");
+    const isoLocal = `${y}-${pad(m + 1)}-${pad(d)}T${pad(h)}:${pad(min)}:${pad(s)}`;
+    return fromZonedTime(isoLocal, timezone).getTime();
+}
+
+/* -------------------------------------------------------------------------- */
+
+/* SECTION 3 — TIMEZONE RESOLUTION (PUBLIC API)
+ * Purpose: Define “today” EXACTLY ONCE
+ * -------------------------------------------------------------------------- */
+
+/**
+ * ✅ THE ONLY VALID WAY TO GET "TODAY"
+ */
+export function getTodayISO(timezone: string, referenceDate: Date | number = new Date()): ISODate {
+    return format(toZonedTime(new Date(referenceDate), timezone), "yyyy-MM-dd") as ISODate;
 }
 
 /**
- * Checks if a given timestamp is from a "previous day" relative to the user's current timezone.
- * Used for "Next Day Clearing" logic.
- * 
- * @param timestampISO The ISO string of the completion time.
- * @param timezone The user's preferred timezone.
- * @param referenceDate Optional reference date for Time Travel.
+ * Start of today (00:00) in user timezone → UTC timestamp
+ * (analytics / range queries only)
  */
-export function isCompletedBeforeToday(
-  timestampISO: string | null | undefined, 
-  timezone: string = 'UTC',
-  referenceDate: Date | number = new Date()
-): boolean {
-  if (!timestampISO) return false;
-  
-  // It is before today if it is NOT "Today" (and we assume it's in the past).
-  // Strictly: completed < startOfToday
-  // Our logic module has `isCompletedToday`.
-  return !isCompletedToday(timestampISO, timezone, referenceDate);
+export function getStartOfTodayInTimezone(timezone: string, referenceDate: Date | number = new Date()): number {
+    const {year, month, day} = getZonedParts(timezone, referenceDate);
+    return utcFromZonedParts(year, month, day, 0, 0, 0, timezone);
 }
 
-/**
- * Returns the start date of a month (YYYY-MM-01) relative to the current date in the given timezone.
- * 
- * @param offsetMonths 0 for current month, -1 for previous month, etc.
- * @param timezone User's timezone.
- * @param referenceDate Optional reference date.
- */
-export function getMonthStartDate(
-  offsetMonths: number, 
-  timezone: string = 'UTC',
-  referenceDate: Date | number = new Date()
-): string {
-  return formatMonthStart(offsetMonths, timezone, referenceDate);
+export function getEndOfDayInTimezone(timezone: string, referenceDate: Date | number = new Date()): number {
+    const {year, month, day} = getZonedParts(timezone, referenceDate);
+    // End of day is start of next day
+    // Using Date.UTC to increment day handles month rollover automatically
+    const tomorrow = new Date(Date.UTC(year, month, day + 1));
+    return utcFromZonedParts(tomorrow.getUTCFullYear(), tomorrow.getUTCMonth(), tomorrow.getUTCDate(), 0, 0, 0, timezone);
 }
 
-/**
- * Returns the number of milliseconds until the next midnight (start of the next day) 
- * for a specific timezone.
- * 
- * @param timezone User's timezone.
- * @param referenceDate Optional reference date.
- */
-export function getMillisecondsUntilNextDay(
-  timezone: string = 'UTC',
-  referenceDate: Date | number = new Date()
-): number {
-  const now = new Date(referenceDate).getTime();
-  const endOfDay = getEndOfDayInTimezone(timezone, referenceDate);
-  
-  return endOfDay - now;
+export function getMillisecondsUntilNextDay(timezone: string, referenceDate: Date | number = new Date()): number {
+    const now = new Date(referenceDate).getTime();
+    const endOfDay = getEndOfDayInTimezone(timezone, referenceDate);
+    return Math.max(0, endOfDay - now);
 }
 
+/* -------------------------------------------------------------------------- */
+
+/* SECTION 4 — PURE ISO DATE MATH (TIMEZONE-FREE)
+ * -------------------------------------------------------------------------- */
+
+export function parseISO(date: ISODate): Date {
+    const [y, m, d] = date.split("-").map(Number);
+    return new Date(Date.UTC(y, m - 1, d));
+}
+
+export function formatISO(date: Date): ISODate {
+    return date.toISOString().slice(0, 10) as ISODate;
+}
+
+export function addDays(date: ISODate, days: number): ISODate {
+    const base = parseISO(date);
+    base.setUTCDate(base.getUTCDate() + days);
+    return formatISO(base);
+}
+
+export function diffInDays(from: ISODate, to: ISODate): number {
+    const a = parseISO(from).getTime();
+    const b = parseISO(to).getTime();
+    return Math.round((a - b) / 86_400_000);
+}
+
+export function isToday(date: ISODate, today: ISODate): boolean {
+    return date === today;
+}
+
+export function isYesterday(date: ISODate, today: ISODate): boolean {
+    return diffInDays(today, date) === 1;
+}
+
+export function getMonthStart(today: ISODate, offsetMonths = 0): ISODate {
+    const [y, m] = today.split("-").map(Number);
+    return formatISO(new Date(Date.UTC(y, m - 1 + offsetMonths, 1)));
+}
+
+export function isFirstDayOfMonth(today: ISODate): boolean {
+    return today.endsWith("-01");
+}
+
+export function getCurrentMonthStartISO(timezone: string, referenceDate: Date | number = new Date(), offsetMonths = 0): ISODate {
+    const today = getTodayISO(timezone, referenceDate);
+    return getMonthStart(today, offsetMonths);
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+/* SECTION 5 — BUSINESS LOGIC (HABITS / STREAKS)
+ * ISO IN → ISO OUT
+ * -------------------------------------------------------------------------- */
+
+export function daysSince(completionDate: ISODate | null, today: ISODate): number {
+    if (!completionDate) return Infinity;
+    return diffInDays(today, completionDate);
+}
+
+export function completedToday(completionDate: ISODate | null, today: ISODate): boolean {
+    if (!completionDate) return false;
+    return isToday(completionDate, today);
+}
+
+export function completedYesterday(completionDate: ISODate | null, today: ISODate): boolean {
+    if (!completionDate) return false;
+    return isYesterday(completionDate, today);
+}
+
+/* -------------------------------------------------------------------------- */
+
+/* SECTION 6 — UI HELPERS (INPUT PARSING)
+ * -------------------------------------------------------------------------- */
+
 /**
- * Checks if the current date in the specified timezone is the 1st day of the month.
+ * Parses a datetime-local input string (YYYY-MM-DDTHH:mm) into a Date object.
+ * Used primarily for Time Travel debugging.
  * 
- * @param timezone User's timezone.
- * @param referenceDate Optional reference date.
+ * @param input - The value from <input type="datetime-local" />
  */
-export function isFirstDayOfMonth(
-  timezone: string = 'UTC',
-  referenceDate: Date | number = new Date()
-): boolean {
-  return checkFirstDay(timezone, referenceDate);
+export function parseLocalDateTime(input: string): Date | null {
+    if (!input) return null;
+
+    const [datePart, timePart] = input.split("T");
+    if (!datePart || !timePart) return null;
+
+    const [year, month, day] = datePart.split("-").map(Number);
+    const [hour, minute] = timePart.split(":").map(Number);
+
+    // Constructing date using local browser time as intended for "Simulated Local Time"
+    return new Date(year, month - 1, day, hour, minute);
 }

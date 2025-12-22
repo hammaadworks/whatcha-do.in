@@ -8,6 +8,7 @@
  * - UI/UX defaults
  */
 
+export const SIMULATED_DATE_COOKIE = "simulated_date"
 /**
  * List of usernames that cannot be registered by users as they conflict with application routes.
  */

@@ -6,8 +6,8 @@ import {DayButton, DayPicker, getDefaultClassNames,} from "react-day-picker";
 
 import {cn} from "@/lib/utils";
 import {Button, buttonVariants} from "@/components/ui/button";
-import {useSimulatedTime} from "@/components/layout/SimulatedTimeProvider.tsx";
-import {getReferenceDateUI} from "@/lib/date.ts";
+import {useSimulatedTime} from "@/components/layout/SimulatedTimeProvider";
+import {getReferenceDateUI} from "@/lib/date";
 
 
 /* ------------------------------------------------------------------ */

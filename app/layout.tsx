@@ -6,11 +6,11 @@ import {AuthProvider} from "@/components/auth/AuthProvider";
 import {createServerSideClient} from '@/lib/supabase/server';
 import logger from '@/lib/logger/server'; // Import the server logger
 import {Pointer} from "@/components/ui/pointer";
-import {AUTHOR_NAME, AUTHOR_TWITTER_HANDLE, DOMAIN_URL, WEBSITE_URL} from "@/lib/constants";
+import {AUTHOR_NAME, AUTHOR_TWITTER_HANDLE, DOMAIN_URL, SIMULATED_DATE_COOKIE, WEBSITE_URL} from "@/lib/constants";
 import {ThemeProvider} from "next-themes";
 import {KeyboardShortcutsProvider} from '@/components/shared/KeyboardShortcutsProvider';
 import {LayoutContent} from '@/components/layout/LayoutContent'; // New import for the client component
-import {SystemTimeProvider} from '@/components/providers/SystemTimeProvider';
+import {SimulatedTimeProvider} from '@/components/layout/SimulatedTimeProvider';
 import {cookies} from 'next/headers';
 
 const geistSans = Geist({
@@ -93,7 +93,7 @@ export default async function RootLayout({children,}: Readonly<{ children: React
     logger.info(`RootLayout server-side user check: userId - ${user?.id}`);
 
     const cookieStore = await cookies();
-    const simulatedDate = cookieStore.get('simulated_date')?.value;
+    const simulatedDate = cookieStore.get(SIMULATED_DATE_COOKIE)?.value;
 
     return (<html lang="en" suppressHydrationWarning>
     <head>
@@ -107,11 +107,11 @@ export default async function RootLayout({children,}: Readonly<{ children: React
     <Pointer className="fill-primary"/>
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
         <AuthProvider>
-            <SystemTimeProvider initialSimulatedDate={simulatedDate}>
+            <SimulatedTimeProvider initialSimulatedDate={simulatedDate}>
                 <KeyboardShortcutsProvider>
                     <LayoutContent>{children}</LayoutContent>
                 </KeyboardShortcutsProvider>
-            </SystemTimeProvider>
+            </SimulatedTimeProvider>
         </AuthProvider>
     </ThemeProvider>
     </body>
