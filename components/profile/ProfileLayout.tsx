@@ -37,6 +37,14 @@ const ProfileLayout: React.FC<ProfileLayoutProps> = ({
             return;
         }
 
+        // If the username heading is not present (e.g., in Focus/Section View),
+        // we should always show the sticky username so the context is clear.
+        if (!usernameRef.current) {
+            setUsernameSticky(true);
+            setStickyUsername(username);
+            return;
+        }
+
         const observer = new IntersectionObserver(
             ([entry]) => {
                 setUsernameSticky(!entry.isIntersecting);
@@ -49,14 +57,10 @@ const ProfileLayout: React.FC<ProfileLayoutProps> = ({
             }
         );
 
-        if (usernameRef.current) {
-            observer.observe(usernameRef.current);
-        }
+        observer.observe(usernameRef.current);
 
         return () => {
-            if (usernameRef.current) {
-                observer.unobserve(usernameRef.current);
-            }
+            observer.disconnect();
         };
     }, [username, setUsernameSticky, setStickyUsername, layoutMode, isLargeScreen]);
 
