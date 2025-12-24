@@ -58,7 +58,7 @@ const ProfileLayout: React.FC<ProfileLayoutProps> = ({
                 observer.unobserve(usernameRef.current);
             }
         };
-    }, [username, setUsernameSticky, setStickyUsername]);
+    }, [username, setUsernameSticky, setStickyUsername, layoutMode, isLargeScreen]);
 
     const handleCopyProfileLink = useCallback(() => {
         const profileLink = `${window.location.origin}/${username}`;
