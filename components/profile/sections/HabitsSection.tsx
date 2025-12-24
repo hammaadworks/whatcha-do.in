@@ -18,80 +18,173 @@ import {useHabitActions} from '@/hooks/useHabitActions';
 import {DesktopHabitsLayout, MobileHabitsLayout} from './HabitsLayouts';
 
 interface HabitsSectionProps {
+
     isOwner: boolean;
+
     isReadOnly?: boolean;
+
     habits?: Habit[];
+
     loading: boolean;
+
     onActivityLogged?: () => void;
+
+    setOwnerHabits?: React.Dispatch<React.SetStateAction<Habit[]>>; // Add setter for optimistic updates
+
+    timezone?: string; // Add timezone
+
 }
 
+
+
 /**
+
  * The main container for the Habits feature on the user profile.
+
  * Manages the "Today", "Yesterday", and "Pile" columns.
+
  * Handles drag-and-drop reordering and state transitions.
+
  *
+
  * @param isOwner - Whether the current user owns this profile.
+
  * @param isReadOnly - If true, interactions are disabled (public view).
+
  * @param habits - List of habits to display.
+
  * @param loading - Loading state.
+
  * @param onActivityLogged - Callback when an action occurs (completion, update, etc.).
+
+ * @param setOwnerHabits - Setter for parent state to enable optimistic updates.
+
+ * @param timezone - User's timezone.
+
  */
+
 export const HabitsSection: React.FC<HabitsSectionProps> = ({
+
                                                                 isOwner,
+
                                                                 isReadOnly = false,
+
                                                                 habits: propHabits,
+
                                                                 loading,
-                                                                onActivityLogged
+
+                                                                onActivityLogged,
+
+                                                                setOwnerHabits,
+
+                                                                timezone
+
                                                             }) => {
+
+
 
     const baseHabits = propHabits ?? (isOwner ? mockHabitsData : mockPublicHabitsData);
 
+
+
     const [activeHabitForCompletion, setActiveHabitForCompletion] = useState<Habit | null>(null);
+
     const completionSuccessRef = useRef(false);
 
+
+
     // Unmark Confirmation State
+
     const [unmarkModalState, setUnmarkModalState] = useState<{
+
         habit: Habit | null; onConfirm: () => Promise<void>; onCancel: () => void; isOpen: boolean;
+
     }>({
+
         habit: null, onConfirm: async () => {
-        }, onCancel: () => {
-        }, isOpen: false
+
+        },
+
+        onCancel: () => {
+
+        },
+
+        isOpen: false
+
     });
+
+
 
     const handleDragCompletion = (habitId: string) => {
+
         const habit = baseHabits.find(h => h.id === habitId);
+
         if (habit) {
+
             completionSuccessRef.current = false;
+
             setActiveHabitForCompletion(habit);
+
         }
+
     };
+
+
 
     const handleUnmarkConfirmation = (habit: Habit, onConfirm: () => Promise<void>, onCancel: () => void) => {
+
         setUnmarkModalState({
+
             habit, onConfirm, onCancel, isOpen: true
+
         });
+
     };
 
+
+
     const {
-        sensors, handleDragStart, handleDragEnd, activeHabit, optimisticHabits, setOptimisticHabits, activeId
+
+        sensors, handleDragStart, handleDragEnd, activeHabit, optimisticHabits, setOptimisticHabits, activeId, moveHabit
+
     } = useHabitDnd({
+
         habits: baseHabits,
+
         onHabitMoved: onActivityLogged,
+
         onCompleteHabit: isReadOnly ? undefined : handleDragCompletion,
+
         onUnmarkConfirmation: isReadOnly ? undefined : handleUnmarkConfirmation
+
     });
+
+
 
     const habits = optimisticHabits || baseHabits;
 
+
+
     const {
+
         handleHabitUpdate,
+
         handleHabitDelete,
+
         handleCreateHabit: onHabitCreated,
+
         handleHabitComplete: onHabitCompleted
+
     } = useHabitActions({
+
         onActivityLogged,
-        setOptimisticHabits,
-        habits
+
+        setOptimisticHabits: setOwnerHabits, // Use parent setter for permanent optimistic updates
+
+        habits,
+
+        timezone: timezone || 'UTC'
+
     });
 
     const handleCreateHabit = () => {
@@ -141,6 +234,7 @@ export const HabitsSection: React.FC<HabitsSectionProps> = ({
     };
     const noopOnHabitCompleted = () => {
     };
+    const noopOnHabitMove = async () => {}; // No-op for read-only
 
     const renderHabitChip = (h: Habit) => (<HabitChip
         habit={h}
@@ -148,6 +242,7 @@ export const HabitsSection: React.FC<HabitsSectionProps> = ({
         onHabitUpdated={isReadOnly ? noopOnHabitUpdated : handleHabitUpdate}
         onHabitDeleted={isReadOnly ? noopOnHabitDeleted : handleHabitDelete}
         onHabitCompleted={isReadOnly ? noopOnHabitCompleted : onHabitCompleted}
+        onHabitMove={isReadOnly ? noopOnHabitMove : moveHabit} // Pass moveHabit
         box={h.habit_state === HabitState.TODAY ? HabitBoxType.TODAY : h.habit_state === HabitState.YESTERDAY ? HabitBoxType.YESTERDAY : HabitBoxType.PILE}
     />);
 

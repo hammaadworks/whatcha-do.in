@@ -106,7 +106,9 @@ export default function OwnerProfileView({
     };
 
     const handleActivityLogged = async () => {
-        await Promise.all([refreshJournalEntries(), refreshHabits()]);
+        // Optimistic updates handle habit state; only refresh journal entries to show new logs.
+        // Habits refetch is skipped to reduce API calls.
+        await refreshJournalEntries(); 
     };
 
     const {
@@ -127,7 +129,9 @@ export default function OwnerProfileView({
 
     const { handleHabitComplete } = useHabitActions({
         onActivityLogged: handleActivityLogged,
-        habits: ownerHabits
+        habits: ownerHabits,
+        setOptimisticHabits: setOwnerHabits, // Enable optimistic updates
+        timezone: timezone // Required for optimistic calculations
     });
 
     const handleTimezoneChange = async (newTimezone: string) => {
@@ -263,6 +267,8 @@ export default function OwnerProfileView({
                 habits={ownerHabits}
                 loading={ownerHabitsLoading}
                 onActivityLogged={handleActivityLogged}
+                setOwnerHabits={setOwnerHabits} // Pass setter for optimistic updates
+                timezone={timezone} // Pass timezone
             />
             <JournalSection
                 isOwner={true}
