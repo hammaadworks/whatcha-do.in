@@ -23,11 +23,9 @@ export const VibeSelector: React.FC<VibeSelectorProps> = ({currentViewMode, onVi
 
     return (
         <TooltipProvider>
-            <div className="w-full flex justify-center pt-4 sm:pt-0"> {/* Kept outer flex and padding */}
-                {/* RESTORED border border-primary and shadow-md on inner div */}
-                <div className="flex items-center justify-between bg-card rounded-full p-2 shadow-md border border-primary gap-x-4"> {/* Increased padding to p-2 and gap-x to gap-x-4 */}
-                    {VIBE_OPTIONS.map((option) => (
-                        <Tooltip key={option.id}>
+            <div className="flex items-center justify-between bg-card rounded-full p-2 shadow-md border border-primary gap-x-4">
+                {VIBE_OPTIONS.map((option) => (
+                    <Tooltip key={option.id}>
                             <TooltipTrigger asChild>
                                 <button
                                     type="button"
@@ -57,7 +55,6 @@ export const VibeSelector: React.FC<VibeSelectorProps> = ({currentViewMode, onVi
                         </Tooltip>
                     ))}
                 </div>
-            </div>
         </TooltipProvider>
     );
 };

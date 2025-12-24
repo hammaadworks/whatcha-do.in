@@ -10,7 +10,7 @@ import IdentitySection from '@/components/profile/sections/IdentitySection'; // 
 import TargetsSection from '@/components/profile/sections/TargetsSection'; // Import
 import BioSection from '@/components/profile/sections/BioSection';
 
-import {GuestLayoutSelector} from '@/components/profile/GuestLayoutSelector'; // Import GuestLayoutSelector
+import {ViewSelector} from '@/components/profile/ViewSelector'; // Import ViewSelector
 
 type PublicProfileViewProps = {
     user: PublicUserDisplay; publicActions: ActionNode[]; publicHabits: Habit[]; publicJournalEntries: JournalEntry[]; // Add publicJournalEntries
@@ -30,8 +30,8 @@ export function PublicPage({
                            }: Readonly<PublicProfileViewProps>) {
     return (
         <div className="relative pt-8 lg:pt-4 w-full max-w-6xl">
-            <div className="flex justify-center mb-6">
-                <GuestLayoutSelector />
+            <div className="flex justify-end mb-6">
+                <ViewSelector />
             </div>
             <ProfileLayout
             username={user.username || ''}
