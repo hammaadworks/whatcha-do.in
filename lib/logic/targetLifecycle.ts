@@ -1,59 +1,65 @@
 import {fetchRawTargets, updateTargets} from '@/lib/supabase/targets';
-import {getMonthStartDate} from '@/lib/date';
+import {getCurrentMonthStartISO} from '@/lib/date';
 import {ActionNode} from '@/lib/supabase/types';
 
-export async function processTargetLifecycle(userId: string, timezone: string) {
-    const currentMonthDate = getMonthStartDate(0, timezone);
-    const prevMonthDate = getMonthStartDate(-1, timezone);
+/**
+ * Orchestrates the monthly rollover of targets.
+ * Moves uncompleted (active) targets from the previous month to the current month,
+ * and clears the previous month's bucket.
+ */
+export async function processTargetLifecycle(userId: string, timezone: string, referenceDate: Date = new Date()) {
+    const currentMonthDate = getCurrentMonthStartISO(timezone, referenceDate, 0);
+    const prevMonthDate = getCurrentMonthStartISO(timezone, referenceDate, -1);
 
-    // Fetch targets from the previous month
     const prevTargets = await fetchRawTargets(userId, prevMonthDate);
+    
+    // If no targets exist for the previous month, there's nothing to process
+    if (prevTargets.length === 0) return;
 
-    if (prevTargets.length > 0) {
-        // 1. Separate Active (Uncompleted) and Completed items
-        const {active, completed} = splitActiveCompleted(prevTargets);
+    const {active, completed} = splitActiveCompleted(prevTargets);
 
-        // 2. Fetch current month's targets to merge active items
-        const currentTargets = await fetchRawTargets(userId, currentMonthDate);
-        
-        // 3. Merge Active items into Current Month
-        // We append them. We assume IDs are unique enough or handled by the UI.
-        const mergedTargets = [...currentTargets, ...active];
+    // 1. Migrate Active Targets to Current Month
+    if (active.length > 0) {
+        await migrateActiveTargets(userId, active, currentMonthDate);
+    }
 
-        if (active.length > 0) {
-             await updateTargets(userId, currentMonthDate, mergedTargets);
-             console.log(`Carried forward ${active.length} active targets from ${prevMonthDate} to ${currentMonthDate}.`);
-        }
+    // 2. Clear Previous Month Bucket
+    // This effectively archives completed items (by removing them from the active view)
+    // and cleans up the active items that were just moved.
+    await clearPreviousMonthTargets(userId, prevMonthDate, completed.length);
+}
 
-        // 4. Clear Previous Month Bucket
-        // Completed items are effectively deleted here (filtered out and not moved).
-        // Active items are moved.
-        // So we set the previous month's data to empty.
-        await updateTargets(userId, prevMonthDate, []);
-        
-        if (completed.length > 0) {
-            console.log(`Cleared ${completed.length} completed targets from ${prevMonthDate}.`);
-        }
+/**
+ * Appends a list of active targets to the current month's target list.
+ */
+async function migrateActiveTargets(userId: string, activeTargets: ActionNode[], currentMonthDate: string) {
+    const currentTargets = await fetchRawTargets(userId, currentMonthDate);
+    
+    // Merge: Append active targets from previous month to the end of current month's list
+    // Assumption: IDs are UUIDs and unique enough to avoid collision during simple merge
+    const mergedTargets = [...currentTargets, ...activeTargets];
+    
+    await updateTargets(userId, currentMonthDate, mergedTargets);
+    console.log(`[TargetLifecycle] Carried forward ${activeTargets.length} active targets from previous month to ${currentMonthDate}.`);
+}
+
+/**
+ * Clears the target list for a specific month (previous month).
+ */
+async function clearPreviousMonthTargets(userId: string, prevMonthDate: string, completedCount: number) {
+    await updateTargets(userId, prevMonthDate, []);
+    
+    if (completedCount > 0) {
+        console.log(`[TargetLifecycle] Cleared ${completedCount} completed targets from ${prevMonthDate}.`);
     }
 }
 
-// Helpers
-
+/**
+ * Helper to separate a list of nodes into active (uncompleted) and completed lists.
+ */
 function splitActiveCompleted(nodes: ActionNode[]): { active: ActionNode[], completed: ActionNode[] } {
     const active: ActionNode[] = [];
     const completed: ActionNode[] = [];
-
-    // Recursive split?
-    // Targets are usually a flat list or simple hierarchy.
-    // If a parent is incomplete but has completed children?
-    // Requirement: "unmarked Items ... carried-forward".
-    // If Parent is unmarked, it moves.
-    // What happens to its children?
-    // If we move the Parent, we move the children too (in the `children` array).
-    // Does this mean we might carry forward a "Completed" child inside an "Uncompleted" parent?
-    // Yes, that is standard behavior for trees. The completion status of the parent is what matters for the "Item".
-    // If the parent is completed, the whole tree is cleared (as it's done).
-    // If the parent is incomplete, it is carried forward.
 
     nodes.forEach(node => {
         if (!node.completed) {

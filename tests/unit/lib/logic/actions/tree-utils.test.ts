@@ -63,15 +63,15 @@ describe('tree-utils', () => {
   describe('toggleActionInTree', () => {
     it('should toggle a completed status', () => {
         // First complete the child so the parent can be completed
-      let newTree = toggleActionInTree(mockTree, '1-1');
-      newTree = toggleActionInTree(newTree, '1');
+      let newTree = toggleActionInTree(mockTree, '1-1', new Date());
+      newTree = toggleActionInTree(newTree, '1', new Date());
       expect(newTree[0].completed).toBe(true);
       expect(newTree[0].completed_at).toBeDefined();
     });
 
     it('should un-toggle a completed status', () => {
         // '2' is completed
-      const newTree = toggleActionInTree(mockTree, '2');
+      const newTree = toggleActionInTree(mockTree, '2', new Date());
       expect(newTree[1].completed).toBe(false);
       expect(newTree[1].completed_at).toBeUndefined();
     });
@@ -79,7 +79,7 @@ describe('tree-utils', () => {
     it('should not toggle if children are not completed', () => {
       // '1' has child '1-1' which is NOT completed.
       // Trying to complete '1' should fail.
-      const newTree = toggleActionInTree(mockTree, '1');
+      const newTree = toggleActionInTree(mockTree, '1', new Date());
       // Wait, my mock says '1' is completed: false.
       // So I am trying to complete it.
       // logic: if (!targetNode.completed) { if (!areAllChildrenCompleted) return currentTree; }

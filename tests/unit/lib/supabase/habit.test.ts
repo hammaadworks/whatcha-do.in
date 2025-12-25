@@ -186,7 +186,7 @@ describe('Supabase Habit Client', () => {
             mockUpdate.mockReturnValueOnce({eq: mockEq});
             mockEq.mockResolvedValueOnce({error: null});
 
-            await unmarkHabit(mockHabitId);
+            await unmarkHabit(mockHabitId, now);
 
             // Verify update was called with decremented streak
             expect(mockUpdate).toHaveBeenCalledWith({

@@ -4,7 +4,8 @@ import {Habit} from '@/lib/supabase/types';
 import {unmarkHabit, updateHabit} from '@/lib/supabase/habit';
 import {toast} from 'sonner';
 import {HabitBoxType, HabitState} from '@/lib/enums';
-import {useSystemTime} from "@/components/providers/SystemTimeProvider.tsx";
+import {getReferenceDateUI} from '@/lib/date';
+import {useSimulatedTime} from '@/components/layout/SimulatedTimeProvider';
 
 interface UseHabitDndProps {
     habits: Habit[];
@@ -21,6 +22,8 @@ export function useHabitDnd({habits, onHabitMoved, onCompleteHabit, onUnmarkConf
     const [activeId, setActiveId] = useState<string | null>(null);
     const [activeHabit, setActiveHabit] = useState<Habit | null>(null);
     const [optimisticHabits, setOptimisticHabits] = useState<Habit[] | null>(null);
+    const {simulatedDate} = useSimulatedTime();
+    const refDate = getReferenceDateUI(simulatedDate);
 
     const sensors = useSensors(useSensor(PointerSensor, {activationConstraint: {distance: 4}}), useSensor(TouchSensor));
 
@@ -30,31 +33,7 @@ export function useHabitDnd({habits, onHabitMoved, onCompleteHabit, onUnmarkConf
         setActiveHabit(habit || null);
     };
 
-    const handleDragEnd = async (event: DragEndEvent) => {
-        const {active, over} = event;
-        setActiveId(null);
-        setActiveHabit(null);
-
-        if (!over) return;
-
-        const habitId = active.id as string;
-        const overId = over.id as string;
-
-        // 1. Determine Target Box (Destination)
-        let targetBox: HabitBoxType | null = null;
-
-        if (Object.values(HabitBoxType).includes(overId as HabitBoxType)) {
-            targetBox = overId as HabitBoxType;
-        } else {
-            // Dropped over another habit, find that habit's box
-            const overHabit = habits.find((h) => h.id === overId);
-            if (overHabit) {
-                if (overHabit.habit_state === HabitState.TODAY) targetBox = HabitBoxType.TODAY; else if (overHabit.habit_state === HabitState.YESTERDAY) targetBox = HabitBoxType.YESTERDAY; else targetBox = HabitBoxType.PILE;
-            }
-        }
-
-        if (!targetBox) return;
-
+    const moveHabit = async (habitId: string, targetBox: HabitBoxType) => {
         const habit = habits.find((h) => h.id === habitId);
         if (!habit) return;
 
@@ -86,15 +65,13 @@ export function useHabitDnd({habits, onHabitMoved, onCompleteHabit, onUnmarkConf
         // 6. Special Case: Completion (Today)
         if (targetBox === HabitBoxType.TODAY && sourceBox !== HabitBoxType.TODAY && onCompleteHabit) {
             onCompleteHabit(habitId);
-            // We return here and rely on the callback to handle the DB update (e.g., opening a modal).
-            // If the modal is cancelled, the parent component must revert the optimistic update.
             return;
         }
 
         try {
             if (sourceBox === HabitBoxType.TODAY && (targetBox === HabitBoxType.YESTERDAY || targetBox === HabitBoxType.PILE)) {
                 const performUnmark = async () => {
-                    await unmarkHabit(habitId);
+                    await unmarkHabit(habitId, refDate);
                     onHabitMoved?.();
                 };
 
@@ -105,25 +82,50 @@ export function useHabitDnd({habits, onHabitMoved, onCompleteHabit, onUnmarkConf
                 if (onUnmarkConfirmation) {
                     onUnmarkConfirmation(habit, performUnmark, cancelUnmark);
                 } else if (typeof window !== 'undefined' && window.confirm('Are you sure you want to unmark?')) {
-                    // Fallback
                     await performUnmark();
                 } else {
                     cancelUnmark();
                 }
             } else {
-                // Standard Move
                 await updateHabit(habitId, {habit_state: newHabitState});
                 onHabitMoved?.();
             }
-            // Toast handled by caller or specific logic
         } catch (error) {
             console.error('Move failed', error);
             toast.error('Failed to move habit');
-            setOptimisticHabits(null); // Revert on error
+            setOptimisticHabits(null);
         }
     };
 
+    const handleDragEnd = async (event: DragEndEvent) => {
+        const {active, over} = event;
+        setActiveId(null);
+        setActiveHabit(null);
+
+        if (!over) return;
+
+        const habitId = active.id as string;
+        const overId = over.id as string;
+
+        // 1. Determine Target Box (Destination)
+        let targetBox: HabitBoxType | null = null;
+
+        if (Object.values(HabitBoxType).includes(overId as HabitBoxType)) {
+            targetBox = overId as HabitBoxType;
+        } else {
+            // Dropped over another habit, find that habit's box
+            const overHabit = habits.find((h) => h.id === overId);
+            if (overHabit) {
+                if (overHabit.habit_state === HabitState.TODAY) targetBox = HabitBoxType.TODAY; else if (overHabit.habit_state === HabitState.YESTERDAY) targetBox = HabitBoxType.YESTERDAY; else targetBox = HabitBoxType.PILE;
+            }
+        }
+
+        if (!targetBox) return;
+        
+        await moveHabit(habitId, targetBox);
+    };
+
     return {
-        sensors, activeId, activeHabit, optimisticHabits, handleDragStart, handleDragEnd, setOptimisticHabits
+        sensors, activeId, activeHabit, optimisticHabits, handleDragStart, handleDragEnd, setOptimisticHabits, moveHabit
     };
 }

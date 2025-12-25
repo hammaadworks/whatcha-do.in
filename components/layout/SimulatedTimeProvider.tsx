@@ -1,7 +1,6 @@
 "use client";
 
-import React, {createContext, type ReactNode, useCallback, useContext, useMemo, useState,} from "react";
-import {useRouter} from "next/navigation";
+import React, {createContext, type ReactNode, useCallback, useContext, useMemo, useState, useEffect} from "react";
 import {SIMULATED_DATE_COOKIE} from "@/lib/constants.ts";
 
 /* ------------------------------------------------------------------ */
@@ -33,10 +32,23 @@ const SimulatedTimeContext = createContext<SimulatedTimeContextValue | undefined
 export function SimulatedTimeProvider({
                                           children, initialSimulatedDate,
                                       }: Readonly<SimulatedTimeProviderProps>) {
-    const router = useRouter();
+    // Initialize with prop if available
+    const [simulatedDate, setSimulatedDate] = useState<Date | null>(
+        initialSimulatedDate ? new Date(initialSimulatedDate) : null
+    );
 
-    // ✅ ESLint-friendly lazy init
-    const [simulatedDate, setSimulatedDate] = useState<Date | null>(initialSimulatedDate ? new Date(initialSimulatedDate) : null);
+    // Read cookie on mount if not provided via props (Client-side fallback)
+    useEffect(() => {
+        if (!initialSimulatedDate) {
+            const match = document.cookie.match(new RegExp(`(^| )${SIMULATED_DATE_COOKIE}=([^;]+)`));
+            if (match) {
+                const cookieValue = match[2];
+                if (cookieValue) {
+                    setSimulatedDate(new Date(cookieValue));
+                }
+            }
+        }
+    }, [initialSimulatedDate]);
 
     // ✅ Stable setter (good practice)
     const updateSimulatedDate = useCallback((date: Date | null) => {
@@ -48,9 +60,7 @@ export function SimulatedTimeProvider({
             document.cookie = [`${SIMULATED_DATE_COOKIE}=`, "path=/", "max-age=0"].join("; ");
         }
 
-        // Force server components to re-evaluate with new cookie
-        router.refresh();
-    }, [router]);
+    }, [setSimulatedDate]);
 
     // ✅ Memoized context value (fixes warning)
     const contextValue = useMemo(() => ({

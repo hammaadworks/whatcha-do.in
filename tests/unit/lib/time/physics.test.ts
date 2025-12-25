@@ -1,5 +1,5 @@
 
-import { getStartOfDayInTimezone, getEndOfDayInTimezone } from '@/lib/time/physics';
+import { getStartOfTodayInTimezone, getEndOfDayInTimezone } from '@/lib/date';
 
 describe('Time Physics (Time Travel Compatible)', () => {
   // Scenario: New York Timezone (UTC-5 EST / UTC-4 EDT)
@@ -15,7 +15,7 @@ describe('Time Physics (Time Travel Compatible)', () => {
       // +5 hours = 2023-01-15 05:00:00 UTC
       const expectedUTC = new Date('2023-01-15T05:00:00Z').getTime();
 
-      const result = getStartOfDayInTimezone(TZ_NY, referenceDate);
+      const result = getStartOfTodayInTimezone(TZ_NY, referenceDate);
       
       expect(result).toBe(expectedUTC);
     });
@@ -29,7 +29,7 @@ describe('Time Physics (Time Travel Compatible)', () => {
       // +4 hours = 2023-06-15 04:00:00 UTC
       const expectedUTC = new Date('2023-06-15T04:00:00Z').getTime();
 
-      const result = getStartOfDayInTimezone(TZ_NY, referenceDate);
+      const result = getStartOfTodayInTimezone(TZ_NY, referenceDate);
       
       expect(result).toBe(expectedUTC);
     });
@@ -40,7 +40,7 @@ describe('Time Physics (Time Travel Compatible)', () => {
       
       const fakeNow = new Date('2023-01-01T15:00:00Z'); // Jan 1st
       
-      const result = getStartOfDayInTimezone(TZ_NY, fakeNow);
+      const result = getStartOfTodayInTimezone(TZ_NY, fakeNow);
       
       // Should give start of Jan 1st, NOT today's date.
       const expected = new Date('2023-01-01T05:00:00Z').getTime(); // Jan 1st 00:00 EST -> 05:00 UTC

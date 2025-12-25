@@ -9,12 +9,12 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { fetchJournalEntryByDate, upsertJournalEntry } from '@/lib/supabase/journal';
 import { CustomMarkdownEditor as MarkdownEditor } from '@/components/shared/CustomMarkdownEditor';
-import { Calendar } from '@/components/ui/calendar';
+import { Calendar } from '@/components/shared/Calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Button } from '@/components/ui/button';
 import { JournalEntry, ActivityLogEntry } from '@/lib/supabase/types'; // Import JournalEntry and ActivityLogEntry
-import { useSystemTime } from '@/components/providers/SystemTimeProvider';
+import { useSimulatedTime } from '@/components/layout/SimulatedTimeProvider';
 
 
 
@@ -43,7 +43,8 @@ const formatActivityLogEntry = (entry: ActivityLogEntry): string => {
 
 
 export function JournalPageContent({ profileUserId, isOwner }: JournalPageContentProps) {
-  const { simulatedDate } = useSystemTime();
+      const { simulatedDate } = useSimulatedTime();
+  
   const [date, setDate] = useState<Date>(simulatedDate || new Date());
   const [activeTab, setActiveTab] = useState<'public' | 'private'>('public'); // Default to public
   const [content, setContent] = useState('');
@@ -173,7 +174,7 @@ export function JournalPageContent({ profileUserId, isOwner }: JournalPageConten
                         <Calendar
                             mode="single"
                             selected={date}
-                            onSelect={(d) => d && setDate(d)}
+                            onSelect={(d: Date | undefined) => d && setDate(d)}
                             initialFocus
                         />
                     </PopoverContent>

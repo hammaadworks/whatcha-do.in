@@ -101,16 +101,16 @@ export const SectionViewLayout: React.FC<SectionViewLayoutProps> = ({ children }
 
 
     return (
-        <div className="relative w-full h-[calc(100dvh-160px)] bg-background mt-4">
+        <div className="flex flex-col w-full h-[calc(100dvh-180px)] bg-background mt-4">
             
             {/* Main Scroll Container - Horizontal */}
-            <div className="flex h-full w-full overflow-x-scroll snap-x snap-mandatory scroll-smooth no-scrollbar border-y border-border/40">
+            <div className="flex flex-grow w-full overflow-x-scroll snap-x snap-mandatory scroll-smooth no-scrollbar border-y border-border/40">
                 {mainSections.map((child, index) => (
                     <div 
                         key={index}
                         ref={(el) => { sectionRefs.current[index] = el; }}
                         data-index={index}
-                        className="min-w-full w-full h-full snap-start overflow-y-auto pt-4 pb-20 px-4 md:px-8 no-scrollbar"
+                        className="min-w-full w-full h-full snap-start overflow-y-auto pt-4 pb-4 px-4 md:px-8 no-scrollbar"
                     >
                         <div className="w-full max-w-4xl mx-auto flex flex-col min-h-full">
                              <div className="flex-grow">
@@ -130,12 +130,12 @@ export const SectionViewLayout: React.FC<SectionViewLayoutProps> = ({ children }
 
             {/* Navigation Dock */}
             {/* 
-                Absolute Bottom Center - pinned to the bottom of this view, 
-                so it sits above the App Footer which follows this component.
+                Static Bottom Center - Placed in normal flow below the scroll container.
+                This ensures it sits above the AppFooter without overlapping or blocking.
             */}
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-[60] transition-all duration-300 flex items-center gap-2">
+            <div className="w-full flex justify-center py-4 z-[60]">
                 <TooltipProvider delayDuration={0}>
-                <div className="flex flex-row items-center gap-2 p-2 rounded-full bg-background/95 backdrop-blur-xl border border-border shadow-2xl">
+                <div className="flex flex-row items-center gap-2 p-2 rounded-full bg-background/95 backdrop-blur-xl border border-border shadow-sm">
                     {mainSections.map((_, index) => {
                         const { icon: Icon, label } = getIconForIndex(index);
                         return (

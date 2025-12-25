@@ -4,8 +4,8 @@ import {ActionsList} from '@/components/shared/ActionsList';
 import {AddActionForm} from '@/components/shared/AddActionForm';
 import {Tabs, TabsContent, TabsList, TabsTrigger} from '@/components/ui/tabs';
 import {Skeleton} from '@/components/ui/skeleton';
-import {format, parseISO} from 'date-fns';
-import {getMonthStartDate} from '@/lib/date';
+import {format} from 'date-fns';
+import { getCurrentMonthStartISO, parseISO } from '@/lib/date';
 import {ActionNode} from '@/lib/supabase/types';
 import {cn} from '@/lib/utils';
 import {Undo2} from 'lucide-react'; // Removed Check, Undo2
@@ -188,9 +188,9 @@ export default function TargetsSection({
 
 
     // Date labels
-    const currentMonthLabel = format(parseISO(getMonthStartDate(0, timezone)), 'MMM yyyy');
-    const prevMonthLabel = format(parseISO(getMonthStartDate(-1, timezone)), 'MMM');
-    const prev1MonthLabel = format(parseISO(getMonthStartDate(-2, timezone)), 'MMM');
+    const currentMonthLabel = format(parseISO(getCurrentMonthStartISO(timezone)), 'MMM yyyy');
+    const prevMonthLabel = format(parseISO(getCurrentMonthStartISO(timezone, undefined, -1)), 'MMM');
+    const prev1MonthLabel = format(parseISO(getCurrentMonthStartISO(timezone, undefined, -2)), 'MMM');
 
     // Calculate progress for the current month's targets
     const {

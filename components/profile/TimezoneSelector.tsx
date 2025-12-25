@@ -6,7 +6,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Input } from '@/components/ui/input';
 import { Check, ChevronsUpDown, Clock, LocateFixed, Search, Globe } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useSystemTime } from '@/components/providers/SystemTimeProvider';
+import { useSimulatedTime } from '@/components/layout/SimulatedTimeProvider';
 
 // ... (keep helper functions: getFormattedLocalTime, getFriendlyTimeZoneName)
 
@@ -63,9 +63,8 @@ export const TimezoneSelector: React.FC<TimezoneSelectorProps> = ({ currentTimez
   const [timezoneOptions, setTimezoneOptions] = useState<TimezoneOption[]>([]);
   const [currentLocalTimeFormatted, setCurrentLocalTimeFormatted] = useState<string>('');
   const [search, setSearch] = useState('');
-  const { simulatedDate } = useSystemTime();
-
-  useEffect(() => {
+      const { simulatedDate } = useSimulatedTime();
+    useEffect(() => {
             const generateTimezoneOptions = () => {
               try {
                 const supportedTimezones = Intl.supportedValuesOf('timeZone');

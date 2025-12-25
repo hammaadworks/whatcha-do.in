@@ -30,17 +30,20 @@ export function HabitBox({
   headerContent,
   footerContent,
 }: Readonly<HabitBoxProps>) {
-  const { setNodeRef } = useDroppable({ id });
+  const { setNodeRef, isOver } = useDroppable({ id });
 
   return (
-    <div ref={setNodeRef} className={className}>
-      <div className="flex justify-between items-center mb-4">
+    <div 
+      ref={setNodeRef} 
+      className={`transition-colors duration-200 rounded-xl p-2 ${isOver ? 'bg-primary/10 border-2 border-primary border-dashed' : 'border-2 border-transparent'} ${className}`}
+    >
+      <div className="flex justify-between items-center mb-4 px-2">
         <h3 className="text-xl font-semibold text-foreground">{id}</h3>
         {headerContent}
       </div>
       
       <SortableContext items={habits.map((h) => h.id)} strategy={rectSortingStrategy}>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 min-h-[50px]">
           {habits.length > 0 ? (
             habits.map((h) => (
               <SortableHabit key={h.id} id={h.id} disabled={disabled}>
@@ -48,7 +51,7 @@ export function HabitBox({
               </SortableHabit>
             ))
           ) : (
-            <p className="text-muted-foreground text-sm">{emptyMessage}</p>
+            <p className="text-muted-foreground text-sm px-2">{emptyMessage}</p>
           )}
         </div>
       </SortableContext>

@@ -1,48 +1,59 @@
-
-import { isCompletedToday, isCompletedYesterday, getDaysSinceCompletion } from '@/lib/time/logic';
+import { completedToday, completedYesterday, daysSince, getTodayISO, ISODate } from '@/lib/date';
 
 describe('Time Logic (Business Rules)', () => {
   const TZ_NY = 'America/New_York';
 
-  describe('isCompletedToday', () => {
+  describe('completedToday', () => {
     it('should return true if completed today', () => {
       // "Now" is 2023-10-27 12:00 NY
       const now = new Date('2023-10-27T16:00:00Z'); // 12:00 EDT
+      const todayISO = getTodayISO(TZ_NY, now);
       
       // Completed at 2023-10-27 09:00 NY
-      const completed = '2023-10-27T13:00:00Z'; // 09:00 EDT
+      const completedDate = new Date('2023-10-27T13:00:00Z'); // 09:00 EDT
+      const completedISO = getTodayISO(TZ_NY, completedDate);
 
-      expect(isCompletedToday(completed, TZ_NY, now)).toBe(true);
+      expect(completedToday(completedISO, todayISO)).toBe(true);
     });
 
     it('should return false if completed yesterday', () => {
       // "Now" is 2023-10-27 12:00 NY
       const now = new Date('2023-10-27T16:00:00Z'); 
+      const todayISO = getTodayISO(TZ_NY, now);
       
       // Completed at 2023-10-26 23:00 NY
-      const completed = '2023-10-27T03:00:00Z'; // Oct 26 23:00 EDT (UTC-4)
+      const completedDate = new Date('2023-10-27T03:00:00Z'); // Oct 26 23:00 EDT (UTC-4)
+      const completedISO = getTodayISO(TZ_NY, completedDate);
 
-      expect(isCompletedToday(completed, TZ_NY, now)).toBe(false);
+      expect(completedToday(completedISO, todayISO)).toBe(false);
     });
   });
 
-  describe('getDaysSinceCompletion', () => {
+  describe('daysSince', () => {
     it('should return 0 for same day', () => {
       const now = new Date('2023-10-27T16:00:00Z');
-      const completed = '2023-10-27T13:00:00Z';
-      expect(getDaysSinceCompletion(completed, TZ_NY, now)).toBe(0);
+      const todayISO = getTodayISO(TZ_NY, now);
+      const completedDate = new Date('2023-10-27T13:00:00Z');
+      const completedISO = getTodayISO(TZ_NY, completedDate);
+      expect(daysSince(completedISO, todayISO)).toBe(0);
     });
 
     it('should return 1 for yesterday', () => {
       const now = new Date('2023-10-27T16:00:00Z');
-      const completed = '2023-10-26T23:00:00Z'; // 11 PM Prev Night
-      expect(getDaysSinceCompletion(completed, TZ_NY, now)).toBe(1);
+      const todayISO = getTodayISO(TZ_NY, now);
+      const completedDate = new Date('2023-10-27T03:00:00Z'); // Oct 26 23:00 EDT (UTC-4)
+      // Note: 2023-10-26 23:00 NY is 2023-10-27 03:00 UTC
+      // getTodayISO('America/New_York', 2023-10-27T03:00:00Z) -> 2023-10-26
+      const completedISO = getTodayISO(TZ_NY, completedDate);
+      expect(daysSince(completedISO, todayISO)).toBe(1);
     });
 
     it('should return 2 for day before yesterday', () => {
       const now = new Date('2023-10-27T16:00:00Z');
-      const completed = '2023-10-25T23:00:00Z'; 
-      expect(getDaysSinceCompletion(completed, TZ_NY, now)).toBe(2);
+      const todayISO = getTodayISO(TZ_NY, now);
+      const completedDate = new Date('2023-10-26T03:00:00Z'); // Oct 25 23:00 EDT
+      const completedISO = getTodayISO(TZ_NY, completedDate);
+      expect(daysSince(completedISO, todayISO)).toBe(2);
     });
   });
 });

@@ -1,10 +1,10 @@
 import {useEffect, useState} from 'react';
 import {Habit} from '@/lib/supabase/types';
-import {processHabitLifecycle} from '@/lib/logic/habitProcessor';
+import {processHabitLifecycle} from '@/lib/logic/habits/habitProcessor.ts';
 import {useSimulatedTime} from '@/components/layout/SimulatedTimeProvider';
 import {getReferenceDateUI, getTodayISO} from '@/lib/date';
 import {updateHabit} from '@/lib/supabase/habit';
-import {calculateHabitUpdates} from '@/lib/logic/habitLifecycle';
+import {calculateHabitUpdates} from '@/lib/logic/habits/habitLifecycle.ts';
 import {HabitLifecycleEvent} from '@/lib/enums';
 
 /**
@@ -15,8 +15,8 @@ export function useGracePeriod(userId: string | undefined, timezone: string) {
     const {simulatedDate} = useSimulatedTime();
     const refDate = getReferenceDateUI(simulatedDate);
     // Use ISO string as stable dependency key
-    const refDateKey = getTodayISO(timezone, refDate); 
-    
+    const refDateKey = getTodayISO(timezone, refDate);
+
     const [graceHabits, setGraceHabits] = useState<Habit[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
@@ -32,12 +32,9 @@ export function useGracePeriod(userId: string | undefined, timezone: string) {
         const runLifecycle = async () => {
             setIsLoading(true);
             try {
-                const {graceHabits: needed, processedCount} = await processHabitLifecycle(userId, timezone, refDate);
+                const {graceHabits: needed} = await processHabitLifecycle(userId, timezone, refDate);
                 if (isMounted) {
                     setGraceHabits(needed);
-                    if (processedCount > 0) {
-                        console.log(`Auto-resolved ${processedCount} habits.`);
-                    }
                 }
             } catch (error) {
                 console.error("Grace period check failed:", error);
@@ -72,10 +69,10 @@ export function useGracePeriod(userId: string | undefined, timezone: string) {
         try {
             const todayISO = getTodayISO(timezone, refDate);
             const updates = calculateHabitUpdates(habit, HabitLifecycleEvent.GRACE_INCOMPLETE, todayISO);
-            
+
             // Mark as resolved for today so it doesn't show up again
             updates.last_resolved_date = todayISO as unknown as Date;
-            
+
             await updateHabit(habit.id, updates);
             await refresh(); // Refresh list to remove resolved habit
         } catch (error) {

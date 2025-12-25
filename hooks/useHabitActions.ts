@@ -1,10 +1,9 @@
-import {toast} from 'sonner';
 import {completeHabit, deleteHabit, updateHabit} from '@/lib/supabase/habit';
-import {CompletionsData} from '@/components/habits/HabitCompletionsModal';
-import {Habit} from '@/lib/supabase/types';
+import {CompletionsData, Habit} from '@/lib/supabase/types';
+import {toast} from 'sonner';
 import {useSimulatedTime} from '@/components/layout/SimulatedTimeProvider';
 import {getReferenceDateUI, getTodayISO} from '@/lib/date';
-import {calculateHabitUpdates} from '@/lib/logic/habitLifecycle';
+import {calculateHabitUpdates} from '@/lib/logic/habits/habitLifecycle.ts';
 import {HabitLifecycleEvent} from '@/lib/enums';
 
 interface UseHabitActionsProps {
@@ -21,7 +20,12 @@ interface UseHabitActionsProps {
  * @param props - Configuration props including callbacks for activity logging and state updates.
  * @returns Object containing handler functions for habit actions.
  */
-export const useHabitActions = ({onActivityLogged, setOptimisticHabits, habits, timezone = 'UTC'}: UseHabitActionsProps) => {
+export const useHabitActions = ({
+                                    onActivityLogged,
+                                    setOptimisticHabits,
+                                    habits,
+                                    timezone = 'UTC'
+                                }: UseHabitActionsProps) => {
     const {simulatedDate} = useSimulatedTime();
     const refDate = getReferenceDateUI(simulatedDate);
 
@@ -30,12 +34,12 @@ export const useHabitActions = ({onActivityLogged, setOptimisticHabits, habits, 
      */
     const handleHabitUpdate = async (habitId: string, name: string, isPublic: boolean, goalValue?: number | null, goalUnit?: string | null) => {
         console.log(`[useHabitActions] Updating habit ${habitId}`, {name, isPublic, goalValue, goalUnit});
-        
+
         // Optimistic Update
         if (setOptimisticHabits) {
-            setOptimisticHabits((prev) => prev.map(h => 
-                h.id === habitId 
-                    ? { ...h, name, is_public: isPublic, goal_value: goalValue ?? null, goal_unit: goalUnit ?? null } 
+            setOptimisticHabits((prev) => prev.map(h =>
+                h.id === habitId
+                    ? {...h, name, is_public: isPublic, goal_value: goalValue ?? null, goal_unit: goalUnit ?? null}
                     : h
             ));
         }
@@ -94,24 +98,24 @@ export const useHabitActions = ({onActivityLogged, setOptimisticHabits, habits, 
 
         // Optimistic Update
         if (setOptimisticHabits) {
-             const habitToComplete = habits.find(h => h.id === habitId);
-             if (habitToComplete) {
-                 try {
-                     const updates = calculateHabitUpdates(habitToComplete, HabitLifecycleEvent.USER_COMPLETE, todayISO);
-                     setOptimisticHabits((prev) => prev.map(h => 
-                         h.id === habitId ? { ...h, ...updates } : h
-                     ));
-                 } catch (e) {
-                     console.warn("Optimistic calculation failed, skipping local update", e);
-                 }
-             }
+            const habitToComplete = habits.find(h => h.id === habitId);
+            if (habitToComplete) {
+                try {
+                    const updates = calculateHabitUpdates(habitToComplete, HabitLifecycleEvent.USER_COMPLETE, todayISO);
+                    setOptimisticHabits((prev) => prev.map(h =>
+                        h.id === habitId ? {...h, ...updates} : h
+                    ));
+                } catch (e) {
+                    console.warn("Optimistic calculation failed, skipping local update", e);
+                }
+            }
         }
 
         try {
             await completeHabit(habitId, data, completionDate);
             console.log(`[useHabitActions] Habit completed successfully: ${habitId}`);
             toast.success('Habit completed! 🔥');
-            
+
             // We do NOT call onActivityLogged() here if we want to avoid the full refetch.
             // But wait, onActivityLogged triggers 'refreshJournalEntries' AND 'refreshHabits'.
             // We want to avoid 'refreshHabits' but maybe still need 'refreshJournalEntries'?
@@ -122,7 +126,7 @@ export const useHabitActions = ({onActivityLogged, setOptimisticHabits, habits, 
             // For now, let's keep it but ideally we'd split it.
             // However, since we updated habits optimistically, the UI is snappy.
             // The refetch will eventually happen and confirm the state.
-            onActivityLogged?.(); 
+            onActivityLogged?.();
         } catch (error) {
             console.error('[useHabitActions] Failed to complete habit:', error);
             toast.error('Failed to complete habit');

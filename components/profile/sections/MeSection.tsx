@@ -17,8 +17,8 @@ interface MeSectionProps {
     onBioUpdate: (newBio: string) => Promise<void>;
     onActivityLogged: () => Promise<void>;
     timezone: string;
-    isFolded: boolean; // New prop
-    toggleFold: () => void; // New prop
+    isFolded: boolean;
+    toggleFold: () => void;
 }
 
 const MeSection: React.FC<MeSectionProps> = ({
@@ -30,14 +30,14 @@ const MeSection: React.FC<MeSectionProps> = ({
                                                  onBioUpdate,
                                                  onActivityLogged,
                                                  timezone,
-                                                 isFolded, // Destructure new prop
-                                                 toggleFold, // Destructure new prop
+                                                 isFolded,
+                                                 toggleFold,
                                              }) => {
     return (<CollapsibleSectionWrapper
         title="Me"
         isCollapsible={isCollapsible}
-        isFolded={isFolded} // Pass new prop
-        toggleFold={toggleFold} // Pass new prop
+        isFolded={isFolded}
+        toggleFold={toggleFold}
     >
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="lg:col-span-1 h-full">

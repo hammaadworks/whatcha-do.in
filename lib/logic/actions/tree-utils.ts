@@ -224,10 +224,10 @@ export function addActionAfterId(currentTree: ActionNode[], afterId: string, des
  *
  * @param currentTree - The current action tree.
  * @param id - The ID of the action to toggle.
- * @param date - (Optional) The timestamp for completion. Defaults to `new Date()`.
+ * @param date - The timestamp for completion.
  * @returns A new action tree. Returns the original tree if the toggle is invalid (e.g., incomplete children).
  */
-export function toggleActionInTree(currentTree: ActionNode[], id: string, date: Date = new Date()): ActionNode[] {
+export function toggleActionInTree(currentTree: ActionNode[], id: string, date: Date): ActionNode[] {
     const newTree = deepCopyActions(currentTree);
     const targetContext = findNodeAndContext(newTree, id);
 

@@ -60,55 +60,52 @@ export function partitionActionsByClearingStatus(nodes: ActionNode[], startOfTod
 
 /**
  * Recursively filters an ActionNode tree to include only nodes marked as public,
- * or nodes that have public children.
- * Returns the filtered tree and the count of private (hidden) actions.
+ * or nodes that have public children (containers).
+ * 
+ * Returns the filtered tree and the total count of private (hidden) actions that are uncompleted.
+ * 
+ * Logic:
+ * 1. If a node is explicitly public, it is kept.
+ * 2. If a node is private but has public descendants, it is kept (as a container).
+ * 3. If a node is hidden (private and no public descendants), it and its uncompleted descendants contribute to `privateCount`.
  */
 export function filterTreeByPublicStatus(nodes: ActionNode[]): { actions: ActionNode[], privateCount: number } {
     if (!nodes) return { actions: [], privateCount: 0 };
 
-    let privateCount = 0;
-
-    const filter = (currentNodes: ActionNode[]): ActionNode[] => {
-        return currentNodes.reduce((acc: ActionNode[], node) => {
+    // Inner recursive function that returns the filtered list AND the count of hidden items for that subtree
+    const filterRecursive = (currentNodes: ActionNode[]): { filtered: ActionNode[], count: number } => {
+        let count = 0;
+        
+        const filtered = currentNodes.reduce((acc: ActionNode[], node) => {
             const isPublic = node.is_public ?? true;
-            const children = filter(node.children || []);
             
-            // Logic:
-            // 1. If node is explicitly public (or undefined/default public), show it.
-            // 2. If node is private, but has visible children, show it (as a container). 
-            //    (However, strict rule "Parent Private -> Child Private" makes this case rare/impossible if enforced).
-            // 3. If hidden, count it (and its hidden descendants) if not completed.
+            // Recurse first to determine if children are visible
+            const { filtered: visibleChildren, count: hiddenChildCount } = filterRecursive(node.children || []);
+            
+            // Add the count of hidden items found in the children's subtrees
+            count += hiddenChildCount;
 
-            if (isPublic || children.length > 0) {
-                acc.push({ ...node, children });
+            // A node is visible if it is explicitly public OR if it acts as a container for visible children
+            const isVisible = isPublic || visibleChildren.length > 0;
+
+            if (isVisible) {
+                acc.push({ ...node, children: visibleChildren });
             } else {
-                // Node is hidden.
-                // Count this node if uncompleted.
+                // Node is hidden (Private AND no visible children).
+                // If it is uncompleted, it counts as a "hidden task".
                 if (!node.completed) {
-                    privateCount++;
+                    count++;
                 }
-                // Count descendants that are also hidden and uncompleted.
-                // Since we are in the 'else' block, the `children` variable above contains the *filtered* (public) children.
-                // Since we are hiding the parent, we are effectively hiding the whole subtree (unless children were lifted, which they aren't here).
-                // We should count based on the ORIGINAL children, not the filtered ones.
-                // But wait, if `children.length > 0`, we WOULD show the parent.
-                // So here `children.length === 0`.
-                // This means all children were either private or non-existent.
-                // So we need to count uncompleted items in the original `node.children`.
-                
-                const countHiddenRecursive = (n: ActionNode) => {
-                    if (!n.completed) {
-                        privateCount++;
-                    }
-                    n.children?.forEach(countHiddenRecursive);
-                };
-                // We only need to count children, as we already counted `node` above.
-                node.children?.forEach(countHiddenRecursive);
+                // Note: We've already added `hiddenChildCount` to `count`.
+                // If this node is hidden, `visibleChildren` is empty.
+                // Any uncompleted private tasks in the subtree were captured in `hiddenChildCount`.
             }
             return acc;
         }, []);
+        
+        return { filtered, count };
     };
 
-    const actions = filter(nodes);
+    const { filtered: actions, count: privateCount } = filterRecursive(nodes);
     return { actions, privateCount };
 }

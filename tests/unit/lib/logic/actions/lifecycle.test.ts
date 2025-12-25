@@ -8,7 +8,7 @@ jest.mock('@/lib/supabase/actions', () => ({
   updateActions: jest.fn(),
 }));
 
-jest.mock('@/lib/date', () => ({
+jest.mock('@/lib/time/date.ts', () => ({
   getStartOfTodayInTimezone: jest.fn(),
 }));
 

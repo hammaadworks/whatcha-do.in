@@ -18,12 +18,12 @@ import {
   addActionAfterId,
   restoreActionInTree,
   recalculateCompletionStatus,
-  DeletedNodeContext // Moved here from types
-} from '@/lib/logic/actions/tree-utils'; // Import DeletedNodeContext from actionTreeUtils
-import { getMillisecondsUntilNextDay } from '@/lib/date';
+  DeletedNodeContext 
+} from '@/lib/logic/actions/tree-utils'; 
+import { getMillisecondsUntilNextDay, getReferenceDateUI } from '@/lib/date';
 import { createClient } from '@/lib/supabase/client';
 import { JournalActivityService } from '@/lib/logic/JournalActivityService';
-import { useSystemTime } from '@/components/providers/SystemTimeProvider';
+import { useSimulatedTime } from '@/components/layout/SimulatedTimeProvider';
 
 interface TreeStructureProps {
   fetchData: (userId: string, timezone: string, dateContext?: string | null) => Promise<ActionNode[]>;
@@ -51,7 +51,8 @@ export const useTreeStructure = ({
   ownerId // Destructure ownerId
 }: TreeStructureProps) => {
   const { user } = useAuth();
-  const { simulatedDate } = useSystemTime();
+  const { simulatedDate } = useSimulatedTime();
+  const refDate = getReferenceDateUI(simulatedDate);
   const [tree, setTree] = useState<ActionNode[]>(initialData || []);
   const [loading, setLoading] = useState(!initialData && isOwner);
   const [lastDeletedContext, setLastDeletedContext] = useState<DeletedNodeContext | null>(null);
@@ -174,7 +175,7 @@ export const useTreeStructure = ({
       return;
     }
 
-    const treeAfterToggle = toggleActionInTree(tree, id, simulatedDate || new Date());
+    const treeAfterToggle = toggleActionInTree(tree, id, refDate);
     const { newTree, uncompletedFromCompleted } = recalculateCompletionStatus(treeAfterToggle);
     const newNode = findNodeAndContext(newTree, id)?.node;
 
@@ -193,11 +194,12 @@ export const useTreeStructure = ({
       if (newNode.completed) { // If becoming completed
         await memoizedJournalActivityService.current.logActivity(
           ownerId, // Use ownerId
-          new Date(newNode.completed_at || new Date()),
+          refDate,
           {
             id: newNode.id,
             type: entityType,
             description: newNode.description,
+            timestamp: newNode.completed_at || refDate.toISOString(),
             is_public: newNode.is_public ?? false,
             status: 'completed',
             // Removed details: newNode.details as ActionNode does not have this property

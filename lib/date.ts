@@ -19,12 +19,7 @@
 
 import {format} from "date-fns";
 import {fromZonedTime, toZonedTime} from "date-fns-tz";
-
-/* -------------------------------------------------------------------------- */
-/* TYPES */
-/* -------------------------------------------------------------------------- */
-
-export type ISODate = `${number}-${number}-${number}`;
+import {ISODate} from "@/lib/supabase/types.ts";
 
 /* -------------------------------------------------------------------------- */
 
@@ -125,18 +120,13 @@ export function addDays(date: ISODate, days: number): ISODate {
     return formatISO(base);
 }
 
-export function diffInDays(from: ISODate, to: ISODate): number {
+export function diffInDays(from: ISODate | null, to: ISODate): number {
+    if (!from) {
+        return 0;
+    }
     const a = parseISO(from).getTime();
     const b = parseISO(to).getTime();
-    return Math.round((a - b) / 86_400_000);
-}
-
-export function isToday(date: ISODate, today: ISODate): boolean {
-    return date === today;
-}
-
-export function isYesterday(date: ISODate, today: ISODate): boolean {
-    return diffInDays(today, date) === 1;
+    return Math.round((b - a) / 86_400_000);
 }
 
 export function getMonthStart(today: ISODate, offsetMonths = 0): ISODate {
@@ -160,19 +150,9 @@ export function getCurrentMonthStartISO(timezone: string, referenceDate: Date | 
  * ISO IN → ISO OUT
  * -------------------------------------------------------------------------- */
 
-export function daysSince(completionDate: ISODate | null, today: ISODate): number {
-    if (!completionDate) return Infinity;
-    return diffInDays(today, completionDate);
-}
-
-export function completedToday(completionDate: ISODate | null, today: ISODate): boolean {
-    if (!completionDate) return false;
-    return isToday(completionDate, today);
-}
-
-export function completedYesterday(completionDate: ISODate | null, today: ISODate): boolean {
-    if (!completionDate) return false;
-    return isYesterday(completionDate, today);
+export function daysSince(someDate: ISODate | null, today: ISODate): number {
+    if (!someDate) return 0;
+    return diffInDays(someDate, today);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -183,7 +163,7 @@ export function completedYesterday(completionDate: ISODate | null, today: ISODat
 /**
  * Parses a datetime-local input string (YYYY-MM-DDTHH:mm) into a Date object.
  * Used primarily for Time Travel debugging.
- * 
+ *
  * @param input - The value from <input type="datetime-local" />
  */
 export function parseLocalDateTime(input: string): Date | null {

@@ -3,12 +3,16 @@ import { fetchTargets, updateTargets } from '@/lib/supabase/targets';
 import { ActionNode } from '@/lib/supabase/types';
 import { useAuth } from './useAuth';
 import { toast } from 'sonner';
-import { getMonthStartDate, isFirstDayOfMonth } from '@/lib/date';
+import { getCurrentMonthStartISO, getReferenceDateUI } from '@/lib/date';
+import { useSimulatedTime } from '@/components/layout/SimulatedTimeProvider';
+import { parseISO, isAfter, isEqual, isBefore } from 'date-fns';
+import { useTreeStructure } from '@/hooks/useTreeStructure';
+import { 
+  DeletedNodeContext, 
+  deleteActionFromTree, 
+  addExistingActionToTree 
+} from '@/lib/logic/actions/tree-utils';
 import { processTargetLifecycle } from '@/lib/logic/targetLifecycle';
-import { addActionToTree, deleteActionFromTree, findNodeAndContext, DeletedNodeContext, addActionAfterId, addExistingActionToTree } from '@/lib/logic/actions/tree-utils';
-import { useTreeStructure } from './useTreeStructure';
-import { useSystemTime } from '@/components/providers/SystemTimeProvider';
-import { parseISO, isBefore, isAfter, isEqual } from 'date-fns';
 
 export type TargetBucket = 'future' | 'current' | 'prev' | 'prev1';
 
@@ -19,15 +23,16 @@ const saveTargetData = async (userId: string, dateContext: string | null, newTre
 
 export const useTargets = (isOwner: boolean, timezone: string = 'UTC', initialTargets?: ActionNode[]) => {
   const { user } = useAuth();
-  const { simulatedDate } = useSystemTime();
+  const { simulatedDate } = useSimulatedTime();
+  const refDate = getReferenceDateUI(simulatedDate);
 
   // State to store deleted context, including the bucket it was deleted from
   const [lastDeletedTargetContext, setLastDeletedTargetContext] = useState<{ context: DeletedNodeContext | null, bucket: TargetBucket | null } | null>(null);
 
-  // Memoize date contexts with simulatedDate support
-  const currentMonthDate = useMemo(() => getMonthStartDate(0, timezone, simulatedDate ?? undefined), [timezone, simulatedDate]);
-  const prevMonthDate = useMemo(() => getMonthStartDate(-1, timezone, simulatedDate ?? undefined), [timezone, simulatedDate]);
-  const prev1MonthDate = useMemo(() => getMonthStartDate(-2, timezone, simulatedDate ?? undefined), [timezone, simulatedDate]);
+  // Memoize date contexts using the canonical helpers
+  const currentMonthDate = useMemo(() => getCurrentMonthStartISO(timezone, refDate, 0), [timezone, refDate]);
+  const prevMonthDate = useMemo(() => getCurrentMonthStartISO(timezone, refDate, -1), [timezone, refDate]);
+  const prev1MonthDate = useMemo(() => getCurrentMonthStartISO(timezone, refDate, -2), [timezone, refDate]);
 
   // Use useTreeStructure for each bucket
   const future = useTreeStructure({
@@ -44,9 +49,9 @@ export const useTargets = (isOwner: boolean, timezone: string = 'UTC', initialTa
   });
 
   const current = useTreeStructure({
-    fetchData: (userId, tz) => fetchTargets(userId, getMonthStartDate(0, tz, simulatedDate ?? undefined)),
+    fetchData: (userId, tz) => fetchTargets(userId, getCurrentMonthStartISO(tz, refDate, 0)),
     saveData: (userId, _dc, newTree) => saveTargetData(userId, currentMonthDate, newTree),
-    processLifecycle: processTargetLifecycle,
+    processLifecycle: (uid, tz) => processTargetLifecycle(uid, tz, refDate),
     entityType: 'target',
     isOwner,
     timezone,
@@ -62,7 +67,7 @@ export const useTargets = (isOwner: boolean, timezone: string = 'UTC', initialTa
   });
 
   const prev = useTreeStructure({
-    fetchData: (userId, tz) => fetchTargets(userId, getMonthStartDate(-1, tz, simulatedDate ?? undefined)),
+    fetchData: (userId, tz) => fetchTargets(userId, getCurrentMonthStartISO(tz, refDate, -1)),
     saveData: (userId, _dc, newTree) => saveTargetData(userId, prevMonthDate, newTree),
     processLifecycle: undefined,
     entityType: 'target',
@@ -81,7 +86,7 @@ export const useTargets = (isOwner: boolean, timezone: string = 'UTC', initialTa
   });
 
   const prev1 = useTreeStructure({
-    fetchData: (userId, tz) => fetchTargets(userId, getMonthStartDate(-2, tz, simulatedDate ?? undefined)),
+    fetchData: (userId, tz) => fetchTargets(userId, getCurrentMonthStartISO(tz, refDate, -2)),
     saveData: (userId, _dc, newTree) => saveTargetData(userId, prev1MonthDate, newTree),
     processLifecycle: undefined,
     entityType: 'target',

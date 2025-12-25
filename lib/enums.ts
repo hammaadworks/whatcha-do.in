@@ -9,8 +9,7 @@ export enum HabitBoxType {
 export enum HabitLifecycleEvent {
     USER_COMPLETE = 0,
     USER_UNDO = 1,
-    DAY_ROLLOVER = 2,
-    DAILY_RESOLUTION = 3,
-    GRACE_COMPLETE = 4,
-    GRACE_INCOMPLETE = 5
+    GRACE_COMPLETE = 2,
+    GRACE_INCOMPLETE = 3,
+    JUNK = 4
 }

@@ -22,24 +22,3 @@ export async function fetchPublicHabitsServer(userId: string): Promise<Habit[]> 
     }
     return data || [];
 }
-
-/**
- * Fetches all habits (public and private) for a specific user.
- * Intended for server-side rendering of the owner's profile.
- *
- * @param userId - The ID of the user whose habits to fetch.
- * @returns A promise resolving to an array of Habit objects.
- */
-export async function fetchOwnerHabitsServer(userId: string): Promise<Habit[]> {
-    const supabase = await createServerSideClient();
-    const {data, error} = await supabase
-        .from('habits')
-        .select('*')
-        .eq('user_id', userId);
-
-    if (error) {
-        console.error("Supabase Fetch Error (Server Owner Habits):", JSON.stringify(error, null, 2));
-        throw error;
-    }
-    return data || [];
-}

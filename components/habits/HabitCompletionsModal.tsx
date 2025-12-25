@@ -10,21 +10,13 @@ import {Textarea} from '@/components/ui/textarea';
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
 import {Badge} from '@/components/ui/badge';
 import {Clock, Dumbbell, Flame, StickyNote} from 'lucide-react';
-import {Habit} from '@/lib/supabase/types';
+import {CompletionsData, Habit} from '@/lib/supabase/types';
 
 interface HabitCompletionsModalProps {
     isOpen: boolean;
     onClose: () => void;
     habit: Habit;
     onConfirm: (data: CompletionsData) => Promise<void>;
-}
-
-export interface CompletionsData {
-    mood: number;
-    work_value?: number;
-    time_taken?: number;
-    time_taken_unit?: string;
-    notes?: string;
 }
 
 /**

@@ -32,131 +32,134 @@ We separate concerns into **three layers**:
 
 ---
 
-## 2. Canonical Definitions
+## 2. Canonical Definitions & Data Types
 
-### Reference Date
+Understanding the possible values for time-related data is critical for system stability.
 
-* A `Date` object
-* Represents **now**
-* May be real time or simulated time
-* Comes from UI or Server
-* Has **NO business meaning**
+### A. The "Simulated Date" Cookie (`simulated_date`)
 
-### ISODate
+Stores the user's "Time Travel" preference.
 
-* String in format: `YYYY-MM-DD`
-* Example: `"2025-12-13"`
-* Represents a **calendar day**
-* Is timezone-resolved
-* Is what we store in the DB
-* Is what business logic runs on
+* **Values:**
+    * `null` / `undefined`: User is in "Real Time".
+    * `ISO 8601 String` (Full): User is time-traveling.
+* **Examples:**
+    * `undefined` (Normal user)
+    * `"2025-12-25T09:00:00.000Z"` (Time traveling to Christmas morning)
+
+### B. Reference Date (`Date` Object)
+
+The single source of truth for "Now".
+
+* **Type:** JavaScript `Date` object.
+* **Origin:** Must come from `getReferenceDateUI` (Client) or `getReferenceDateServer` (Server).
+* **Meaning:** "The exact moment the user performed the action."
+* **Constraint:** NEVER create this manually with `new Date()` outside of `lib/date.ts` or `SimulatedTimeProvider`.
+
+### C. ISODate (`string`)
+
+The domain primitive. Represents a **Calendar Day**.
+
+* **Format:** `YYYY-MM-DD`
+* **Examples:** `"2025-12-25"`, `"2024-01-01"`
+* **Usage:** Database columns (`last_completed_date`), Streak logic comparisons.
+* **Timezone:** ALWAYS resolved. `"2025-12-25"` means "Dec 25th in the user's timezone".
 
 ---
 
-## 3. The One File That Owns Time
+## 3. The One File That Owns Time: `lib/date.ts`
 
-### 📁 `lib/date.ts`
-
-This file is the **single source of truth**.
-
-It owns:
-
-* resolving today
-* timezone handling
-* ISO date math
-* habit / streak rules
+This file is the **single source of truth**. It owns resolving today, timezone handling, ISO date math, and habit/streak
+rules.
 
 ### 🚫 Banned Everywhere Else
 
-* `new Date()`
-* timezone math
-* comparing timestamps for habits
-* quick helpers that calculate today
+* `new Date()` (except for UI display components like clocks)
+* Timezone math (adding/subtracting hours)
+* Comparing timestamps directly for habits
+* Quick helpers that calculate "today"
 
 If you need date logic and it’s not in `date.ts`, **add it there or don’t add it at all**.
 
 ---
 
-## 4. How Time Enters the System
+## 4. Usage Guide: When & How to Use `lib/date.ts`
+
+### Scenario A: "I need to know what 'Today' is for the user."
+
+**Context:** Checking if a habit is done today, loading today's journal.
+**Tool:** `getTodayISO(timezone, refDate)`
+
+```ts
+const refDate = getReferenceDateUI(simulatedDate); // Get "Now"
+const todayISO = getTodayISO(user.timezone, refDate); // Resolve "Today"
+// Result: "2025-12-20"
+```
+
+### Scenario B: "I need the start of the current month."
+
+**Context:** Loading Monthly Targets.
+**Tool:** `getCurrentMonthStartISO(timezone, refDate, offset)`
+
+```ts
+// Current Month (e.g., Dec 1st)
+const currentMonth = getCurrentMonthStartISO(user.timezone, refDate, 0);
+// Previous Month (e.g., Nov 1st)
+const prevMonth = getCurrentMonthStartISO(user.timezone, refDate, -1);
+```
+
+### Scenario C: "I need to check if a habit was done yesterday."
+
+**Context:** Grace period logic, streak calculations.
+**Tool:** `completedYesterday(lastCompletedISO, todayISO)` (and `daysSince`)
+
+```ts
+if (completedYesterday(habit.last_completed_date, todayISO)) {
+    // It was done yesterday!
+}
+// OR generic math
+const gap = daysSince(habit.last_completed_date, todayISO);
+if (gap === 1) { /* Yesterday */
+}
+```
+
+### Scenario D: "I need to log an activity timestamp."
+
+**Context:** Journal `activity_log`.
+**Tool:** Pass the `refDate` directly.
+
+```ts
+await logActivity(..., {timestamp: refDate.toISOString()});
+```
+
+---
+
+## 5. How Time Enters the System
 
 ### UI (Client)
 
-Source of time:
-
-* `SimulatedTimeProvider`
-
-Usage:
+**Source:** `SimulatedTimeProvider` via `useSimulatedTime()` hook.
 
 ```ts
-const { simulatedDate } = useSimulatedTime();
+const {simulatedDate} = useSimulatedTime();
 const refDate = getReferenceDateUI(simulatedDate);
 ```
 
-What this means:
-
-* If simulated time exists → use it
-* Otherwise → real current time
-* Still just a `Date`, nothing more
-
----
-
 ### Server (RSC / Actions)
 
-Source of time:
-
-* Cookie set by `SimulatedTimeProvider`
-
-Usage:
+**Source:** Cookies.
 
 ```ts
-const cookieValue = cookies().get("simulated_date")?.value;
+const cookieStore = await cookies();
+const cookieValue = cookieStore.get(SIMULATED_DATE_COOKIE)?.value;
 const refDate = getReferenceDateServer(cookieValue);
-```
-
-Again:
-
-* Returns a `Date`
-* No timezone logic yet
-* No business meaning yet
-
----
-
-## 5. Resolving “Today” (The Only Way)
-
-> **There is exactly ONE way to get “today”.**
-
-```ts
-const todayISO = getTodayISO(user.timezone, refDate);
-```
-
-That’s it.
-
-Rules:
-
-* Happens **once per flow**
-* Requires user timezone
-* Uses reference date
-* Returns `ISODate`
-
-### 🚫 What is NOT allowed
-
-```ts
-new Date().toISOString().slice(0, 10); // ❌
-```
-
-```ts
-simulatedDate?.toISOString(); // ❌
-```
-
-```ts
-const today = useState("2025-12-13"); // ❌
 ```
 
 ---
 
 ## 6. Business Logic Rules (ISO Only)
 
-After `todayISO` is computed:
+After `todayISO` is computed, all logic must be string-based:
 
 ### ✅ Allowed
 
@@ -170,11 +173,9 @@ getMonthStart(todayISO);
 ### ❌ Forbidden
 
 ```ts
-new Date(lastCompletedAt) // ❌
-(Date.now() - lastCompletedAt) / 86400000 // ❌
+new Date(lastCompletedAt) // ❌ Don't parse ISOs back to Dates for logic
+    (Date.now() - lastCompletedAt) / 86400000 // ❌ No millisecond math
 ```
-
-**Business logic must NEVER see `Date`.**
 
 ---
 
@@ -183,42 +184,23 @@ new Date(lastCompletedAt) // ❌
 ### ✅ What We Store
 
 ```ts
-last_completed_date: ISODate // "2025-12-13"
+last_completed_date: ISODate // "2025-12-13" (DATE column)
 ```
 
-### ❌ What We Never Store
+### ❌ What We Never Store for Habits
 
-* “today”
-* Date objects
-* timezone-adjusted timestamps for streaks
-* derived state
+* "today" status (derived)
+* Timezone-adjusted timestamps for *streaks* (we use ISO date strings)
 
-**The DB stores facts, not interpretations.**
+**The DB stores facts (dates), not interpretations.**
 
 ---
 
 ## 8. Midnight, DST, and Time Travel
 
-### Midnight
-
-* Nothing special happens
-* Next call to `getTodayISO()` returns a new value
-* No timers
-* No cron
-* No cache invalidation
-
-### DST
-
-* Handled automatically
-* We never do `+86400000` math
-* We never count hours
-
-### Time Travel (Simulation)
-
-* UI sets simulated time
-* Cookie syncs it to server
-* Server + client stay consistent
-* Business logic remains unchanged
+* **Midnight:** Nothing special happens. Next call to `getTodayISO()` simply returns a new value.
+* **DST:** Handled automatically by `date-fns-tz` inside `getTodayISO`. We never do `+86400000` math.
+* **Time Travel:** UI sets simulated time cookie. Server + client stay consistent. Business logic remains unchanged.
 
 ---
 
@@ -239,38 +221,15 @@ If your code doesn’t follow this shape, it’s wrong.
 
 ---
 
-## 10. Code Review Checklist (Use This)
+## 10. Code Review Checklist
 
 Before approving any PR involving dates:
 
-* [ ] No `new Date()` outside `date.ts`
-* [ ] No timezone math outside `date.ts`
-* [ ] No ISO logic inside UI or Server helpers
-* [ ] DB stores ISODate only
-* [ ] `getTodayISO()` used exactly once per flow
-* [ ] No cached “today” values
-
-Fail any → request changes.
-
----
-
-## 11. Why We Are This Strict
-
-Because:
-
-* time bugs are silent
-* date bugs are expensive
-* streak bugs destroy user trust
-* DST bugs show up months later
-* just this once helpers multiply
-
-Discipline here saves **weeks of debugging** later.
-
----
-
-## 12. Final Rule
-
-> **If you’re confused about time, you’re probably skipping a step.
-> Go back to: reference date → todayISO → ISO logic.**
+* [ ] No `new Date()` outside `date.ts` (except UI display).
+* [ ] No timezone math outside `date.ts`.
+* [ ] No ISO logic inside UI or Server helpers.
+* [ ] DB stores ISODate only for dates.
+* [ ] `getTodayISO()` used exactly once per flow.
+* [ ] `SIMULATED_DATE_COOKIE` is respected.
 
 ---

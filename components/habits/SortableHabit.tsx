@@ -29,12 +29,14 @@ export function SortableHabit({ id, children, disabled, className }: SortableHab
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
-    touchAction: 'none', // Prevent scrolling while dragging
+    // touchAction: 'none' is moved to the handle in the child component
   };
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners} className={className}>
-      {children}
+    <div ref={setNodeRef} style={style} {...attributes} className={className}>
+      {React.isValidElement(children)
+        ? React.cloneElement(children as React.ReactElement<any>, { dragListeners: listeners })
+        : children}
     </div>
   );
 }

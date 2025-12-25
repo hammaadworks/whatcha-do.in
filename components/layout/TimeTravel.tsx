@@ -6,23 +6,7 @@ import {Input} from "@/components/ui/input";
 import {Label} from "@/components/ui/label";
 import {toast} from "sonner";
 import {useSimulatedTime} from "@/components/layout/SimulatedTimeProvider";
-
-/* ------------------------------------------------------------------ */
-/* Helpers */
-/* ------------------------------------------------------------------ */
-
-// Safely parses <input type="datetime-local" />
-function parseLocalDateTime(input: string): Date | null {
-    if (!input) return null;
-
-    const [datePart, timePart] = input.split("T");
-    if (!datePart || !timePart) return null;
-
-    const [year, month, day] = datePart.split("-").map(Number);
-    const [hour, minute] = timePart.split(":").map(Number);
-
-    return new Date(year, month - 1, day, hour, minute);
-}
+import {parseLocalDateTime} from "@/lib/date";
 
 /* ------------------------------------------------------------------ */
 /* Component */

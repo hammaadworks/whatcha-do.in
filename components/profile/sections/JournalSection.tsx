@@ -18,7 +18,7 @@ import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,} from "@/compo
 import {Button} from '@/components/ui/button';
 import {Skeleton} from '@/components/ui/skeleton';
 import {CustomMarkdownEditor} from '@/components/shared/CustomMarkdownEditor';
-import {Calendar} from '@/components/ui/calendar';
+import {Calendar} from '@/components/shared/Calendar';
 import {Popover, PopoverContent, PopoverTrigger} from '@/components/ui/popover';
 import {format} from 'date-fns';
 import {upsertJournalEntry} from '@/lib/supabase/journal';
@@ -28,7 +28,7 @@ import {useAuth} from '@/hooks/useAuth';
 import {ShineBorder} from "@/components/ui/shine-border";
 import {useDebounce} from '@/hooks/useDebounce';
 import {CollapsibleSectionWrapper} from '@/components/ui/collapsible-section-wrapper';
-import { useSystemTime } from '@/components/providers/SystemTimeProvider';
+import { useSimulatedTime } from '@/components/layout/SimulatedTimeProvider';
 
 interface JournalSectionProps {
     isOwner: boolean;
@@ -101,7 +101,7 @@ const ActivityItem = ({ entry }: { entry: ActivityLogEntry }) => {
 
 const JournalSection: React.FC<JournalSectionProps> = ({isOwner, isReadOnly = false, journalEntries, loading, isCollapsible = false, isFolded, toggleFold}) => {
     const {user} = useAuth();
-    const { simulatedDate } = useSystemTime();
+    const { simulatedDate } = useSimulatedTime();
     const [selectedDate, setSelectedDate] = useState<Date>(simulatedDate || new Date());
     const [activeTab, setActiveTab] = useState<'private' | 'public'>('public'); // Default to public
     const [entryContent, setEntryContent] = useState('');
@@ -228,7 +228,7 @@ const JournalSection: React.FC<JournalSectionProps> = ({isOwner, isReadOnly = fa
                             <Calendar
                                 mode="single"
                                 selected={selectedDate}
-                                onSelect={(date) => date && setSelectedDate(date)}
+                                onSelect={(date: Date | undefined) => date && setSelectedDate(date)}
                                 initialFocus
                                 modifiers={{hasEntry: hasEntryMatcher}}
                                 modifiersClassNames={{

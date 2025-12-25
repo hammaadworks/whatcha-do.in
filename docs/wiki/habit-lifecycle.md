@@ -87,7 +87,6 @@ export enum HabitLifecycleEvent {
     DAILY_RESOLUTION = 3,
     GRACE_COMPLETE = 4,
     GRACE_INCOMPLETE = 5,
-    AUTO_RESOLVE = 6,
 }
 ```
 
@@ -102,6 +101,8 @@ ALL state changes MUST go through:
 ```ts
 transitionHabit(habitId, event, todayDate)
 ```
+
+**Implementation:** See `lib/logic/habitLifecycle.ts` for the definitive implementation of the transition logic.
 
 State is a pure function of:
 
@@ -178,7 +179,6 @@ today → yesterday
 
 ```ts
 habit_state = yesterday
-last_non_today_state = null
 ```
 
 * No streak changes
@@ -194,6 +194,8 @@ Triggered ONCE per habit per calendar day.
 if (last_resolved_date === todayDate) abort
 last_resolved_date = todayDate
 ```
+
+**Implementation:** See `lib/logic/habitProcessor.ts` for the implementation of this check and subsequent lifecycle event triggering.
 
 DAILY_RESOLUTION determines:
 
@@ -242,11 +244,22 @@ habit_state = lively
 
 ---
 
-### Case B: App opened on t+2 or later → AUTO_RESOLVE
+### Case B: App opened on t+2
 
 ```ts
-habit_state = lively
-// streak unchanged
+habit_state = junked
+// streak = 0
+```
+
+NO UI SHOWN.
+
+---
+
+### Case C: App opened on t+3 or later
+
+```ts
+habit_state = junked
+// streak = -1/day
 ```
 
 NO UI SHOWN.
@@ -276,7 +289,7 @@ streak = 0
 
 ---
 
-### Case B: App opened on t+2 or later → AUTO_RESOLVE
+### Case B: App opened on t+2 or later (no grace screen)
 
 ```ts
 habit_state = junked
@@ -349,15 +362,17 @@ undo without saved state
 ## 18. Transition Summary (Truth Table)
 
 | From      | Event            | To        | Streak Effect |
-| --------- | ---------------- | --------- | ------------- |
+|-----------|------------------|-----------|---------------|
 | lively    | USER_COMPLETE    | today     | +1            |
 | yesterday | USER_COMPLETE    | today     | +1            |
 | junked    | USER_COMPLETE    | today     | reset → 1     |
 | today     | USER_UNDO        | prev      | restore       |
 | today     | DAY_ROLLOVER     | yesterday | none          |
+| yesterday | DAY_ROLLOVER     | lively    | none          |
+| lively    | DAY_ROLLOVER     | junked    | 0             |
+| junked    | DAY_ROLLOVER     | junked    | -1/day        |
 | yesterday | GRACE_INCOMPLETE | lively    | none          |
 | lively    | GRACE_INCOMPLETE | junked    | → 0           |
-| junked    | DAILY_RESOLUTION | junked    | −1/day        |
 
 ---
 

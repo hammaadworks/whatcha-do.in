@@ -8,13 +8,16 @@ import {createHabit} from "@/lib/supabase/habit"; // Import createHabit
 import {useAuth} from "@/hooks/useAuth";
 import {Switch} from "@/components/ui/switch"; // Import Switch
 import {Label} from "@/components/ui/label"; // Import Label
-import {HabitState} from "@/lib/enums";
+import {Habit} from "@/lib/supabase/types";
+import {getReferenceDateUI} from "@/lib/date.ts";
+import {useSimulatedTime} from "@/components/layout/SimulatedTimeProvider.tsx";
 
 interface HabitCreatorProps {
-    onHabitCreated: () => void; // New prop to notify parent
+    onHabitCreated: (habit: Habit) => void; // Updated to pass back the created habit
 }
 
 const predefinedUnits = ["minutes", "hours", "pages", "reps", "sets", "questions", "Custom...",];
+
 
 /**
  * A form component for creating new habits.
@@ -30,7 +33,9 @@ export function HabitCreator({onHabitCreated}: Readonly<HabitCreatorProps>) {
     const [isPublic, setIsPublic] = useState(true); // New state for public/private
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-
+// Canonical Time Logic
+    const {simulatedDate} = useSimulatedTime();
+    const refDate = getReferenceDateUI(simulatedDate);
     const handleCreate = async () => {
         if (!user?.id) {
             setError("User not authenticated.");
@@ -46,17 +51,23 @@ export function HabitCreator({onHabitCreated}: Readonly<HabitCreatorProps>) {
             finalGoalUnit = customUnit.trim();
         }
 
+
+        const newHabitPayload = {
+            user_id: user.id,
+            name: habitName.trim(),
+            is_public: isPublic,
+            goal_value: showGoalInput && goalValue !== undefined ? goalValue : undefined,
+            goal_unit: showGoalInput && finalGoalUnit ? finalGoalUnit : undefined,
+            processed_date: refDate,
+        };
+        console.log('[HabitCreator] Submitting new habit:', newHabitPayload);
+
         try {
-            await createHabit({
-                user_id: user.id,
-                name: habitName.trim(),
-                is_public: isPublic,
-                streak: 0,
-                goal_value: showGoalInput && goalValue !== undefined ? goalValue : undefined,
-                goal_unit: showGoalInput && finalGoalUnit ? finalGoalUnit : undefined,
-                habit_state: HabitState.LIVELY,
-            });
-            onHabitCreated(); // Notify parent that habit was created
+            const {data, error} = await createHabit(newHabitPayload);
+            if (error || !data) throw error || new Error("Failed to return habit data");
+
+            onHabitCreated(data); // Notify parent with the new habit object
+
             // Reset form
             setHabitName("");
             setShowGoalInput(false);

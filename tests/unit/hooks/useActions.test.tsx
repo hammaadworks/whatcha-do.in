@@ -1,7 +1,7 @@
 import { renderHook, act } from '@testing-library/react';
 import { useActions } from '@/hooks/useActions';
 import * as SupabaseActions from '@/lib/supabase/actions';
-import { SystemTimeProvider } from '@/components/providers/SystemTimeProvider';
+import { SimulatedTimeProvider } from '@/components/layout/SimulatedTimeProvider';
 import React from 'react';
 
 // Mock the Supabase service
@@ -25,7 +25,7 @@ jest.mock('uuid', () => ({
 }));
 
 const wrapper = ({ children }: { children: React.ReactNode }) => (
-  <SystemTimeProvider>{children}</SystemTimeProvider>
+  <SimulatedTimeProvider>{children}</SimulatedTimeProvider>
 );
 
 describe('useActions Hook', () => {

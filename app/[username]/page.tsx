@@ -6,7 +6,7 @@ import {fetchPublicHabitsServer} from '@/lib/supabase/habit.server'; // Use serv
 import {fetchPublicJournalEntriesServer} from '@/lib/supabase/journal.server'; // Use server-side journal
 import {fetchPublicIdentitiesServer} from '@/lib/supabase/identities.server'; // Use server-side identities
 import {fetchPublicTargetsServer} from '@/lib/supabase/targets.server'; // Use server-side targets
-import {getMonthStartDate} from '@/lib/date'; // Import date helper
+import { getCurrentMonthStartISO } from "@/lib/date";
 import {ActionNode, Habit, Identity, JournalEntry, PublicUserDisplay} from '@/lib/supabase/types';
 
 type ProfilePageProps = {
@@ -54,7 +54,7 @@ export default async function ProfilePage({params}: ProfilePageProps) {
         publicIdentities = await fetchPublicIdentitiesServer(user.id);
 
         // Fetch current month targets
-        const currentMonthDate = getMonthStartDate(0, user.timezone || 'UTC');
+        const currentMonthDate = getCurrentMonthStartISO(user.timezone || 'UTC');
         const targetsResult = await fetchPublicTargetsServer(user.id, currentMonthDate);
         publicTargets = targetsResult.targets;
 

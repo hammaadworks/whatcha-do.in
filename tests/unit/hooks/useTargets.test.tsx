@@ -1,7 +1,7 @@
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { useTargets } from '@/hooks/useTargets';
 import * as SupabaseTargets from '@/lib/supabase/targets';
-import { getMonthStartDate } from '@/lib/date';
+import { getCurrentMonthStartISO } from '@/lib/date';
 
 // Mock dependencies
 jest.mock('@/lib/supabase/targets', () => ({
@@ -14,8 +14,8 @@ jest.mock('@/hooks/useAuth', () => ({
   useAuth: () => ({ user: { id: 'test-user' }, loading: false }),
 }));
 
-jest.mock('@/components/providers/SystemTimeProvider', () => ({
-  useSystemTime: () => ({ simulatedDate: null }), // Default to real time
+jest.mock('@/components/layout/SimulatedTimeProvider', () => ({
+  useSimulatedTime: () => ({ simulatedDate: null }), // Default to real time
 }));
 
 // Mock UUID
@@ -45,7 +45,7 @@ describe('useTargets Hook', () => {
     expect(calls).toEqual(expect.arrayContaining([['test-user', null]]));
     
     // Current bucket
-    const currentBucketDate = getMonthStartDate(0, 'UTC');
+    const currentBucketDate = getCurrentMonthStartISO('UTC');
     expect(calls).toEqual(expect.arrayContaining([['test-user', currentBucketDate]]));
   });
 
@@ -68,7 +68,7 @@ describe('useTargets Hook', () => {
 
   test('should add target to "current" bucket', async () => {
     const { result } = renderHook(() => useTargets(true, 'UTC'));
-    const currentBucketDate = getMonthStartDate(0, 'UTC');
+    const currentBucketDate = getCurrentMonthStartISO('UTC');
 
     await waitFor(() => expect(result.current.loading).toBe(false));
 

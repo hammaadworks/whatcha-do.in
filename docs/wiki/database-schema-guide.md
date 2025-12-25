@@ -15,29 +15,50 @@ habit_id uuid NOT NULL,
 identity_id uuid NOT NULL,
 user_id uuid NOT NULL,
 created_at timestamp with time zone NOT NULL DEFAULT now(),
+updated_at timestamp with time zone NOT NULL DEFAULT now(),
 CONSTRAINT habit_identities_pkey PRIMARY KEY (habit_id, identity_id),
+CONSTRAINT habit_identities_habit_id_fkey FOREIGN KEY (habit_id) REFERENCES public.habits(id),
 CONSTRAINT habit_identities_identity_id_fkey FOREIGN KEY (identity_id) REFERENCES public.identities(id),
-CONSTRAINT habit_identities_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id),
-CONSTRAINT habit_identities_habit_id_fkey FOREIGN KEY (habit_id) REFERENCES public.habits(id)
+CONSTRAINT habit_identities_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id)
 );
-CREATE TABLE public.habits (
-id uuid NOT NULL DEFAULT uuid_generate_v4(),
-user_id uuid NOT NULL,
-name text NOT NULL,
-is_public boolean NOT NULL DEFAULT false,
-streak integer NOT NULL DEFAULT 0,
-longest_streak integer NOT NULL DEFAULT 0,
-goal_value numeric,
-goal_unit text,
-habit_state text NOT NULL DEFAULT 'lively'::text,
-junked_at timestamp with time zone,
-last_non_today_streak integer NOT NULL DEFAULT 0,
-last_non_today_state text CHECK (last_non_today_state = ANY (ARRAY['yesterday'::text, 'lively'::text, 'junked'::text])),
-last_completed_date date,
-last_resolved_date date,
-CONSTRAINT habits_pkey PRIMARY KEY (id),
-CONSTRAINT habits_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id)
+create table public.habits (
+id uuid not null default extensions.uuid_generate_v4 (),
+user_id uuid not null,
+name text not null,
+is_public boolean not null default false,
+streak integer not null default 0,
+longest_streak integer not null default 0,
+goal_value numeric null,
+goal_unit text null,
+habit_state text not null default 'lively'::text,
+created_at timestamp with time zone not null default now(),
+updated_at timestamp with time zone not null default now(),
+undo_streak integer not null default 0,
+undo_longest_streak integer not null default 0,
+undo_habit_state text not null default 'lively'::text,
+junked_date date null,
+undo_junked_date date null,
+completed_date date null,
+undo_completed_date date null,
+processed_date date null,
+constraint habits_pkey primary key (id),
+constraint habits_user_id_fkey foreign KEY (user_id) references users (id) on delete CASCADE,
+constraint valid_habit_state check (
+(
+habit_state = any (
+array['yesterday'::text, 'lively'::text, 'junked'::text]
+)
+)
+),
+constraint valid_undo_habit_state check (
+(
+undo_habit_state = any (
+array['yesterday'::text, 'lively'::text, 'junked'::text]
+)
+)
+)
 );
+
 CREATE TABLE public.identities (
 id uuid NOT NULL DEFAULT gen_random_uuid(),
 user_id uuid NOT NULL,

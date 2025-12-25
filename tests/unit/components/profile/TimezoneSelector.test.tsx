@@ -3,7 +3,7 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { TimezoneSelector } from '@/components/profile/TimezoneSelector';
-import { SystemTimeProvider } from '@/components/providers/SystemTimeProvider';
+import { SimulatedTimeProvider } from '@/components/layout/SimulatedTimeProvider';
 
 // Mock Intl.DateTimeFormat for consistent auto-detect testing
 const mockResolvedOptions = jest.fn();
@@ -13,7 +13,7 @@ global.Intl.DateTimeFormat = jest.fn(() => ({
 
 const renderWithProvider = (ui: React.ReactElement) => {
   return render(
-    <SystemTimeProvider>{ui}</SystemTimeProvider>
+    <SimulatedTimeProvider>{ui}</SimulatedTimeProvider>
   );
 };
 

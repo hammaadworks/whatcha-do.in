@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "FORCE_COLOR=true next dev --turbo | pino-pretty",
+    "dev:debug": "next dev",
     "build": "next build --turbo",
     "test": "jest",
     "e2e": "playwright test",

@@ -3,15 +3,12 @@ import type {Metadata} from "next";
 import {Geist, Geist_Mono} from "next/font/google";
 import "./globals.css";
 import {AuthProvider} from "@/components/auth/AuthProvider";
-import {createServerSideClient} from '@/lib/supabase/server';
-import logger from '@/lib/logger/server'; // Import the server logger
 import {Pointer} from "@/components/ui/pointer";
-import {AUTHOR_NAME, AUTHOR_TWITTER_HANDLE, DOMAIN_URL, SIMULATED_DATE_COOKIE, WEBSITE_URL} from "@/lib/constants";
+import {AUTHOR_NAME, AUTHOR_TWITTER_HANDLE, DOMAIN_URL, WEBSITE_URL} from "@/lib/constants";
 import {ThemeProvider} from "next-themes";
 import {KeyboardShortcutsProvider} from '@/components/shared/KeyboardShortcutsProvider';
 import {LayoutContent} from '@/components/layout/LayoutContent'; // New import for the client component
 import {SimulatedTimeProvider} from '@/components/layout/SimulatedTimeProvider';
-import {cookies} from 'next/headers';
 
 const geistSans = Geist({
     variable: "--font-geist-sans", subsets: ["latin"],
@@ -80,21 +77,9 @@ export const metadata: Metadata = {
  *
  * @param {Readonly<{ children: React.ReactNode }>} props - The component props.
  * @param {React.ReactNode} props.children - The nested route content to render.
- * @returns {Promise<JSX.Element>} The rendered HTML structure.
+ * @returns {JSX.Element} The rendered HTML structure.
  */
-export default async function RootLayout({children,}: Readonly<{ children: React.ReactNode; }>) {
-    // ... existing async function content ...
-
-    const supabase = await createServerSideClient();
-    const {
-        data: {user},
-    } = await supabase.auth.getUser();
-
-    logger.info(`RootLayout server-side user check: userId - ${user?.id}`);
-
-    const cookieStore = await cookies();
-    const simulatedDate = cookieStore.get(SIMULATED_DATE_COOKIE)?.value;
-
+export default function RootLayout({children,}: Readonly<{ children: React.ReactNode; }>) {
     return (<html lang="en" suppressHydrationWarning>
     <head>
         <meta name="apple-mobile-web-app-title" content="whatcha-do.in"/>
@@ -107,7 +92,7 @@ export default async function RootLayout({children,}: Readonly<{ children: React
     <Pointer className="fill-primary"/>
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
         <AuthProvider>
-            <SimulatedTimeProvider initialSimulatedDate={simulatedDate}>
+            <SimulatedTimeProvider>
                 <KeyboardShortcutsProvider>
                     <LayoutContent>{children}</LayoutContent>
                 </KeyboardShortcutsProvider>

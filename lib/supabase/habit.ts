@@ -1,9 +1,35 @@
+'use client';
+
 import {createClient} from './client';
-import {ActivityLogEntry, Habit} from './types';
-import {CompletionsData} from '@/components/habits/HabitCompletionsModal.tsx';
+import {ActivityLogEntry, CompletionsData, Habit, ISODate} from './types';
 import {JournalActivityService} from '@/lib/logic/JournalActivityService';
 import {PostgrestError} from '@supabase/supabase-js';
-import {HabitState} from '@/lib/enums';
+import {HabitLifecycleEvent} from '@/lib/enums';
+import {calculateHabitUpdates} from '@/lib/logic/habits/habitLifecycle.ts';
+import {getTodayISO} from '@/lib/date';
+
+/**
+ * Fetches all unprocessed habits for a specific user.
+ * Intended for the "Owner View" where all habits (public and private) should be visible.
+ *
+ * @param userId - The UUID of the user.
+ * @param todayDate
+ * @returns A promise resolving to an array of Habit objects.
+ */
+export async function fetchUnprocessedHabits(userId: string, todayDate: ISODate): Promise<Habit[]> {
+    const supabase = createClient();
+    const {data, error} = await supabase
+        .from('habits')
+        .select('*')
+        .eq('user_id', userId)
+        .neq('processed_date', todayDate);
+
+    if (error) {
+        console.error("Error fetching owner's habits:", error);
+        throw error;
+    }
+    return data || [];
+}
 
 /**
  * Fetches all habits for a specific user.
@@ -48,11 +74,17 @@ export const createHabit = async (habit: Partial<Habit>): Promise<{
         throw new Error(`A habit with the name "${habit.name}" already exists.`);
     }
 
+    console.log('[Supabase] Creating habit:', habit);
     const {data, error} = await supabase
         .from('habits')
         .insert([habit])
         .select()
         .single();
+
+    if (data) {
+        console.log('[Supabase] Habit created:', data);
+    }
+
     return {data, error};
 };
 
@@ -62,7 +94,7 @@ export const createHabit = async (habit: Partial<Habit>): Promise<{
  *
  * @param habitId - The UUID of the habit to complete.
  * @param completions_data - The completion details (mood, work value, duration, notes).
- * @param date - The date of completion (defaults to the current system time).
+ * @param date - The date of completion (should be the reference date in simulated time).
  * @returns A promise resolving to an object containing the new completion ID or an error.
  */
 export async function completeHabit(habitId: string, completions_data: CompletionsData, date: Date): Promise<{
@@ -71,46 +103,44 @@ export async function completeHabit(habitId: string, completions_data: Completio
     const supabase = createClient();
     const journalActivityService = new JournalActivityService(supabase);
 
-    // 1. Fetch current habit state
+    // 1. Fetch current habit state and User (for timezone)
+    // We need user's timezone to correctly calculate "Today" ISODate
     const {data: habit, error: fetchError} = await supabase
         .from('habits')
-        .select('*')
+        .select('*, users!inner(timezone)')
         .eq('id', habitId)
-        .single() as { data: Habit | null, error: Error | null };
+        .single();
 
     if (fetchError || !habit) {
         console.error("Error fetching habit for completion:", fetchError);
         throw fetchError;
     }
 
-    if (habit.last_completed_date == date) {
-        throw new Error("Action failed: The habit status is already complete.");
-    }
+    // Cast the joined result to a type that includes the user data
+    type HabitWithUser = Habit & { users: { timezone: string } };
+    const habitData = habit as unknown as HabitWithUser; // Using assertion here as Supabase generic types can be complex to map perfectly without generated types
 
-    // 2. Calculate new streak, last_non_today_streak and longest streak
-    habit.last_non_today_streak = habit.streak;
-    habit.streak = habit.streak + 1;
-    if (habit.habit_state === HabitState.JUNKED) {
-        habit.streak = 1;
+    const timezone = habitData.users?.timezone || 'UTC';
+
+    // Resolve "Today" ISO based on user's timezone and the provided reference date
+    const todayISO = getTodayISO(timezone, date);
+
+    // 2. Calculate updates using the transition engine
+    let updates: Partial<Habit>;
+    try {
+        // Strip the extra 'users' property before passing to logic if strictness is required,
+        // though structural typing usually allows extra properties. 
+        // We pass it as Habit to satisfy the interface.
+        updates = calculateHabitUpdates(habitData, HabitLifecycleEvent.USER_COMPLETE, todayISO);
+    } catch (e: any) {
+        console.error("Transition logic error:", e.message);
+        throw new Error(`Action failed: ${e.message}`);
     }
-    habit.longest_streak = Math.max(habit.longest_streak, habit.streak);
-    habit.last_non_today_state = habit.habit_state;
-    habit.habit_state = HabitState.TODAY;
-    habit.last_completed_date = date;
-    habit.junked_at = null;
 
     // 3. Update habit state
     const {error: updateError} = await supabase
         .from('habits')
-        .update({
-            last_non_today_streak: habit.last_non_today_streak,
-            streak: habit.streak,
-            longest_streak: habit.longest_streak,
-            last_non_today_state: habit.last_non_today_state,
-            habit_state: HabitState.TODAY,
-            last_completed_date: habit.last_completed_date,
-            junked_at: habit.junked_at,
-        })
+        .update(updates)
         .eq('id', habitId);
 
     if (updateError) {
@@ -126,10 +156,85 @@ export async function completeHabit(habitId: string, completions_data: Completio
         time_taken_unit: completions_data.time_taken_unit,
         notes: completions_data.notes,
     };
+
+    // We log using the reference date provided (which preserves time) but ensured it's consistent with "Today"
     await journalActivityService.logActivity(habit.user_id, date, {
         id: habit.id,
         type: 'habit',
         description: habit.name,
+        timestamp: date.toISOString(),
+        is_public: habit.is_public,
+        status: 'completed',
+        details: logEntryDetails,
+    });
+
+    return {data: null, error: null};
+}
+
+/**
+ * Marks a habit as completed retroactively for YESTERDAY (Grace Period).
+ * Updates the state to YESTERDAY.
+ */
+export async function completeHabitGrace(habitId: string, completions_data: CompletionsData, todayRefDate: Date): Promise<{
+    data: { id: string } | null; error: PostgrestError | null
+}> {
+    const supabase = createClient();
+    const journalActivityService = new JournalActivityService(supabase);
+
+    // 1. Fetch
+    const {data: habit, error: fetchError} = await supabase
+        .from('habits')
+        .select('*, users!inner(timezone)')
+        .eq('id', habitId)
+        .single();
+
+    if (fetchError || !habit) throw fetchError;
+
+    // Cast
+    type HabitWithUser = Habit & { users: { timezone: string } };
+    const habitData = habit as unknown as HabitWithUser;
+    const timezone = habitData.users?.timezone || 'UTC';
+
+    const todayISO = getTodayISO(timezone, todayRefDate);
+
+    // 2. Logic (GRACE_COMPLETE)
+    let updates: Partial<Habit>;
+    try {
+        updates = calculateHabitUpdates(habitData, HabitLifecycleEvent.GRACE_COMPLETE, todayISO);
+    } catch (e: any) {
+        throw new Error(`Action failed: ${e.message}`);
+    }
+
+    // 3. DB Update
+    const {error: updateError} = await supabase
+        .from('habits')
+        .update(updates)
+        .eq('id', habitId);
+
+    if (updateError) throw updateError;
+
+    // 4. Journal (Log for YESTERDAY)
+    // We need to calculate the actual Date object for yesterday to store in the journal timestamp.
+    // We subtract 24 hours from the reference date? 
+    // Or we rely on `last_completed_date` from updates?
+    // `updates.last_completed_date` is a Date object (from logic).
+    // Let's use that.
+    const completedDate = updates.last_completed_date as Date;
+
+    const logEntryDetails: ActivityLogEntry['details'] = {
+        mood: completions_data.mood,
+        work_value: completions_data.work_value,
+        time_taken: completions_data.time_taken,
+        time_taken_unit: completions_data.time_taken_unit,
+        notes: completions_data.notes,
+        grace_period: true // Mark as grace entry
+    };
+
+    await journalActivityService.logActivity(habit.user_id, completedDate, {
+        id: habit.id,
+        type: 'habit',
+        description: habit.name,
+        timestamp: completedDate.toISOString(),
         is_public: habit.is_public,
         status: 'completed',
         details: logEntryDetails,
@@ -195,7 +300,7 @@ export async function updateHabit(habitId: string, updates: Partial<Habit>): Pro
     // If the habit name was updated, also update it in the journal activity log
     if (updates.name && updates.name !== existingHabit.name) {
         const journalActivityService = new JournalActivityService(supabase);
-        await journalActivityService.updateHabitNameInJournal(existingHabit.user_id, habitId, existingHabit.name, updates.name);
+        await journalActivityService.updateHabitNameInJournal(existingHabit.user_id, habitId, existingHabit.name, updates.name, new Date());
     }
     return data;
 }
@@ -218,42 +323,48 @@ export async function deleteHabit(habitId: string): Promise<void> {
     }
 }
 
-export async function unmarkHabit(habitId: string): Promise<void> {
+export async function unmarkHabit(habitId: string, referenceDate: Date): Promise<void> {
     const supabase = createClient();
     const journalActivityService = new JournalActivityService(supabase);
 
-    // 1. Fetch habit
+    // 1. Fetch habit + User (timezone)
     const {data: habit, error: habitError} = await supabase
         .from('habits')
-        .select('*')
+        .select('*, users!inner(timezone)')
         .eq('id', habitId)
-        .single() as { data: Habit | null, error: Error | null };
+        .single();
 
     if (habitError || !habit) throw habitError;
-    if (habit.habit_state != HabitState.TODAY) throw new Error("Action not allowed. You can only unmark habits in your 'Today' list.");
 
-    const completionDate = habit.last_completed_date ? new Date(habit.last_completed_date) : new Date();
+    // Cast the joined result to a type that includes the user data
+    type HabitWithUser = Habit & { users: { timezone: string } };
+    const habitData = habit as unknown as HabitWithUser;
 
-    // 2. Update streak and state
-    habit.streak = habit.last_non_today_streak;
-    habit.longest_streak = Math.max(habit.streak, habit.longest_streak)
-    habit.habit_state = habit.last_non_today_state;
-    habit.last_completed_date = null;
+    const timezone = habitData.users?.timezone || 'UTC';
+
+    // Resolve "Today" based on simulated time
+    const todayISO = getTodayISO(timezone, referenceDate);
+
+    // 2. Calculate updates
+    let updates: Partial<Habit>;
+    try {
+        updates = calculateHabitUpdates(habitData, HabitLifecycleEvent.USER_UNDO, todayISO);
+    } catch (e: any) {
+        throw new Error(`Action not allowed: ${e.message}`);
+    }
 
     // 3. Update habit state
     const {error: updateError} = await supabase
         .from('habits')
-        .update({
-            streak: habit.streak,
-            longest_streak: habit.longest_streak,
-            habit_state: habit.habit_state,
-            last_completed_date: habit.last_completed_date,
-        })
+        .update(updates)
         .eq('id', habitId);
 
     if (updateError) {
         throw updateError;
     }
+
     // 4. Delete activity record
+    // Use the original completion date for removal if it exists
+    const completionDate = habit.last_completed_date ? new Date(habit.last_completed_date) : new Date();
     await journalActivityService.removeActivity(habit.user_id, completionDate, habit.id, 'habit', habit.is_public);
 }
