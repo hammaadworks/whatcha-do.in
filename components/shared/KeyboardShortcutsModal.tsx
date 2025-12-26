@@ -4,7 +4,7 @@ import React from 'react';
 import BaseModal from './BaseModal';
 import { Button } from '@/components/ui/button';
 import KeyboardShortcut from './KeyboardShortcut';
-import { Globe, ListTodo, Command } from 'lucide-react';
+import { Globe, ListTodo, Command, ChevronsUpDown } from 'lucide-react'; // Import ChevronsUpDown
 import { cn } from '@/lib/utils';
 
 interface KeyboardShortcutsModalProps {
@@ -41,9 +41,8 @@ const KeyboardShortcutsModal: React.FC<KeyboardShortcutsModalProps> = ({ open, o
             <h4 className="font-semibold text-sm uppercase tracking-wider">Global Navigation</h4>
           </div>
           <div className="space-y-1">
-            <ShortcutRow label="Open Shortcuts" keys={["/"]} />
             <ShortcutRow label="View Profile" keys={["P"]} />
-            <ShortcutRow label="View Insights" keys={["I"]} />
+            <ShortcutRow label="Open Shortcuts" keys={["/"]} />
             <ShortcutRow label="Open Settings" keys={["S"]} />
             <ShortcutRow label="Toggle Theme" keys={["C"]} />
             <ShortcutRow label="Add Action" keys={["A"]} />
@@ -51,10 +50,24 @@ const KeyboardShortcutsModal: React.FC<KeyboardShortcutsModalProps> = ({ open, o
           </div>
         </div>
 
+        {/* Folding Sections */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 text-primary border-b border-border pb-2">
+            <ChevronsUpDown className="w-4 h-4" />
+            <h4 className="font-semibold text-sm uppercase tracking-wider">Folding Sections <span className="text-xs text-muted-foreground normal-case font-normal">(Alt+Shift)</span></h4>
+          </div>
+          <div className="space-y-1">
+            <ShortcutRow label="Me Section" keys={["Shift", "M"]} />
+            <ShortcutRow label="Actions Section" keys={["Shift", "A"]} />
+            <ShortcutRow label="Journal Section" keys={["Shift", "J"]} />
+            <ShortcutRow label="Targets Section" keys={["Shift", "T"]} />
+          </div>
+        </div>
+
         {/* Items Section */}
         <div className="space-y-4">
           <div className="flex items-center gap-2 text-primary border-b border-border pb-2">
-            <ListTodo className="w-4 h-4" />
+            <ListTodo className="w-4 h-4" /> {/* Revert to ListTodo for Action & Target Items */}
             <h4 className="font-semibold text-sm uppercase tracking-wider">Action & Target Items <span className="text-xs text-muted-foreground normal-case font-normal">(when focused)</span></h4>
           </div>
           <div className="space-y-1">
@@ -69,8 +82,8 @@ const KeyboardShortcutsModal: React.FC<KeyboardShortcutsModalProps> = ({ open, o
                <p className="text-xs font-medium text-muted-foreground mb-2 px-2">Hierarchy & Movement</p>
                <ShortcutRow label="Indent Item" keys={["Tab"]} showModifier={false} />
                <ShortcutRow label="Outdent Item" keys={["Shift", "Tab"]} showModifier={false} />
-               <ShortcutRow label="Move Item Up" keys={["Shift", "↑"]} showModifier={false} />
-               <ShortcutRow label="Move Item Down" keys={["Shift", "↓"]} showModifier={false} />
+               <ShortcutRow label="Move Item Up" keys={["↑"]} />
+               <ShortcutRow label="Move Item Down" keys={["↓"]} />
                <ShortcutRow label="Navigate Up" keys={["↑"]} showModifier={false} />
                <ShortcutRow label="Navigate Down" keys={["↓"]} showModifier={false} />
             </div>

@@ -1,23 +1,34 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { cn } from "@/lib/utils";
 
 interface KeyboardShortcutProps {
+  /** Array of keys to display (e.g., ["K", "Cmd"]). */
   keys: string[];
-  showModifier?: boolean; // Optional prop to show/hide modifier
+  /** Whether to automatically show the modifier key (Alt/Option) based on OS. Defaults to true. */
+  showModifier?: boolean;
+  className?: string;
 }
 
-const KeyboardShortcut: React.FC<KeyboardShortcutProps> = ({ keys, showModifier = true }) => {
+/**
+ * Displays a keyboard shortcut with platform-specific modifier keys.
+ * Renders as a sequence of styled <kbd> elements.
+ */
+const KeyboardShortcut: React.FC<KeyboardShortcutProps> = ({ keys, showModifier = true, className }) => {
   const [isMac, setIsMac] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
+    // Check platform
     setIsMac(typeof navigator !== 'undefined' && navigator.platform.toUpperCase().indexOf('MAC') >= 0);
+    
+    // Check if mobile to potentially hide shortcuts
     const handleResize = () => {
-      setIsMobile(window.innerWidth <= 768); // Assuming 768px as mobile breakpoint
+      setIsMobile(window.innerWidth <= 768);
     };
 
-    handleResize(); // Set initial value
+    handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
@@ -25,13 +36,15 @@ const KeyboardShortcut: React.FC<KeyboardShortcutProps> = ({ keys, showModifier 
   if (isMobile) return null;
 
   const modifier = isMac ? "⌥" : "Alt"; // Option for Mac, Alt for others
-  const plusSign = " + "; // The plus sign
+  const plusSign = <span className="text-muted-foreground/50 mx-0.5">+</span>;
+
+  const kbdClass = "pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100";
 
   return (
-    <span className="ml-2 inline-flex items-center gap-1 text-xs text-muted-foreground">
+    <span className={cn("ml-2 inline-flex items-center text-xs text-muted-foreground", className)}>
       {showModifier && (
         <>
-          <kbd className="kbd kbd-sm bg-muted px-1 py-0.5 rounded-sm">
+          <kbd className={kbdClass}>
             {modifier}
           </kbd>
           {plusSign}
@@ -39,10 +52,10 @@ const KeyboardShortcut: React.FC<KeyboardShortcutProps> = ({ keys, showModifier 
       )}
       {keys.map((key, index) => (
         <React.Fragment key={index}>
-          <kbd className="kbd kbd-sm bg-muted px-1 py-0.5 rounded-sm">
+          <kbd className={kbdClass}>
             {key}
           </kbd>
-          {index < keys.length - 1 && plusSign} {/* Add plus sign between multiple keys if any */}
+          {index < keys.length - 1 && plusSign}
         </React.Fragment>
       ))}
     </span>

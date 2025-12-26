@@ -1,17 +1,19 @@
-import React, {useState, useEffect, useRef} from 'react';
+import React, {useEffect, useRef, useState, useCallback} from 'react';
 import {TargetBucket, useTargets} from '@/hooks/useTargets';
 import {ActionsList} from '@/components/shared/ActionsList';
 import {AddActionForm} from '@/components/shared/AddActionForm';
-import {Button} from '@/components/ui/button';
 import {Tabs, TabsContent, TabsList, TabsTrigger} from '@/components/ui/tabs';
 import {Skeleton} from '@/components/ui/skeleton';
-import {format, parseISO} from 'date-fns';
-import {getMonthStartDate} from '@/lib/date';
+import {format} from 'date-fns';
+import { getCurrentMonthStartISO, parseISO } from '@/lib/date';
 import {ActionNode} from '@/lib/supabase/types';
-import {Activity, Check, Undo2} from 'lucide-react'; // Added Check, Undo2
-import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,} from "@/components/ui/tooltip";
+import {cn} from '@/lib/utils';
+import {Undo2} from 'lucide-react'; // Removed Check, Undo2
 import {CircularProgress} from '@/components/ui/circular-progress'; // Added CircularProgress
-import { toast } from 'sonner'; // Import sonner toast
+import {toast} from 'sonner'; // Import sonner toast
+import {CollapsibleSectionWrapper} from '@/components/ui/collapsible-section-wrapper'; // Import CollapsibleSectionWrapper
+import { Confetti, ConfettiRef } from '@/components/ui/confetti'; // Import Confetti
+import { useConfettiColors } from '@/hooks/useConfettiColors'; // Import useConfettiColors
 
 interface TargetsSectionProps {
     isOwner: boolean;
@@ -19,6 +21,9 @@ interface TargetsSectionProps {
     timezone: string;
     targets?: ActionNode[]; // Optional targets prop
     onActivityLogged?: () => void; // New prop
+    isCollapsible?: boolean; // New prop
+    isFolded?: boolean; // New prop
+    toggleFold?: () => void; // New prop
 }
 
 // Helper to recursively count total and completed actions for a given list of ActionNodes
@@ -43,32 +48,25 @@ const getMonthlyTargetCompletionCounts = (nodes: ActionNode[]): { total: number;
 };
 
 export default function TargetsSection({
-                                           isOwner,
-                                           isReadOnly = false,
-                                           timezone,
-                                           targets: propTargets,
-                                           onActivityLogged
-                                       }: TargetsSectionProps) {
-    const {
-        buckets,
-        loading,
-        addTarget,
-        addTargetAfter, // Destructure new function
-        toggleTarget,
-        updateTargetText,
-        deleteTarget,
-        undoDeleteTarget, // Add undoDeleteTarget
-        lastDeletedTargetContext, // Add lastDeletedTargetContext
-        indentTarget,
-        outdentTarget,
-        moveTargetUp,
-        moveTargetDown,
-        toggleTargetPrivacy, // Add this
-        moveTargetToBucket
-    } = useTargets(isOwner, timezone, propTargets); // Pass propTargets to hook
-
+                                           isOwner, isReadOnly = false, timezone, targets: propTargets, onActivityLogged,
+                                                                                       isCollapsible = false, isFolded, toggleFold // Destructure new props
+                                                                                  }: TargetsSectionProps) {
+                                               const {
+                                                   buckets, loading, addTarget, addTargetAfter, // Destructure new function
+                                                   toggleTarget, updateTargetText, deleteTarget, undoDeleteTarget, // Add undoDeleteTarget
+                                                   lastDeletedTargetContext, // Add lastDeletedTargetContext
+                                                   indentTarget, outdentTarget, moveTargetUp, moveTargetDown, toggleTargetPrivacy, // Add this
+                                                   moveTargetToBucket
+                                               } = useTargets(isOwner, timezone, propTargets); // Pass propTargets to hook
+                                           
+                                               const confettiRef = useRef<ConfettiRef>(null); // Confetti ref
+                                               const colors = useConfettiColors(); // Confetti colors hook
     const [activeTab, setActiveTab] = useState<TargetBucket>('current');
     const [focusedActionId, setFocusedActionId] = useState<string | null>(null); // Add focus state
+    const [newlyAddedActionId, setNewlyAddedActionId] = useState<string | null>(null); // New state for newly added action
+    const handleNewlyAddedActionProcessed = useCallback(() => {
+        setNewlyAddedActionId(null);
+    }, []);
     const addTargetFormRef = useRef<{
         focusInput: () => void;
         clearInput: () => void;
@@ -78,27 +76,23 @@ export default function TargetsSection({
     }>(null);
 
     // Handle delete target and show undo toast
-    const handleDeleteTarget = (bucket: TargetBucket, id: string) => {
-        const deleted = deleteTarget(bucket, id);
-        if (deleted) {
+    const handleDeleteTarget = async (bucket: TargetBucket, id: string) => {
+        const deletedContext = await deleteTarget(bucket, id);
+        if (deletedContext) {
             const isMac = typeof navigator !== 'undefined' && navigator.platform.toUpperCase().indexOf('MAC') >= 0;
             const shortcutKey = isMac ? '⌘Z' : 'Ctrl+Z';
 
             toast("Target deleted.", {
-                description: (
-                    <div className="flex flex-col gap-1">
-                        <span>{deleted.node.description}</span>
+                description: (<div className="flex flex-col gap-1">
+                        <span>{deletedContext.node.description}</span>
                         <span className="text-xs text-muted-foreground flex items-center gap-1">
-                             Press <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">{shortcutKey}</kbd> to undo
+                             Press <kbd
+                            className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">{shortcutKey}</kbd> to undo
                         </span>
-                    </div>
-                ),
-                action: {
-                    label: "Undo",
-                    onClick: () => undoDeleteTarget(),
-                },
-                duration: 5000, // Show toast for 5 seconds
-                icon: <Undo2 className="h-4 w-4" />,
+                    </div>), action: {
+                    label: "Undo", onClick: () => undoDeleteTarget(),
+                }, duration: 5000, // Show toast for 5 seconds
+                icon: <Undo2 className="h-4 w-4"/>,
             });
         }
     };
@@ -109,15 +103,20 @@ export default function TargetsSection({
 
         const handleKeyDown = (event: KeyboardEvent) => {
             // Alt + T (Toggle Add Target form / List focus) - Changed from Alt + A
-            if (event.altKey && (event.key === 't' || event.key === 'T')) {
+            if (event.altKey && !event.shiftKey && event.code === 'KeyT') {
                 event.preventDefault();
 
                 if (addTargetFormRef.current) {
                     if (addTargetFormRef.current.isInputFocused()) {
                         addTargetFormRef.current.blurInput();
                         const flattened = flattenActionTree(buckets[activeTab]);
-                        if (flattened.length > 0) {
-                            setFocusedActionId(flattened[0].id);
+                        const activeItems = flattened.filter(a => !a.completed);
+                        
+                        if (activeItems.length > 0) {
+                            setFocusedActionId(activeItems[0].id);
+                        } else if (flattened.length > 0) {
+                            // Only completed items exist, focus Yay button
+                            setFocusedActionId('yay-toggle-root');
                         }
                     } else {
                         setFocusedActionId(null);
@@ -130,18 +129,46 @@ export default function TargetsSection({
                 event.preventDefault();
                 addTargetFormRef.current.blurInput();
                 const flattened = flattenActionTree(buckets[activeTab]);
-                if (flattened.length > 0) {
-                    setFocusedActionId(flattened[flattened.length - 1].id);
+                const activeItems = flattened.filter(a => !a.completed);
+
+                if (activeItems.length > 0) {
+                    setFocusedActionId(activeItems[activeItems.length - 1].id);
+                } else if (flattened.length > 0) {
+                     // Only completed items exist, focus Yay button
+                     setFocusedActionId('yay-toggle-root');
                 }
             }
-            // Escape (Clear Input / Blur Input / Focus Last Item)
-            else if (event.key === 'Escape' && addTargetFormRef.current?.isInputFocused() && addTargetFormRef.current?.isInputEmpty()) {
-                event.preventDefault();
-                addTargetFormRef.current.clearInput();
-                addTargetFormRef.current.blurInput();
-                const flattened = flattenActionTree(buckets[activeTab]);
-                if (flattened.length > 0) {
-                    setFocusedActionId(flattened[flattened.length - 1].id);
+            if (event.key === 'Escape') {
+                event.preventDefault(); // Prevent default browser behavior
+
+                // Scenario 1: AddTargetForm is focused and empty -> clear and blur it.
+                if (addTargetFormRef.current?.isInputFocused() && addTargetFormRef.current?.isInputEmpty()) {
+                    addTargetFormRef.current.clearInput();
+                    addTargetFormRef.current.blurInput();
+                    const flattened = flattenActionTree(buckets[activeTab]);
+                    if (flattened.length > 0) {
+                        setFocusedActionId(flattened[flattened.length - 1].id); // Focus the last item
+                    } else {
+                        setFocusedActionId(null);
+                        (document.activeElement as HTMLElement)?.blur(); // Truly exit section focus
+                    }
+                }
+                // Scenario 2: AddTargetForm is focused and HAS content -> clear and blur it.
+                else if (addTargetFormRef.current?.isInputFocused()) {
+                    addTargetFormRef.current.clearInput();
+                    addTargetFormRef.current.blurInput();
+                    setFocusedActionId(null); // Clear focus from list
+                    (document.activeElement as HTMLElement)?.blur(); // Blur current focus
+                }
+                // Scenario 3: An ActionItem is focused (but not editing)
+                else if (focusedActionId) {
+                    setFocusedActionId(null); // Clear focus from the ActionItem
+                    (document.activeElement as HTMLElement)?.blur(); // Blur current focus
+                }
+                // Scenario 4: Nothing specific in the section is focused.
+                // This means focus should leave the whole section.
+                else {
+                    (document.activeElement as HTMLElement)?.blur(); // Blur whatever is currently focused
                 }
             }
             // Ctrl+Z (Undo)
@@ -161,14 +188,94 @@ export default function TargetsSection({
 
 
     // Date labels
-    const currentMonthLabel = format(parseISO(getMonthStartDate(0, timezone)), 'MMM yyyy');
-    const prevMonthLabel = format(parseISO(getMonthStartDate(-1, timezone)), 'MMM');
-    const prev1MonthLabel = format(parseISO(getMonthStartDate(-2, timezone)), 'MMM');
+    const currentMonthLabel = format(parseISO(getCurrentMonthStartISO(timezone)), 'MMM yyyy');
+    const prevMonthLabel = format(parseISO(getCurrentMonthStartISO(timezone, undefined, -1)), 'MMM');
+    const prev1MonthLabel = format(parseISO(getCurrentMonthStartISO(timezone, undefined, -2)), 'MMM');
 
     // Calculate progress for the current month's targets
-    const {total: currentMonthTotal, completed: currentMonthCompleted} = getMonthlyTargetCompletionCounts(buckets.current);
+    const {
+        total: currentMonthTotal,
+        completed: currentMonthCompleted
+    } = getMonthlyTargetCompletionCounts(buckets.current);
     const currentMonthProgressPercentage = currentMonthTotal > 0 ? (currentMonthCompleted / currentMonthTotal) * 100 : 0;
     const isCurrentMonthAllComplete = currentMonthTotal > 0 && currentMonthCompleted === currentMonthTotal;
+
+    useEffect(() => {
+        if (activeTab === 'current' && isCurrentMonthAllComplete && confettiRef.current && isOwner && !isReadOnly) { // Disable confetti for guests
+            // Side Cannons (left)
+            setTimeout(() => { // Add 2-second delay
+                if (confettiRef.current) { // Add null check
+                    confettiRef.current.fire({
+                        particleCount: 150,
+                        spread: 90,
+                        origin: { x: 0, y: 0.7 },
+                        colors: colors,
+                        shapes: ['square', 'circle', 'star'],
+                        disableForReducedMotion: true,
+                        scalar: 1.5,
+                        drift: -0.05,
+                        ticks: 350, // Adjusted for 6s
+                        decay: 0.88 // Adjusted for 6s
+                    });
+                }
+            }, 2000); // 2-second delay
+            // Side Cannons (right)
+            setTimeout(() => { // Add 2-second delay
+                if (confettiRef.current) { // Add null check
+                    confettiRef.current.fire({
+                        particleCount: 150,
+                        spread: 90,
+                        origin: { x: 1, y: 0.7 },
+                        colors: colors,
+                        shapes: ['square', 'circle', 'star'],
+                        disableForReducedMotion: true,
+                        scalar: 1.5,
+                        drift: 0.05,
+                        ticks: 350, // Adjusted for 6s
+                        decay: 0.88 // Adjusted for 6s
+                    });
+                }
+            }, 2000); // 2-second delay
+            // Additional Fireworks from center
+            setTimeout(() => { // Add 2-second delay
+                if (confettiRef.current) { // Add null check
+                    confettiRef.current.fire({
+                        particleCount: 100,
+                        spread: 360,
+                        ticks: 350, // Adjusted for 6s
+                        gravity: 0.5,
+                        decay: 0.88, // Adjusted for 6s
+                        startVelocity: 45,
+                        origin: { x: 0.5, y: 0.3 },
+                        colors: colors,
+                        shapes: ['star', 'circle'],
+                        disableForReducedMotion: true,
+                        scalar: 1.2
+                    });
+                }
+            }, 2000); // 2-second delay
+        }
+    }, [activeTab, isCurrentMonthAllComplete, colors.join(','), isOwner, isReadOnly]); // Added isOwner and isReadOnly dependencies
+
+    const handleConfettiTrigger = (rect: DOMRect, isParent: boolean) => {
+        if (confettiRef.current && isOwner && !isReadOnly) { // Disable confetti for guests
+            confettiRef.current.fire({
+                particleCount: isParent ? 80 : 40, // High density for parent, low for child
+                startVelocity: 25,
+                spread: 360,
+                ticks: 250, // Adjusted for 3s
+                origin: {
+                    x: (rect.left + rect.width / 2) / window.innerWidth,
+                    y: (rect.top + rect.height / 2) / window.innerHeight,
+                },
+                colors: colors,
+                shapes: ['star'],
+                disableForReducedMotion: true,
+                scalar: isParent ? 1.2 : 0.8,
+                decay: 0.9 // Adjusted for 3s
+            });
+        }
+    };
 
     // Helper (duplicated from ActionsSection, ideally move to utils)
     const flattenActionTree = (nodes: ActionNode[]): ActionNode[] => {
@@ -190,45 +297,63 @@ export default function TargetsSection({
         const flattened = flattenActionTree(actions);
 
         return (<div className="mt-4">
-                <ActionsList
-                    actions={actions}
-                    onActionToggled={canEdit ? async (id) => { await toggleTarget(bucket, id); onActivityLogged?.(); } : undefined}
-                    onActionAdded={canEdit ? (desc, parentId) => addTarget(bucket, desc, parentId) : undefined}
-                    onActionUpdated={canEdit ? (id, text) => updateTargetText(bucket, id, text) : undefined}
-                    onActionDeleted={canEdit ? (id) => handleDeleteTarget(bucket, id) : undefined} // Use local handler
-                    onActionIndented={canEdit ? (id) => indentTarget(bucket, id) : undefined}
-                    onActionOutdented={canEdit ? (id) => outdentTarget(bucket, id) : undefined}
-                    onActionMovedUp={canEdit ? (id) => moveTargetUp(bucket, id) : undefined}
-                    onActionMovedDown={canEdit ? (id) => moveTargetDown(bucket, id) : undefined}
-                    onActionPrivacyToggled={canEdit ? (id) => toggleTargetPrivacy(bucket, id) : undefined} // Enable privacy toggle
-                    onActionAddedAfter={canEdit ? (afterId, description, isPublic) => addTargetAfter(bucket, afterId, description, isPublic) : undefined} // New
-                    flattenedActions={flattened}
-                    focusedActionId={focusedActionId} // Pass focusedActionId
-                    setFocusedActionId={setFocusedActionId} // Pass setFocusedActionId
+            <ActionsList
+                actions={actions}
+                onActionToggled={canEdit ? async (id) => {
+                    const toggledNode = await toggleTarget(bucket, id); // AWAIT HERE
+                    onActivityLogged?.();
+                    return toggledNode;
+                } : undefined}
+                onActionAdded={canEdit ? async (desc, parentId) => { // Make async
+                    await addTarget(bucket, desc, parentId); // AWAIT HERE
+                } : undefined}
+                onActionUpdated={canEdit ? (id, text) => updateTargetText(bucket, id, text) : undefined}
+                onActionDeleted={canEdit ? (id) => handleDeleteTarget(bucket, id) : undefined} // Use local handler
+                onActionIndented={canEdit ? async (id) => { // Make async
+                    await indentTarget(bucket, id); // AWAIT HERE
+                } : undefined}
+                onActionOutdented={canEdit ? (id) => outdentTarget(bucket, id) : undefined}
+                onActionMovedUp={canEdit ? (id) => moveTargetUp(bucket, id) : undefined}
+                onActionMovedDown={canEdit ? (id) => moveTargetDown(bucket, id) : undefined}
+                onActionPrivacyToggled={canEdit ? (id) => toggleTargetPrivacy(bucket, id) : undefined} // Enable privacy toggle
+                onActionAddedAfter={canEdit ? async (afterId, description, isPublic) => { // Make async
+                    const newActionId = await addTargetAfter(bucket, afterId, description, isPublic); // AWAIT HERE
+                    setNewlyAddedActionId(newActionId);
+                    setFocusedActionId(newActionId);
+                    return newActionId;
+                } : undefined} // New
+                flattenedActions={flattened.filter(a => !a.completed)}
+                focusedActionId={focusedActionId} // Pass focusedActionId
+                setFocusedActionId={setFocusedActionId} // Pass setFocusedActionId
+                onConfettiTrigger={handleConfettiTrigger} // Pass handler
+                newlyAddedActionId={newlyAddedActionId} // Pass new prop
+                onNewlyAddedActionProcessed={handleNewlyAddedActionProcessed} // Pass new prop
+            />
+
+            {canEdit && (<div className="mt-4">
+                <AddActionForm
+                    ref={addTargetFormRef}
+                    onSave={async (desc) => { // Make async
+                        await addTarget(bucket, desc); // AWAIT HERE
+                    }}
+                    onCancel={() => {
+                        addTargetFormRef.current?.clearInput();
+                        const currentFlattened = flattenActionTree(buckets[activeTab]); // Get fresh flattened list
+                        if (currentFlattened.length > 0) {
+                            setFocusedActionId(currentFlattened[currentFlattened.length - 1].id);
+                        }
+                    }}
+                    triggerKey="T" // Pass triggerKey for Targets (Alt+T)
+                    autoFocusOnMount={false}
                 />
+            </div>)}
 
-                {canEdit && (<div className="mt-4">
-                        <AddActionForm
-                            ref={addTargetFormRef}
-                            onSave={(desc) => addTarget(bucket, desc)}
-                            onCancel={() => {
-                                addTargetFormRef.current?.clearInput();
-                                const currentFlattened = flattenActionTree(buckets[activeTab]); // Get fresh flattened list
-                                if (currentFlattened.length > 0) {
-                                    setFocusedActionId(currentFlattened[currentFlattened.length - 1].id);
-                                }
-                            }}
-                            triggerKey="T" // Pass triggerKey for Targets (Alt+T)
-                            autoFocusOnMount={false}
-                        />
-                    </div>)}
-
-                {/* Move to Current button for Future items */}
-                {bucket === 'future' && isOwner && actions.length > 0 && !isReadOnly && ( // Only show if not read-only
-                    <div className="mt-4 p-4 bg-muted/20 rounded-md border border-dashed">
-                        <p className="text-xs text-muted-foreground mb-2">Move selected items to current month?</p>
-                    </div>)}
-            </div>);
+            {/* Move to Current button for Future items */}
+            {bucket === 'future' && isOwner && actions.length > 0 && !isReadOnly && ( // Only show if not read-only
+                <div className="mt-4 p-4 bg-muted/20 rounded-md border border-dashed">
+                    <p className="text-xs text-muted-foreground mb-2">Move selected items to current month?</p>
+                </div>)}
+        </div>);
     };
 
     if (loading) {
@@ -240,44 +365,83 @@ export default function TargetsSection({
     // But let's show empty state if that's desired.
     if (!isOwner && !isReadOnly) return null;
 
-    return (<div className="space-y-4">
-            <div className="flex justify-between items-center border-b border-primary pb-4 mb-6">
-                <h2 className="text-2xl font-extrabold text-primary">Targets</h2>
-                <div className="flex items-center gap-3">
-                    {currentMonthTotal > 0 && (isCurrentMonthAllComplete ? (
-                            <div className="relative flex items-center justify-center" style={{width: 36, height: 36}}>
-                                <Check
-                                    size={36}
-                                    className="text-primary animate-spin-scale" // Need to define this animation
-                                />
-                                <span
-                                    className="absolute text-xs text-muted-foreground">{currentMonthCompleted}/{currentMonthTotal}</span>
-                            </div>) : (<CircularProgress
+    return (<>
+            <Confetti
+                ref={confettiRef}
+                className="pointer-events-none fixed inset-0 z-[100] w-full h-full"
+                manualstart={true}
+            />
+            <div className="space-y-4">
+                <div className="flex justify-between items-center border-b border-primary pb-4 mb-6">
+                    <h2 className="text-2xl font-extrabold text-primary">Monthly Targets</h2>
+                    <div className="flex items-center gap-3">
+                        {currentMonthTotal > 0 && (<CircularProgress
                                 progress={currentMonthProgressPercentage}
                                 size={36}
                                 strokeWidth={3}
                                 color="text-primary"
-                                bgColor="text-muted-foreground"
-                            >
-                                <span className="text-xs text-muted-foreground">{currentMonthCompleted}/{currentMonthTotal}</span>
-                            </CircularProgress>))}
+                                bgColor="text-background/80"
+                                showTickOnComplete={isCurrentMonthAllComplete}
+                            >                        {!isCurrentMonthAllComplete && (<span className="text-xs text-muted-foreground">
+                                    {currentMonthCompleted}/{currentMonthTotal}
+                                </span>)}
+                            </CircularProgress>)}
+                    </div>
                 </div>
-            </div>
 
-            <Tabs value={activeTab} onValueChange={(v: string) => setActiveTab(v as TargetBucket)} className="w-full">
-                <TabsList className="grid w-full grid-cols-4">
-                    <TabsTrigger value="prev1">{prev1MonthLabel}</TabsTrigger>
-                    <TabsTrigger value="prev">{prevMonthLabel}</TabsTrigger>
-                    <TabsTrigger value="current">{currentMonthLabel}</TabsTrigger>
-                    <TabsTrigger value="future">Future</TabsTrigger>
-                </TabsList>
+                <Tabs value={activeTab} onValueChange={(v: string) => setActiveTab(v as TargetBucket)} className="w-full">
+                    <div className="w-full flex justify-center pt-4 sm:pt-0"> {/* Outer container for centering and padding */}
+                        <TabsList className="w-full flex items-center justify-between bg-card rounded-full p-2 shadow-md border border-primary gap-x-4"> {/* Inner container styling */}
+                            <TabsTrigger
+                                value="prev1"
+                                className={cn(
+                                    "px-3 py-1 text-xs sm:text-sm font-medium rounded-full whitespace-nowrap flex items-center justify-center", // VibeSelector base
+                                    "bg-background/80 text-muted-foreground hover:bg-accent/50", // VibeSelector unselected (default)
+                                    "data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:hover:bg-primary/90", // VibeSelector selected override
+                                    "data-[state=active]:shadow-none data-[state=active]:border data-[state=active]:border-primary", // Custom active styles
+                                    "focus-visible:ring-0 focus-visible:ring-offset-0 disabled:opacity-100 disabled:cursor-default" // Remove focus ring, disable opacity
+                                )}
+                            >{prev1MonthLabel}</TabsTrigger>
+                            <TabsTrigger
+                                value="prev"
+                                className={cn(
+                                    "px-3 py-1 text-xs sm:text-sm font-medium rounded-full whitespace-nowrap flex items-center justify-center",
+                                    "bg-background/80 text-muted-foreground hover:bg-accent/50",
+                                    "data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:hover:bg-primary/90",
+                                    "data-[state=active]:shadow-none data-[state=active]:border data-[state=active]:border-primary",
+                                    "focus-visible:ring-0 focus-visible:ring-offset-0 disabled:opacity-100 disabled:cursor-default"
+                                )}
+                            >{prevMonthLabel}</TabsTrigger>
+                            <TabsTrigger
+                                value="current"
+                                className={cn(
+                                    "px-3 py-1 text-xs sm:text-sm font-medium rounded-full whitespace-nowrap flex items-center justify-center",
+                                    "bg-background/80 text-muted-foreground hover:bg-accent/50",
+                                    "data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:hover:bg-primary/90",
+                                    "data-[state=active]:shadow-none data-[state=active]:border data-[state=active]:border-primary",
+                                    "focus-visible:ring-0 focus-visible:ring-offset-0 disabled:opacity-100 disabled:cursor-default"
+                                )}
+                            >{currentMonthLabel}</TabsTrigger>
+                            <TabsTrigger
+                                value="future"
+                                className={cn(
+                                    "px-3 py-1 text-xs sm:text-sm font-medium rounded-full whitespace-nowrap flex items-center justify-center",
+                                    "bg-background/80 text-muted-foreground hover:bg-accent/50",
+                                    "data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:hover:bg-primary/90",
+                                    "data-[state=active]:shadow-none data-[state=active]:border data-[state=active]:border-primary",
+                                    "focus-visible:ring-0 focus-visible:ring-offset-0 disabled:opacity-100 disabled:cursor-default"
+                                )}
+                            >Future</TabsTrigger>
+                        </TabsList>
+                    </div>
 
-                <TabsContent value="prev1">{renderTabContent('prev1')}</TabsContent>
-                <TabsContent value="prev">{renderTabContent('prev')}</TabsContent>
-                <TabsContent value="current">{renderTabContent('current')}</TabsContent>
-                <TabsContent value="future">{renderTabContent('future')}</TabsContent>
-            </Tabs>
-        </div>);
+                    <TabsContent value="prev1">{renderTabContent('prev1')}</TabsContent>
+                    <TabsContent value="prev">{renderTabContent('prev')}</TabsContent>
+                    <TabsContent value="current">{renderTabContent('current')}</TabsContent>
+                    <TabsContent value="future">{renderTabContent('future')}</TabsContent>
+                </Tabs>
+            </div></>
+    );
 }
 
 // Helper (duplicated from ActionsSection, ideally move to utils)

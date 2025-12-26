@@ -3,7 +3,7 @@
 # Version: 6.0.0-alpha.9
 # Date: 2025-11-14T03:53:15.298Z
 
-project_name: whatcha-doin
+project_name: whatcha-do.in
 user_skill_level: expert
 sprint_artifacts: '{project-root}/docs/sprint-artifacts'
 tea_use_mcp_enhancements: true

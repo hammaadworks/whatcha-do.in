@@ -1,7 +1,7 @@
 # Validation Report
 
-**Document:** /Users/alhamdulillah/codespace/whatcha-doin/docs/sprint-artifacts/stories/1-2-implement-development-login-bypass.context.xml
-**Checklist:** /Users/alhamdulillah/codespace/whatcha-doin/.bmad/bmm/workflows/4-implementation/story-context/checklist.md
+**Document:** /docs/sprint-artifacts/stories/1-2-implement-development-login-bypass.context.xml
+**Checklist:** /.bmad/bmm/workflows/4-implementation/story-context/checklist.md
 **Date:** 2025-11-22
 
 ## Summary

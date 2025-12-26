@@ -4,8 +4,8 @@ import React, { useState, useRef, useEffect, useImperativeHandle } from 'react';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import KeyboardShortcut from './KeyboardShortcut'; // Import KeyboardShortcut
-import { Plus } from 'lucide-react'; // For a possible icon on the Add button
+import KeyboardShortcut from './KeyboardShortcut';
+import { Plus } from 'lucide-react';
 
 interface AddActionFormProps {
   onSave: (description: string) => void;
@@ -13,14 +13,27 @@ interface AddActionFormProps {
   className?: string;
   placeholder?: string;
   autoFocusOnMount?: boolean;
-  triggerKey?: string; // Add triggerKey prop
+  triggerKey?: string;
 }
 
+export interface AddActionFormHandle {
+  focusInput: () => void;
+  clearInput: () => void;
+  isInputFocused: () => boolean;
+  isInputEmpty: () => boolean;
+  blurInput: () => void;
+}
+
+/**
+ * A form component for adding new actions.
+ * Supports keyboard shortcuts, focus management, and an imperative handle.
+ */
 export const AddActionForm = React.forwardRef<
-  { focusInput: () => void; clearInput: () => void; isInputFocused: () => boolean; isInputEmpty: () => boolean; blurInput: () => void; },
+  AddActionFormHandle,
   AddActionFormProps
 >(({ onSave, onCancel, className, placeholder = "Add a new action...", autoFocusOnMount = true, triggerKey = 'A' }, ref) => {
   const [description, setDescription] = useState('');
+  const [isFocused, setIsFocused] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useImperativeHandle(ref, () => ({
@@ -31,7 +44,7 @@ export const AddActionForm = React.forwardRef<
       setDescription('');
     },
     isInputFocused: () => {
-      return inputRef.current === document.activeElement;
+      return isFocused;
     },
     isInputEmpty: () => {
       return description === '';
@@ -56,15 +69,13 @@ export const AddActionForm = React.forwardRef<
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
-      e.preventDefault(); // Prevent form submission if it were in a form tag
+      e.preventDefault();
       handleSave();
     } else if (e.key === 'Escape') {
-      e.preventDefault(); // Prevent default browser escape behavior
+      e.preventDefault();
       onCancel();
     }
   };
-
-  const isInputFocused = inputRef.current === document.activeElement;
 
   // Determine keyboard symbols based on OS (simplified check)
   const [isMac, setIsMac] = useState(false);
@@ -87,16 +98,18 @@ export const AddActionForm = React.forwardRef<
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             onKeyDown={handleKeyDown}
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => setIsFocused(false)}
             className={cn(
               "w-full border bg-background text-foreground shadow-sm rounded-md px-3 py-2 text-base h-10",
               "focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
-              isInputFocused ? "border-primary" : "border-input"
+              isFocused ? "border-primary" : "border-input"
             )}
           />
           {/* Custom Rich Placeholder */}
           {description === '' && (
               <div className="absolute inset-0 flex items-center px-3 pointer-events-none text-muted-foreground text-sm whitespace-nowrap overflow-hidden">
-                  {isInputFocused ? (
+                  {isFocused ? (
                       <span className="flex items-center gap-1 opacity-50">
                           Use <Key char="↑" /> <Key char="↓" /> to navigate, <AltKey/> + <Key char="/" /> for shortcuts
                       </span>

@@ -1,96 +1,65 @@
-import {fetchTargets, updateTargets} from '@/lib/supabase/targets';
-import {fetchJournalEntryByDate, upsertJournalEntry} from '@/lib/supabase/journal';
-import {getMonthStartDate, getStartOfTodayInTimezone} from '@/lib/date';
+import {fetchRawTargets, updateTargets} from '@/lib/supabase/targets';
+import {getCurrentMonthStartISO} from '@/lib/date';
 import {ActionNode} from '@/lib/supabase/types';
-import {format} from 'date-fns';
 
-export async function processTargetLifecycle(userId: string, timezone: string) {
-    const startOfToday = getStartOfTodayInTimezone(timezone);
-    const currentMonthDate = getMonthStartDate(0, timezone);
-    const prevMonthDate = getMonthStartDate(-1, timezone);
+/**
+ * Orchestrates the monthly rollover of targets.
+ * Moves uncompleted (active) targets from the previous month to the current month,
+ * and clears the previous month's bucket.
+ */
+export async function processTargetLifecycle(userId: string, timezone: string, referenceDate: Date = new Date()) {
+    const currentMonthDate = getCurrentMonthStartISO(timezone, referenceDate, 0);
+    const prevMonthDate = getCurrentMonthStartISO(timezone, referenceDate, -1);
 
-    // 1. Rollover Logic
-    const currentTargets = await fetchTargets(userId, currentMonthDate);
+    const prevTargets = await fetchRawTargets(userId, prevMonthDate);
+    
+    // If no targets exist for the previous month, there's nothing to process
+    if (prevTargets.length === 0) return;
 
-    // Only rollover if current month is essentially empty (or we assume we check if we already rolled over? 
-    // Simple check: if currentTargets is empty array, check prev month.)
-    if (currentTargets.length === 0) {
-        const prevTargets = await fetchTargets(userId, prevMonthDate);
-        if (prevTargets.length > 0) {
-            const {active, completed} = splitActiveCompleted(prevTargets);
+    const {active, completed} = splitActiveCompleted(prevTargets);
 
-            if (active.length > 0) {
-                // Move active to current
-                await updateTargets(userId, currentMonthDate, active);
-                // Keep only completed in prev
-                await updateTargets(userId, prevMonthDate, completed);
-                console.log('Rolled over targets from previous month.');
-            }
-        }
+    // 1. Migrate Active Targets to Current Month
+    if (active.length > 0) {
+        await migrateActiveTargets(userId, active, currentMonthDate);
     }
 
-    // 2. Clearing Logic (Run for all relevant buckets)
-    // We check Future (null), Current, Prev, Prev-1
-    const buckets = [null, currentMonthDate, prevMonthDate, getMonthStartDate(-2, timezone)];
+    // 2. Clear Previous Month Bucket
+    // This effectively archives completed items (by removing them from the active view)
+    // and cleans up the active items that were just moved.
+    await clearPreviousMonthTargets(userId, prevMonthDate, completed.length);
+}
 
-    for (const bucketDate of buckets) {
-        const targets = await fetchTargets(userId, bucketDate);
-        if (targets.length === 0) continue;
+/**
+ * Appends a list of active targets to the current month's target list.
+ */
+async function migrateActiveTargets(userId: string, activeTargets: ActionNode[], currentMonthDate: string) {
+    const currentTargets = await fetchRawTargets(userId, currentMonthDate);
+    
+    // Merge: Append active targets from previous month to the end of current month's list
+    // Assumption: IDs are UUIDs and unique enough to avoid collision during simple merge
+    const mergedTargets = [...currentTargets, ...activeTargets];
+    
+    await updateTargets(userId, currentMonthDate, mergedTargets);
+    console.log(`[TargetLifecycle] Carried forward ${activeTargets.length} active targets from previous month to ${currentMonthDate}.`);
+}
 
-        const {cleanedTree, itemsToJournal} = extractCompletedItems(targets, startOfToday);
-
-        if (itemsToJournal.length > 0) {
-            // Group by date to minimize journal calls
-            const byDate: Record<string, ActionNode[]> = {};
-            itemsToJournal.forEach(item => {
-                const date = item.completed_at ? item.completed_at.split('T')[0] : getCurrentDateISO(timezone);
-                if (!byDate[date]) byDate[date] = [];
-                byDate[date].push(item);
-            });
-
-            // Write to Journal
-            for (const [date, items] of Object.entries(byDate)) {
-                // Determine privacy? Targets usually private. Let's assume private journal.
-                // FR-1.9.3 doesn't specify, but FR-3.6 says "Journal System: ...absolute separation...".
-                // We'll put it in Private Journal.
-                const isPublic = false;
-
-                // Fetch existing to append
-                const existingEntry = await fetchJournalEntryByDate(userId, date, isPublic);
-                let content = existingEntry?.content || '';
-
-                if (content) content += '\n';
-                content += `### Completed Targets\n`;
-                items.forEach(item => {
-                    content += `- [x] ${item.description}\n`;
-                });
-
-                await upsertJournalEntry({
-                    user_id: userId, entry_date: date, is_public: isPublic, content: content
-                });
-            }
-
-            // Update Targets DB (Remove cleaned items)
-            await updateTargets(userId, bucketDate, cleanedTree);
-            console.log(`Cleared ${itemsToJournal.length} items from bucket ${bucketDate || 'Future'}`);
-        }
+/**
+ * Clears the target list for a specific month (previous month).
+ */
+async function clearPreviousMonthTargets(userId: string, prevMonthDate: string, completedCount: number) {
+    await updateTargets(userId, prevMonthDate, []);
+    
+    if (completedCount > 0) {
+        console.log(`[TargetLifecycle] Cleared ${completedCount} completed targets from ${prevMonthDate}.`);
     }
 }
 
-// Helpers
-
+/**
+ * Helper to separate a list of nodes into active (uncompleted) and completed lists.
+ */
 function splitActiveCompleted(nodes: ActionNode[]): { active: ActionNode[], completed: ActionNode[] } {
     const active: ActionNode[] = [];
     const completed: ActionNode[] = [];
-
-    // Shallow split for rollover (we move top-level items?)
-    // Requirement: "unmarked targets ... carried over".
-    // If a parent is unmarked but child is marked? 
-    // Usually we move the whole active tree.
-    // If a node is completed, it stays. If not, it moves.
-    // Recursive split is hard because a parent might be incomplete but child complete.
-    // If parent moves, child moves. 
-    // We assume: if parent is not completed, it moves (with all children).
 
     nodes.forEach(node => {
         if (!node.completed) {
@@ -101,48 +70,4 @@ function splitActiveCompleted(nodes: ActionNode[]): { active: ActionNode[], comp
     });
 
     return {active, completed};
-}
-
-function extractCompletedItems(nodes: ActionNode[], startOfToday: number): {
-    cleanedTree: ActionNode[],
-    itemsToJournal: ActionNode[]
-} {
-    let itemsToJournal: ActionNode[] = [];
-
-    const filter = (currentNodes: ActionNode[]): ActionNode[] => {
-        const filtered: ActionNode[] = [];
-        for (const node of currentNodes) {
-            // Process children first
-            const filteredChildren = node.children ? filter(node.children) : [];
-            const hasVisibleChildren = filteredChildren.length > 0;
-
-            let shouldClear = false;
-            if (node.completed && node.completed_at) {
-                const completedTime = new Date(node.completed_at).getTime();
-                if (completedTime < startOfToday) {
-                    shouldClear = true;
-                    // Add to journal list
-                    itemsToJournal.push(node);
-                }
-            }
-
-            if (!shouldClear || hasVisibleChildren) {
-                // Keep node
-                filtered.push({
-                    ...node, children: filteredChildren
-                });
-            }
-            // Else: node is cleared and has no children -> removed from tree
-        }
-        return filtered;
-    };
-
-    const cleanedTree = filter(nodes);
-    return {cleanedTree, itemsToJournal};
-}
-
-function getCurrentDateISO(timezone: string): string {
-    // Fallback date generator
-    // Actually should use lib/date but I need strict 'YYYY-MM-DD'
-    return format(new Date(), 'yyyy-MM-dd');
 }

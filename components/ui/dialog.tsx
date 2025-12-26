@@ -6,30 +6,46 @@ import { XIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
+/**
+ * Root Dialog component.
+ * Manages the open state of the modal.
+ */
 function Dialog({
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Root>) {
   return <DialogPrimitive.Root data-slot="dialog" {...props} />
 }
 
+/**
+ * Trigger button that opens the dialog.
+ */
 function DialogTrigger({
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Trigger>) {
   return <DialogPrimitive.Trigger data-slot="dialog-trigger" {...props} />
 }
 
+/**
+ * Portal to render the dialog content outside the current DOM hierarchy.
+ */
 function DialogPortal({
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Portal>) {
   return <DialogPrimitive.Portal data-slot="dialog-portal" {...props} />
 }
 
+/**
+ * Button to close the dialog.
+ */
 function DialogClose({
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Close>) {
   return <DialogPrimitive.Close data-slot="dialog-close" {...props} />
 }
 
+/**
+ * Overlay backdrop that appears behind the dialog content.
+ */
 function DialogOverlay({
   className,
   ...props
@@ -46,6 +62,10 @@ function DialogOverlay({
   )
 }
 
+/**
+ * Content container for the dialog.
+ * Includes animations, styling, and a close button.
+ */
 function DialogContent({
   className,
   children,
@@ -80,6 +100,9 @@ function DialogContent({
   )
 }
 
+/**
+ * Header section for the dialog.
+ */
 function DialogHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -90,6 +113,9 @@ function DialogHeader({ className, ...props }: React.ComponentProps<"div">) {
   )
 }
 
+/**
+ * Footer section for the dialog.
+ */
 function DialogFooter({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -103,6 +129,9 @@ function DialogFooter({ className, ...props }: React.ComponentProps<"div">) {
   )
 }
 
+/**
+ * Title of the dialog.
+ */
 function DialogTitle({
   className,
   ...props
@@ -110,12 +139,15 @@ function DialogTitle({
   return (
     <DialogPrimitive.Title
       data-slot="dialog-title"
-      className={cn("text-[var(--font-size-lg)] leading-none font-semibold", className)}
+      className={cn("text-lg leading-none font-semibold", className)}
       {...props}
     />
   )
 }
 
+/**
+ * Description text for the dialog.
+ */
 function DialogDescription({
   className,
   ...props
@@ -123,7 +155,7 @@ function DialogDescription({
   return (
     <DialogPrimitive.Description
       data-slot="dialog-description"
-      className={cn("text-muted-foreground text-[var(--font-size-sm)]", className)}
+      className={cn("text-muted-foreground text-sm", className)}
       {...props}
     />
   )

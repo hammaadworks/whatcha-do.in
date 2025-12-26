@@ -3,146 +3,35 @@
 @import "tw-animate-css";
 @import "highlight.js/styles/github-dark.css";
 
+/* -----------------------------------------------------------------------
+   THEME IMPORT
+   Change this import to switch themes (e.g., './themes/monolith.css')
+   ----------------------------------------------------------------------- */
+@import "./themes/zenith.css";
+
 @plugin "tailwindcss-animate";
 
 @custom-variant dark (&:is(.dark *));
 
+/* 
+   GLOBAL THEME SETTINGS
+   These extend the imported theme with app-specific animations 
+   and shared structural variables.
+*/
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-border: var(--border);
-  --color-destructive: var(--destructive);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent: var(--accent);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
-  --color-card: var(--card);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+  
   --animate-orbit: orbit calc(var(--duration)*1s) linear infinite;
+  
   @keyframes orbit {
-  0% {
-    transform: rotate(calc(var(--angle) * 1deg)) translateY(calc(var(--radius) * 1px)) rotate(calc(var(--angle) * -1deg));
+    0% {
+      transform: rotate(calc(var(--angle) * 1deg)) translateY(calc(var(--radius) * 1px)) rotate(calc(var(--angle) * -1deg));
     }
-  100% {
-    transform: rotate(calc(var(--angle) * 1deg + 360deg)) translateY(calc(var(--radius) * 1px)) rotate(calc((var(--angle) * -1deg) - 360deg));
+    100% {
+      transform: rotate(calc(var(--angle) * 1deg + 360deg)) translateY(calc(var(--radius) * 1px)) rotate(calc((var(--angle) * -1deg) - 360deg));
     }
   }
-}
-
-/* Zenith Theme (Light Mode) */
-:root {
-  --radius: 0.625rem;
-  --background: #FFFFFF; /* --bg */
-  --foreground: #212529; /* --fg */
-  --card: #F8F9FA; /* --card */
-  --card-foreground: #212529; /* Derived from --fg */
-  --popover: #FFFFFF; /* Similar to --bg */
-  --popover-foreground: #212529; /* Similar to --fg */
-  --primary: #FF6B6B; /* --primary */
-  --primary-foreground: #FFFFFF; /* --primary-fg */
-  --secondary: #F1F3F5; /* --secondary-bg */
-  --secondary-foreground: #495057; /* --secondary-fg */
-  --muted: #F1F3F5; /* Similar to --secondary-bg */
-  --muted-foreground: #495057; /* --muted-fg */
-  --accent: #FF6B6B; /* Using primary for accent */
-  --accent-foreground: #FFFFFF; /* Using primary-fg for accent-fg */
-  --destructive: #DC3545; /* Example: A red for destructive actions */
-  --border: #DEE2E6; /* --card-border */
-  --input: #DEE2E6; /* Similar to --card-border */
-  --ring: #FF6B6B; /* Primary color for ring */
-  --chart-1: #FF6B6B;
-  --chart-2: #FF8E53;
-  --chart-3: #4ECDC4;
-  --chart-4: #81D4FA;
-  --chart-5: #FFCA28;
-  --sidebar: #FFFFFF;
-  --sidebar-foreground: #212529;
-  --sidebar-primary: #FF6B6B;
-  --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #F1F3F5;
-  --sidebar-accent-foreground: #495057;
-  --sidebar-border: #DEE2E6;
-  --sidebar-ring: #FF6B6B;
-
-  /* Custom variables for themes */
-  --gradient-primary: linear-gradient(45deg, #FF6B6B, #FF8E53);
-  --chip-background: #F1F3F5;
-  --chip-foreground: #212529;
-  --chip-border: #DEE2E6;
-  --primary-dark-variant: hsl(var(--primary-hsl) / 0.8);
-  --cursor-border: 255 255 255; /* White for light mode */
-  --cursor-stroke: 255 255 255; /* White for light mode */
-}
-
-/* Monolith Theme (Dark Mode) */
-.dark {
-  --background: #161616; /* --bg */
-  --foreground: #E0E0E0; /* --fg */
-  --card: #222222; /* --card */
-  --card-foreground: #E0E0E0; /* Derived from --fg */
-  --popover: #161616; /* Similar to --bg */
-  --popover-foreground: #E0E0E0; /* Similar to --fg */
-  --primary: #00F5A0; /* --primary */
-  --primary-foreground: #000000; /* --primary-fg */
-  --secondary: #2a2a2a; /* --secondary-bg */
-  --secondary-foreground: #CCCCCC; /* --secondary-fg */
-  --muted: #2a2a2a; /* Similar to --secondary-bg */
-  --muted-foreground: #CCCCCC; /* --muted-fg */
-  --accent: #00F5A0; /* Using primary for accent */
-  --accent-foreground: #000000; /* Using primary-fg for accent-fg */
-  --destructive: #FF4757; /* Original bright red for destructive actions */
-  --destructive-foreground: hsl(0 0% 100%); /* Revert to white text */
-  --border: #3A3A3A; /* --card-border */
-  --input: #3A3A3A; /* Similar to --card-border */
-  --ring: #00F5A0; /* Primary color for ring */
-  --chart-1: #00F5A0;
-  --chart-2: #00D2B8;
-  --chart-3: #8B5CF6;
-  --chart-4: #EC4899;
-  --chart-5: #F97316;
-  --sidebar: #222222;
-  --sidebar-foreground: #E0E0E0;
-  --sidebar-primary: #00F5A0;
-  --sidebar-primary-foreground: #000000;
-  --sidebar-accent: #2a2a2a;
-  --sidebar-accent-foreground: #CCCCCC;
-  --sidebar-border: #3A3A3A;
-  --sidebar-ring: #00F5A0;
-
-  /* Custom variables for themes */
-  --gradient-primary: linear-gradient(45deg, #00F5A0, #00D2B8);
-  --chip-background: #222222;
-  --chip-foreground: #E0E0E0;
-  --chip-border: #444444;
-  --cursor-border: 0 0 0; /* Black for dark mode */
-  --cursor-stroke: 0 0 0; /* Black for dark mode */
 }
 
 @layer base {
@@ -157,6 +46,10 @@
     caret-shape: block;
   }
 }
+
+/* -----------------------------------------------------------------------
+   UTILITIES & ANIMATIONS
+   ----------------------------------------------------------------------- */
 
 /* Utility to restore native cursor for scrollable areas where custom cursor breaks interaction */
 .force-native-cursor, .force-native-cursor * {
@@ -183,6 +76,24 @@
 @keyframes moveRightFade {
   0% { transform: translateX(0); opacity: 1; }
   100% { transform: translateX(5px); opacity: 0; }
+}
+
+@keyframes chevron-pulse {
+  0%, 50% { /* First 2s (0-2s) of 4s total - Static at initial state */
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  75% { /* Midpoint of animation phase (2s + 1s = 3s out of 4s total, or midpoint of 50-100% phase) */
+    transform: translateY(2px) scale(1.05);
+    opacity: 0.8;
+  }
+  100% { /* End of animation phase (4s) - Back to initial state */
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+.animate-chevron-pulse {
+  animation: chevron-pulse 4s ease-in-out infinite; /* Changed duration to 4s */
 }
 
 /* Global native cursor hide for custom Pointer component */
@@ -226,3 +137,13 @@ html.w-md-editor-body-fullscreen { /* Target both body and html for safety */
   overflow: auto !important;
 }
 
+/* Hide scrollbar for Chrome, Safari and Opera */
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+.no-scrollbar {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}

@@ -148,7 +148,7 @@ export default function IdentitySection({
                                                                  <Button
                                                                     variant="ghost"
                                                                     size="icon"
-                                                                    className="relative inline-flex h-10 w-10 items-center justify-center rounded-full bg-background text-muted-foreground ring-offset-background transition-colors ring-2 ring-primary hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                                                    className="relative inline-flex h-10 w-10 items-center justify-center rounded-full bg-background text-muted-foreground ring-offset-background transition-colors ring-2 ring-primary hover:bg-accent hover:text-accent-foreground dark:hover:bg-primary dark:hover:text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                                                                     onClick={() => setIsCreateModalOpen(true)}
                                                                     title="Add New Identity"                                >
                                     <UserPlus className="h-4 w-4"/>

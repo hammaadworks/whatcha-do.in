@@ -9,7 +9,7 @@
 
 ## Executive Summary
 
-This readiness assessment concludes that the "whatcha-doin" project is **Ready** to proceed to the implementation phase (Phase 4).
+This readiness assessment concludes that the "whatcha-do.in" project is **Ready** to proceed to the implementation phase (Phase 4).
 
 The project exhibits an exceptionally high degree of planning, documentation, and strategic alignment. The PRD, Architecture, Epics, and UX Design specifications are not only complete but also highly cohesive, with clear traceability from requirements through to implementation stories.
 
@@ -21,7 +21,7 @@ Overall, the project is in an excellent position to begin implementation with a 
 
 ## Project Context
 
-This project, "whatcha-doin", is following the **bmad-method** track for greenfield software development. All initial planning and solutioning workflows, including the creation of a PRD, UX Design, and Architecture, have been completed.
+This project, "whatcha-do.in", is following the **bmad-method** track for greenfield software development. All initial planning and solutioning workflows, including the creation of a PRD, UX Design, and Architecture, have been completed.
 
 The current workflow is the **solutioning-gate-check**, which validates the alignment and completeness of all artifacts before proceeding to implementation (Phase 4). This check has been run before, and this report represents a re-validation of the project's readiness.
 

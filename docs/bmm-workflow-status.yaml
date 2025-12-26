@@ -1,11 +1,11 @@
-# User Project Description: Yes it's called whatcha-doin (short for what are you doing?). I have a principle that your identity is actually what you are doing consistently today. A persons identity is his actions that he takes. Miss an act one day, it's a question he asks is he really serious about the goal. 2 day miss is his answer no. 2+ days miss he answered never and he should start all over again. So I want to develop a pure brwoser based frontend js app depicting this idea. Let's dicuss further
+# User Project Description: Yes it's called whatcha-do.in (short for what are you doing?). I have a principle that your identity is actually what you are doing consistently today. A persons identity is his actions that he takes. Miss an act one day, it's a question he asks is he really serious about the goal. 2 day miss is his answer no. 2+ days miss he answered never and he should start all over again. So I want to develop a pure brwoser based frontend js app depicting this idea. Let's dicuss further
 
 # Workflow Status Template
 # This tracks progress through BMM methodology phases
 # Phase 3/4 (Implementation) is tracked separately in sprint-status.yaml
 
 # generated: {{generated}}
-# project: whatcha-doin
+# project: whatcha-do.in
 # project_type: software
 # selected_track: {{selected_track}}
 # field_type: greenfield
@@ -24,7 +24,7 @@
 #   - skipped: Optional/conditional workflow that was skipped
 
 generated: "2025-11-10"
-project: "whatcha-doin"
+project: "whatcha-do.in"
 project_type: "software"
 selected_track: "method"
 field_type: "greenfield"

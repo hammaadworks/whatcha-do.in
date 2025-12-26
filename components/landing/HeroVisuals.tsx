@@ -1,23 +1,26 @@
 "use client";
 
 import React from "react";
-import { ActionItem } from "@/components/shared/ActionItem";
-import { HabitChipPublic } from "@/components/habits/HabitChipPublic";
-import { ActionNode, Habit } from "@/lib/supabase/types";
-import { MagicCard } from "@/components/ui/magic-card";
-import { cn } from "@/lib/utils";
-import { motion } from "framer-motion";
+import {ActionItem} from "@/components/shared/ActionItem";
+import {HabitChip} from "@/components/habits/HabitChip";
+import {ActionNode, Habit} from "@/lib/supabase/types";
+import {MagicCard} from "@/components/ui/magic-card";
+import {cn} from "@/lib/utils";
+import {motion} from "framer-motion";
+import {HabitBoxType, HabitState} from "@/lib/enums.ts";
 
 const mockActions: ActionNode[] = [
   {
     id: "1",
     description: "Build the greatest roller coaster",
     completed: false,
+    completed_at: undefined,
     children: [
       {
         id: "1-1",
         description: "Gather supplies",
         completed: true,
+        completed_at: new Date().toISOString(),
         children: [],
         is_public: true
       },
@@ -25,6 +28,7 @@ const mockActions: ActionNode[] = [
         id: "1-2",
         description: "Design the loop-de-loop",
         completed: false,
+        completed_at: undefined,
         children: [],
         is_public: true
       }
@@ -35,6 +39,7 @@ const mockActions: ActionNode[] = [
     id: "2",
     description: "Give Perry a bath",
     completed: false,
+    completed_at: undefined,
     children: [],
     is_public: true
   }
@@ -46,28 +51,42 @@ const mockHabits: Habit[] = [
     user_id: "mock",
     name: "Seize the Day",
     is_public: true,
-    current_streak: 104,
-    last_streak: 104,
+    streak: 104,
+    undo_streak: 103,
+    longest_streak: 104,
+    undo_longest_streak: 104,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
-    junked_at: null, // Keep this property
-    pile_state: "today",
+    junked_date: null,
+    undo_junked_date: null,
+    habit_state: HabitState.TODAY,
+    undo_habit_state: HabitState.LIVELY,
     goal_value: 1,
     goal_unit: "adventure",
+    completed_date: new Date(),
+    undo_completed_date: null,
+    processed_date: new Date().toISOString().split('T')[0] as any,
   },
   {
     id: "h2",
     user_id: "mock",
     name: "Invent Something",
     is_public: true,
-    current_streak: 12,
-    last_streak: 45,
+    streak: 12,
+    undo_streak: 11,
+    longest_streak: 45,
+    undo_longest_streak: 45,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
-    junked_at: null, // Keep this property
-    pile_state: "today",
+    junked_date: null,
+    undo_junked_date: null,
+    habit_state: HabitState.TODAY,
+    undo_habit_state: HabitState.LIVELY,
     goal_value: 1,
     goal_unit: "invention",
+    completed_date: new Date(),
+    undo_completed_date: null,
+    processed_date: new Date().toISOString().split('T')[0] as any,
   }
 ];
 
@@ -81,13 +100,13 @@ export function HeroVisuals({ className }: { className?: string }) {
   return (
     <div className={cn("relative w-full max-w-[500px] mx-auto", className)}>
       {/* Main Card representing the Dashboard */}
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 20, rotate: -2 }}
         animate={{ opacity: 1, y: 0, rotate: -2 }}
         transition={{ duration: 0.8, ease: "easeOut" }}
         className="relative z-10"
       >
-        <MagicCard 
+        <MagicCard
           className="flex flex-col gap-6 p-6 border shadow-2xl bg-background/80 backdrop-blur-md"
           gradientColor="#FF6B6B20"
         >
@@ -108,14 +127,14 @@ export function HeroVisuals({ className }: { className?: string }) {
             <div className="space-y-2">
               {mockActions.map(action => (
                 <div key={action.id} className="pointer-events-none">
-                    <ActionItem 
-                        action={action} 
+                    <ActionItem
+                        action={action}
                         level={0}
                         focusedActionId={null}
                         setFocusedActionId={() => {}}
                         flattenedActions={[]}
                         // Pass no-op handlers to prevent interaction but allow rendering
-                        onActionToggled={() => {}}
+                        onActionToggled={async () => undefined}
                     />
                 </div>
               ))}
@@ -128,7 +147,7 @@ export function HeroVisuals({ className }: { className?: string }) {
             <div className="flex flex-wrap gap-2">
               {mockHabits.map(habit => (
                 <div key={habit.id} className="pointer-events-none">
-                    <HabitChipPublic habit={habit} disableClick />
+                    <HabitChip habit={habit} disableClick box={HabitBoxType.TODAY} />
                 </div>
               ))}
             </div>

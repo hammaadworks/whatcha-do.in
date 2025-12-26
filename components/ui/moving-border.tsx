@@ -78,8 +78,16 @@ export const MovingBorder = ({
         };
 
         updateActualDimensions(); // Set initial dimensions
-        window.addEventListener('resize', updateActualDimensions); // Update on resize
-        return () => window.removeEventListener('resize', updateActualDimensions);
+
+        const resizeObserver = new ResizeObserver(() => {
+            updateActualDimensions();
+        });
+
+        resizeObserver.observe(svgElement);
+
+        return () => {
+            resizeObserver.disconnect();
+        };
     }, []); // Empty dependency array means this effect runs once on mount and cleans up on unmount
 
 
@@ -138,7 +146,15 @@ export const MovingBorder = ({
         }
 
         if (point1 && point2) {
-            const angleRad = Math.atan2(point2.y - point1.y, point2.x - point1.x);
+            const scaleX = actualSvgDimensions.width / svgWidth;
+            const scaleY = actualSvgDimensions.height / svgHeight;
+
+            const p1x = point1.x * scaleX;
+            const p1y = point1.y * scaleY;
+            const p2x = point2.x * scaleX;
+            const p2y = point2.y * scaleY;
+
+            const angleRad = Math.atan2(p2y - p1y, p2x - p1x);
             angle.set(angleRad * (180 / Math.PI));
         }
     });

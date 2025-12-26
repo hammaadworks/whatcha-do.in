@@ -1,82 +1,142 @@
-import {createClient} from './client';
-import {ActionNode} from './types';
-import {filterTreeByPublicStatus} from '@/lib/utils/actionProcessors';
+import { createClient } from './client';
+import { ActionNode } from './types';
+import { filterTreeByPublicStatus } from '@/lib/logic/actions/processors';
+import { withLogging } from '@/lib/logger/withLogging';
 
-export async function fetchTargets(userId: string, targetDate: string | null) {
-    const supabase = createClient();
+/**
+ * Internal function to fetch targets.
+ */
+async function _fetchTargets(userId: string, targetDate: string | null): Promise<ActionNode[]> {
+  const supabase = createClient();
 
-    // Build query
-    let query = supabase
-        .from('targets')
-        .select('*')
-        .eq('user_id', userId);
+  // Build query
+  let query = supabase
+    .from('targets')
+    .select('*')
+    .eq('user_id', userId);
 
-    if (targetDate) {
-        query = query.eq('target_date', targetDate);
-    } else {
-        query = query.is('target_date', null);
+  if (targetDate) {
+    query = query.eq('target_date', targetDate);
+  } else {
+    query = query.is('target_date', null);
+  }
+
+  const { data, error } = await query.single();
+
+  if (error) {
+    if (error.code === 'PGRST116') {
+      // Not found, return empty structure
+      return [];
     }
+    console.error('Error fetching targets:', error);
+    return [];
+  }
 
-    const {data, error} = await query.single();
-
-    if (error) {
-        if (error.code === 'PGRST116') {
-            // Not found, return empty structure
-            return [];
-        }
-        console.error('Error fetching targets:', error);
-        return [];
-    }
-
-    return (data.data as ActionNode[]) || [];
+  return (data.data as ActionNode[]) || [];
 }
 
-export async function fetchPublicTargets(userId: string, targetDate: string | null): Promise<{
-    targets: ActionNode[],
-    privateCount: number
+/**
+ * Fetches the target tree for a specific user and date bucket.
+ * 
+ * @param userId - The ID of the user.
+ * @param targetDate - The bucket date (e.g., "2023-10-01") or null for future targets.
+ * @returns A promise resolving to the list of ActionNodes in the target bucket.
+ */
+export const fetchTargets = withLogging(_fetchTargets, 'fetchTargets');
+
+/**
+ * Internal function to fetch raw targets.
+ */
+async function _fetchRawTargets(userId: string, targetDate: string | null): Promise<ActionNode[]> {
+  // Directly reuse internal fetchTargets as logic is identical for raw fetching
+  // (We just want the data, filtering is separate).
+  return _fetchTargets(userId, targetDate);
+}
+
+/**
+ * Fetches raw targets without any processing. 
+ * Alias for `fetchTargets` but explicit in intent for lifecycle use.
+ * 
+ * @param userId - The ID of the user.
+ * @param targetDate - The bucket date.
+ * @returns A promise resolving to the raw ActionNode tree.
+ */
+export const fetchRawTargets = withLogging(_fetchRawTargets, 'fetchRawTargets');
+
+/**
+ * Internal function to fetch public targets.
+ */
+async function _fetchPublicTargets(userId: string, targetDate: string | null): Promise<{
+  targets: ActionNode[],
+  privateCount: number
 }> {
-    const supabase = createClient();
+  const supabase = createClient();
 
-    let query = supabase
-        .from('targets')
-        .select('*')
-        .eq('user_id', userId);
+  let query = supabase
+    .from('targets')
+    .select('*')
+    .eq('user_id', userId);
 
-    if (targetDate) {
-        query = query.eq('target_date', targetDate);
-    } else {
-        query = query.is('target_date', null);
+  if (targetDate) {
+    query = query.eq('target_date', targetDate);
+  } else {
+    query = query.is('target_date', null);
+  }
+
+  const { data, error } = await query.single();
+
+  if (error) {
+    if (error.code === 'PGRST116') {
+      return { targets: [], privateCount: 0 };
     }
+    console.error('Error fetching public targets:', error);
+    return { targets: [], privateCount: 0 };
+  }
 
-    const {data, error} = await query.single();
-
-    if (error) {
-        if (error.code === 'PGRST116') {
-            return {targets: [], privateCount: 0};
-        }
-        console.error('Error fetching public targets:', error);
-        return {targets: [], privateCount: 0};
-    }
-
-    const rawTree = (data.data as ActionNode[]) || [];
-    const {actions, privateCount} = filterTreeByPublicStatus(rawTree);
-    return {targets: actions, privateCount};
+  const rawTree = (data.data as ActionNode[]) || [];
+  const { actions, privateCount } = filterTreeByPublicStatus(rawTree);
+  return { targets: actions, privateCount };
 }
 
-export async function updateTargets(userId: string, targetDate: string | null, nodes: ActionNode[]) {
-    const supabase = createClient();
+/**
+ * Fetches the public view of a user's targets for a specific bucket.
+ * Filters out private nodes and counts them.
+ * 
+ * @param userId - The ID of the user.
+ * @param targetDate - The bucket date.
+ * @returns An object containing the filtered targets and a count of private items.
+ */
+export const fetchPublicTargets = withLogging(_fetchPublicTargets, 'fetchPublicTargets');
 
-    // Upsert logic
-    const payload = {
-        user_id: userId, target_date: targetDate, data: nodes
-    };
+/**
+ * Internal function to update targets.
+ */
+async function _updateTargets(userId: string, targetDate: string | null, nodes: ActionNode[]): Promise<void> {
+  const supabase = createClient();
 
-    const {error} = await supabase
-        .from('targets')
-        .upsert(payload, {onConflict: 'user_id, target_date'});
+  // Upsert logic
+  const payload = {
+    user_id: userId,
+    target_date: targetDate,
+    data: nodes
+  };
 
-    if (error) {
-        console.error('Error updating targets:', error);
-        throw error;
-    }
+  // Note: ensure your DB has a unique constraint on (user_id, target_date)
+  const { error } = await supabase
+    .from('targets')
+    .upsert(payload, { onConflict: 'user_id, target_date' });
+
+  if (error) {
+    console.error('Error updating targets:', error);
+    throw error;
+  }
 }
+
+/**
+ * Updates or inserts a target tree for a specific user and bucket.
+ * 
+ * @param userId - The ID of the user.
+ * @param targetDate - The bucket date.
+ * @param nodes - The new tree of ActionNodes.
+ */
+export const updateTargets = withLogging(_updateTargets, 'updateTargets');

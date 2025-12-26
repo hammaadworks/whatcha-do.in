@@ -25,6 +25,8 @@ interface CustomMarkdownEditorProps {
   readOnly?: boolean;
   minHeight?: number;
   fullHeight?: boolean;
+  textareaClassName?: string;
+  watermark?: React.ReactNode;
 }
 
 type ViewMode = 'edit' | 'split' | 'preview';
@@ -33,10 +35,12 @@ export function CustomMarkdownEditor({
     value, 
     onChange, 
     className, 
+    textareaClassName,
     placeholder, 
     readOnly, 
     minHeight = 200, 
-    fullHeight = false 
+    fullHeight = false,
+    watermark
 }: CustomMarkdownEditorProps) {
   const isMobile = useMediaQuery('(max-width: 768px)');
   const [viewMode, setViewMode] = useState<ViewMode>(readOnly ? 'preview' : 'edit');
@@ -303,17 +307,23 @@ export function CustomMarkdownEditor({
                 "relative h-full flex flex-col",
                 viewMode === 'preview' ? "hidden" : "block"
             )}>
+                 {watermark && (
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-0 overflow-hidden p-10">
+                        {watermark}
+                    </div>
+                 )}
                  <MDEditor
                     value={value}
                     onChange={(val) => onChange(val || '')}
-                    className="w-full h-full border-none !shadow-none"
+                    className="w-full h-full border-none !shadow-none !bg-transparent" // Added !bg-transparent
                     visibleDragbar={false}
                     hideToolbar={true}
                     height="100%" // Explicitly set height to 100%
                     preview="edit"
+                    style={{ backgroundColor: 'transparent' }} // Inline style fallback
                     textareaProps={{
                         placeholder: placeholder || "Start writing...",
-                        className: "focus:outline-none !font-mono !text-sm leading-relaxed p-4 h-full" // Ensure textarea fills height
+                        className: cn("focus:outline-none !font-mono !text-sm leading-relaxed p-4 h-full bg-transparent z-10 relative", textareaClassName) // Ensure textarea fills height and accepts custom classes
                     }}
                  />
             </div>

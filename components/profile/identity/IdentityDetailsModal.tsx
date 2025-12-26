@@ -12,6 +12,14 @@ import {Loader2, Plus, Trash2, X} from 'lucide-react';
 import {Habit, Identity} from '@/lib/supabase/types';
 import {Popover, PopoverContent, PopoverTrigger} from '@/components/ui/popover';
 import {Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList} from '@/components/ui/command';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import { IDENTITY_START_PHRASE } from '@/lib/constants';
 
 interface IdentityDetailsModalProps {
     identity: Identity;
@@ -38,7 +46,9 @@ export const IdentityDetailsModal: React.FC<IdentityDetailsModalProps> = ({
                                                                               onUnlinkHabit,
                                                                               isReadOnly = false // Set default to false
                                                                           }) => {
-    const [title, setTitle] = useState(identity.title);
+    const [title, setTitle] = useState('');
+    const [prefix, setPrefix] = useState('a');
+    const [isManualPrefix, setIsManualPrefix] = useState(false);
     const [description, setDescription] = useState(identity.description || '');
     const [isPublic, setIsPublic] = useState(identity.is_public);
     const [isSaving, setIsSaving] = useState(false);
@@ -48,16 +58,71 @@ export const IdentityDetailsModal: React.FC<IdentityDetailsModalProps> = ({
     // Reset state when identity changes
     useEffect(() => {
         if (isOpen) {
-            setTitle(identity.title);
+            parseTitleToState(identity.title);
             setDescription(identity.description || '');
             setIsPublic(identity.is_public);
         }
     }, [identity, isOpen]);
 
+    const parseTitleToState = (fullTitle: string) => {
+        // Expected format: "I am [prefix] [Title]" OR "I am [Title]"
+        // We know IDENTITY_START_PHRASE is "I am"
+        
+        let remaining = fullTitle;
+        if (remaining.startsWith(IDENTITY_START_PHRASE)) {
+            remaining = remaining.substring(IDENTITY_START_PHRASE.length).trim();
+        }
+
+        // Check if starts with prefix "a" or "an"
+        const parts = remaining.split(' ');
+        const firstWord = parts[0]?.toLowerCase();
+
+        if (firstWord === 'a' || firstWord === 'an') {
+            setPrefix(firstWord);
+            setTitle(remaining.substring(firstWord.length).trim());
+            setIsManualPrefix(true); // Treat existing data as "manual" so we don't overwrite on load
+        } else {
+            setPrefix('-');
+            setTitle(remaining);
+            setIsManualPrefix(true);
+        }
+    };
+
+    const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const newVal = e.target.value;
+        setTitle(newVal);
+
+        if (!isManualPrefix) {
+            const trimmed = newVal.trim();
+            if (trimmed.length > 0) {
+                // Check first letter for vowel
+                const firstChar = trimmed[0].toLowerCase();
+                if (['a', 'e', 'i', 'o', 'u'].includes(firstChar)) {
+                    setPrefix('an');
+                } else {
+                    setPrefix('a');
+                }
+            }
+        }
+    };
+
+    const handlePrefixChange = (value: string) => {
+        setPrefix(value);
+        setIsManualPrefix(true);
+    };
+
+
     const handleSave = async () => {
         setIsSaving(true);
         try {
-            await onUpdate(identity.id, {title, description, is_public: isPublic});
+            let finalTitle = "";
+            if (prefix === '-') {
+                finalTitle = `${IDENTITY_START_PHRASE} ${title.trim()}`;
+            } else {
+                finalTitle = `${IDENTITY_START_PHRASE} ${prefix} ${title.trim()}`;
+            }
+
+            await onUpdate(identity.id, {title: finalTitle, description, is_public: isPublic});
             onClose();
         } catch (error) {
             console.error("Failed to update identity", error);
@@ -115,12 +180,26 @@ export const IdentityDetailsModal: React.FC<IdentityDetailsModalProps> = ({
                     {/* Core Fields */}
                     <div className="grid gap-2">
                         <Label htmlFor="edit-title">Identity Statement</Label>
-                        <Input
-                            id="edit-title"
-                            value={title}
-                            onChange={(e) => setTitle(e.target.value)}
-                            disabled={isReadOnly} // Disable if read-only
-                        />
+                        <div className="flex gap-3 items-center">
+                            <span className="text-lg font-medium whitespace-nowrap text-muted-foreground">{IDENTITY_START_PHRASE}</span>
+                            <Select value={prefix} onValueChange={handlePrefixChange} disabled={isReadOnly}>
+                                <SelectTrigger className="w-[70px] shrink-0">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="a">a</SelectItem>
+                                    <SelectItem value="an">an</SelectItem>
+                                    <SelectItem value="-">-</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <Input
+                                id="edit-title"
+                                value={title}
+                                onChange={handleTitleChange}
+                                disabled={isReadOnly}
+                                className="flex-1"
+                            />
+                        </div>
                     </div>
 
                     <div className="grid gap-2">

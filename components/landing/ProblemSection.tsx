@@ -41,7 +41,7 @@ export function ProblemSection() {
           <BlurFade delay={0.8} inView>
             <div className="p-8 border-l-4 border-primary bg-background/80 backdrop-blur-sm rounded-r-xl shadow-md">
               <p className="text-xl font-sans font-bold">
-                whatcha-doin resets the whole game by helping you build <span className="text-primary">identity</span> with <em>discipline</em> and <em>consistency</em>.
+                whatcha-do.in resets the whole game by helping you build <span className="text-primary">identity</span> with <em>discipline</em> and <em>consistency</em>.
               </p>
             </div>
           </BlurFade>

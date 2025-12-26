@@ -6,7 +6,7 @@
     <status>drafted</status>
     <generatedAt>2025-11-22</generatedAt>
     <generator>BMAD Story Context Workflow</generator>
-    <sourceStoryPath>/Users/alhamdulillah/codespace/whatcha-doin/docs/sprint-artifacts/1-3-establish-username-in-database-and-create-profile-page.md</sourceStoryPath>
+    <sourceStoryPath>/docs/sprint-artifacts/1-3-establish-username-in-database-and-create-profile-page.md</sourceStoryPath>
   </metadata>
 
   <story>
@@ -42,13 +42,13 @@
     <docs>
       <doc>
         <path>docs/PRD.md</path>
-        <title>whatcha-doin - Product Requirements Document</title>
+        <title>whatcha-do.in - Product Requirements Document</title>
         <section>FR-1: User &amp; Profile Management</section>
         <snippet>FR-1.4: Each user must be able to configure a unique username which makes their public profile page accessible via a shareable, user-friendly URL (e.g., `/user-chosen-username`). The username must consist only of alphanumeric characters (a-z, A-Z, 0-9), hyphens (-), and underscores (_), and must be unique across all users.</snippet>
       </doc>
       <doc>
         <path>docs/PRD.md</path>
-        <title>whatcha-doin - Product Requirements Document</title>
+        <title>whatcha-do.in - Product Requirements Document</title>
         <section>FR-1: User &amp; Profile Management</section>
         <snippet>FR-1.5: The public profile page must display the user's bio, all public habits, all public todos, and the public journal.</snippet>
       </doc>
@@ -72,31 +72,31 @@
       </doc>
       <doc>
         <path>docs/ux-design-specification.md</path>
-        <title>whatcha-doin UX Design Specification</title>
+        <title>whatcha-do.in UX Design Specification</title>
         <section>4.2 Overall Page Structure</section>
         <snippet>The main interface structure includes a dynamic route `/[username]/` for user profiles.</snippet>
       </doc>
       <doc>
         <path>docs/ux-design-specification.md</path>
-        <title>whatcha-doin UX Design Specification</title>
+        <title>whatcha-do.in UX Design Specification</title>
         <section>5.1 Critical User Paths</section>
         <snippet>The `username` makes public profiles accessible and shareable.</snippet>
       </doc>
       <doc>
         <path>docs/epics.md</path>
-        <title>whatcha-doin - Epic Breakdown</title>
+        <title>whatcha-do.in - Epic Breakdown</title>
         <section>Epic 1: Core Application Foundation &amp; Authenticated Root View</section>
         <snippet>Goal: Establish foundational project infrastructure, implement a development-friendly bypass for Supabase data interaction, and lay out the basic authenticated UI accessible via the user's username.</snippet>
       </doc>
       <doc>
         <path>docs/epics.md</path>
-        <title>whatcha-doin - Epic Breakdown</title>
+        <title>whatcha-do.in - Epic Breakdown</title>
         <section>Story 1.3: Establish `username` in Database and Create Profile Page</section>
         <snippet>As a developer, I want to add a `username` column to the `users` table and create the basic page structure for the `/[username]` dynamic route, so that there is a foundation for the user's profile and main authenticated view.</snippet>
       </doc>
       <doc>
         <path>docs/epics.md</path>
-        <title>whatcha-doin - Epic Breakdown</title>
+        <title>whatcha-do.in - Epic Breakdown</title>
         <section>Data Models and Contracts (`users` table schema)</section>
         <snippet>The `users` table includes a `username TEXT UNIQUE NOT NULL` column, which is critical for this story's implementation.</snippet>
       </doc>

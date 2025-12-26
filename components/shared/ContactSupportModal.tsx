@@ -1,9 +1,9 @@
 "use client";
 
 import React from "react";
-import BaseModal from './BaseModal'; // Import the new BaseModal
+import BaseModal from './BaseModal';
 import { Button } from "@/components/ui/button";
-import { Mail, Phone, ExternalLink, X, Github, Linkedin, MessageCircle, Bug } from "lucide-react"; // Added Bug icon
+import { Mail, ExternalLink, X, Github, Linkedin, MessageCircle, Bug } from "lucide-react";
 import Link from "next/link";
 import {
     EMAIL,
@@ -18,9 +18,13 @@ import {
 interface ContactSupportModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onOpenFeedback: () => void; // New prop for interlinking
+  /** Callback to switch to the Feedback modal. */
+  onOpenFeedback: () => void;
 }
 
+/**
+ * Modal displaying various support contact options and social links.
+ */
 const ContactSupportModal: React.FC<ContactSupportModalProps> = ({ isOpen, onClose, onOpenFeedback }) => {
   return (
     <BaseModal
@@ -29,8 +33,8 @@ const ContactSupportModal: React.FC<ContactSupportModalProps> = ({ isOpen, onClo
       title="Contact Support"
       description="Reach out to us for any questions, feedback, or support needs."
       footerContent={
-        <div className="flex justify-end space-x-2"> {/* Adjusted for interlinking button */}
-            <Button onClick={onOpenFeedback} variant="outline" className="w-auto"> {/* Interlink button */}
+        <div className="flex justify-end space-x-2">
+            <Button onClick={onOpenFeedback} variant="outline" className="w-auto">
                 <Bug className="h-4 w-4 mr-2" /> Send Feedback
             </Button>
             <Button onClick={onClose} className="w-auto">Close</Button>
@@ -44,7 +48,7 @@ const ContactSupportModal: React.FC<ContactSupportModalProps> = ({ isOpen, onClo
               {EMAIL}
             </Link>
           </div>
-          <p className="font-semibold mt-2 text-center">Find me on:</p> {/* Added text-center */}
+          <p className="font-semibold mt-2 text-center">Find me on:</p>
           <div className="grid grid-cols-2 gap-2 text-sm">
             <div className="flex items-center space-x-2">
               <MessageCircle className="h-4 w-4 text-muted-foreground" />
@@ -76,7 +80,7 @@ const ContactSupportModal: React.FC<ContactSupportModalProps> = ({ isOpen, onClo
                 ProductHunt
               </Link>
             </div>
-            <div className="flex items-center space-x-2"> {/* Removed col-span-2 */}
+            <div className="flex items-center space-x-2">
               <ExternalLink className="h-4 w-4 text-muted-foreground" />
               <Link href={WEBSITE_URL} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
                 Website (Coming Soon)

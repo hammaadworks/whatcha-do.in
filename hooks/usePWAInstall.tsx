@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react';
 
+/**
+ * Interface for the `beforeinstallprompt` event, which is not yet standard in TypeScript's DOM lib.
+ */
 interface BeforeInstallPromptEvent extends Event {
   readonly platforms: Array<string>;
   readonly userChoice: Promise<{
@@ -9,10 +12,19 @@ interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>;
 }
 
+/**
+ * Custom hook to manage Progressive Web App (PWA) installation.
+ * 
+ * Handles detecting install eligibility, managing the install prompt (for Android/Desktop),
+ * detecting iOS (for manual install instructions), and tracking installation status.
+ * 
+ * @returns An object containing installation state and handler functions.
+ */
 export const usePWAInstall = () => {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [canInstall, setCanInstall] = useState(false);
   const [isIOS, setIsIOS] = useState(false);
+  
   // Initialize isAppInstalled directly, it's a one-time check on client mount
   const [isAppInstalled, setIsAppInstalled] = useState(
     typeof window !== 'undefined' && window.matchMedia('(display-mode: standalone)').matches
@@ -21,11 +33,12 @@ export const usePWAInstall = () => {
   const [installMessage, setInstallMessage] = useState('');
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+
     // iOS detection
-    // Use window directly now that it's checked in useState initializer
-    const userAgent = window !== undefined ? window.navigator.userAgent : '';
-    const isIPad = new RegExp(/iPad/i).exec(userAgent);
-    const isIPhone = new RegExp(/iPhone/i).exec(userAgent);
+    const userAgent = window.navigator.userAgent;
+    const isIPad = /iPad/i.test(userAgent);
+    const isIPhone = /iPhone/i.test(userAgent);
 
     // Only set isIOS if not already installed, and on iOS device
     if ((isIPad || isIPhone) && !isAppInstalled) {
@@ -50,32 +63,36 @@ export const usePWAInstall = () => {
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handler);
-      window.removeEventListener('appinstalled', handleAppInstalled); // Clean up
+      window.removeEventListener('appinstalled', handleAppInstalled);
     };
-  }, [isAppInstalled]); // Keep isAppInstalled in deps to re-evaluate isIOS if it changes
+  }, [isAppInstalled]);
 
+  /**
+   * Triggers the PWA installation flow.
+   * If on a supported platform (Android/Chrome), shows the native prompt.
+   * If on iOS or unsupported, shows a modal with manual instructions.
+   */
   const promptInstall = async () => {
     if (isAppInstalled) {
       setInstallMessage('The app is already installed. You can launch it from your home screen.');
       setShowInstallMessage(true);
-      return; // Exit early if already installed
+      return; 
     }
 
     if (deferredPrompt) {
       await deferredPrompt.prompt();
       const { outcome } = await deferredPrompt.userChoice;
       if (outcome === 'accepted') {
-        console.log('User accepted the PWA installation prompt');
         setInstallMessage('Great! The app is being installed.');
         setShowInstallMessage(true);
-        setIsAppInstalled(true); // App is now installed
+        setIsAppInstalled(true);
       } else {
-        console.log('User dismissed the PWA installation prompt');
         setInstallMessage('You dismissed the PWA installation. You can try again later or add it manually.');
         setShowInstallMessage(true);
       }
       setDeferredPrompt(null);
     } else {
+      // Fallback for browsers that don't support beforeinstallprompt (e.g. iOS or manual triggers)
       if (isIOS) {
         setInstallMessage('To install, tap the Share button (box with an arrow) and then "Add to Home Screen".');
       } else {
@@ -85,21 +102,32 @@ export const usePWAInstall = () => {
     }
   };
 
+  /**
+   * Closes the installation status message modal.
+   */
   const closeInstallMessage = () => {
     setShowInstallMessage(false);
     setInstallMessage('');
   };
 
-  // Return all relevant states and functions
   return {
+    /** Whether the app can be installed (native prompt available). */
     canInstall,
+    /** Function to trigger the installation prompt. */
     promptInstall,
+    /** Whether the user is on an iOS device (requires manual install). */
     isIOS,
+    /** Whether the app is already running in standalone mode. */
     isAppInstalled,
+    /** Whether to show the install feedback modal. */
     showInstallMessage,
+    /** The message to display in the feedback modal. */
     installMessage,
+    /** Function to close the feedback modal. */
     closeInstallMessage,
+    /** Setter for install message (exposed for custom UI logic). */
     setInstallMessage,
+    /** Setter for showing the feedback modal (exposed for custom UI logic). */
     setShowInstallMessage
   };
 };

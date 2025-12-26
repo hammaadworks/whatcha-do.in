@@ -1,6 +1,6 @@
-# whatcha-doin - Product Requirements Document
+# whatcha-do.in - Product Requirements Document
 
-**Project:** whatcha-doin
+**Project:** whatcha-do.in
 **Author:** hammaadworks
 **Date:** Wednesday, 12 November 2025
 **Version:** 1.3
@@ -9,20 +9,13 @@
 
 ## Executive Summary
 
-**NOTE:** For development purposes, Supabase authentication is temporarily bypassed. The application is configured to
-directly interact with Supabase tables using a hardcoded test user's `user_id` for all feature development. This is
-achieved by injecting the `user_id` via the `AuthProvider` component in `app/(main)/layout.tsx` when
-`NEXT_PUBLIC_DEV_MODE_ENABLED=true`. Full Supabase authentication will be integrated in the final epic. To re-enable
-Magic Link functionality for testing the final epic, set `NEXT_PUBLIC_DEV_MODE_ENABLED=false` in `.env.local` (or remove
-it) and set `enable_signup = true` in `supabase/config.toml` under both `[auth]` and `[auth.email]` sections.
-
-This PRD outlines the development of "whatcha-doin," a habit and todo tracking application designed to foster personal
+This PRD outlines the development of "whatcha-do.in," a habit and todo tracking application designed to foster personal
 growth and consistency. The vision is to create an intuitive, keyboard-first experience that empowers users to build
 positive routines and reflect on their progress, ultimately leading to a more organized and fulfilling life.
 
 ### What Makes This Special
 
-"whatcha-doin" stands out by combining robust habit/todo management with a unique journaling system and novel UX
+"whatcha-do.in" stands out by combining robust habit/todo management with a unique journaling system and novel UX
 patterns. Inspired by Isabella's timeless question from Phineas and Ferb, "Whatcha doin'?", this app provides a public
 and dynamic answer: users can share their personalized domain profile (`domain/[username]`) to showcase their
 activities, habits, and progress, turning a casual query into a powerful display of dedication. Its "keyboard-first"
@@ -38,14 +31,14 @@ intuitive, rewarding, and deeply integrated with personal reflection.
 **Domain:** Personal Productivity / Habit Tracking
 **Complexity:** Moderate to High
 
-"whatcha-doin" is classified as a Moderate to High complexity SPA in the Personal Productivity / Habit Tracking domain,
+"whatcha-do.in" is classified as a Moderate to High complexity SPA in the Personal Productivity / Habit Tracking domain,
 leveraging modern web technologies for a rich user experience.
 
 ---
 
 ## Success Criteria
 
-The success of "whatcha-doin" will be measured by user engagement, habit completion rates, and positive feedback on the
+The success of "whatcha-do.in" will be measured by user engagement, habit completion rates, and positive feedback on the
 unique UX features.
 
 - **User Engagement:** High daily active users (DAU) and retention rates.
@@ -145,6 +138,7 @@ above.
   not set, the system should default to the browser's detected timezone.
 - **FR-1.7:** The user's current local time (or timezone identifier) must be displayed on their public and private
   profile. This provides context for visitors regarding the user's activity and deadlines.
+- **FR-1.7.1:** For authenticated users, the `UserClock` component displays the user's saved timezone from the database. For guest users viewing a public profile, their local timezone is automatically detected and used to calculate the time difference relative to the profile owner's timezone.
 - **FR-1.8 (Identity Management):** Users must be able to create "Identities" (e.g., "I want to be a runner").
     - **FR-1.8.1:** Identities are short "one-liners".
     - **FR-1.8.2:** Users can link Habits to Identities in a **Many-to-Many** relationship (a habit can back multiple
@@ -316,7 +310,7 @@ To implement this revised strategy, the following critical and parallel tasks mu
 
 ---
 
-_This PRD captures the essence of whatcha-doin - an intuitive, keyboard-first habit tracker with novel UX and integrated
+_This PRD captures the essence of whatcha-do.in - an intuitive, keyboard-first habit tracker with novel UX and integrated
 journaling._
 
 _Created through collaborative discovery between hammaadworks and AI facilitator._

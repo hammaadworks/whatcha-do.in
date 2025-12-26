@@ -13,7 +13,15 @@ import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
 import {Label} from '@/components/ui/label';
 import {Switch} from '@/components/ui/switch';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import {Loader2} from 'lucide-react';
+import { IDENTITY_START_PHRASE } from '@/lib/constants';
 
 interface CreateIdentityModalProps {
     isOpen: boolean;
@@ -23,16 +31,51 @@ interface CreateIdentityModalProps {
 
 export const CreateIdentityModal: React.FC<CreateIdentityModalProps> = ({isOpen, onClose, onCreate}) => {
     const [title, setTitle] = useState('');
+    const [prefix, setPrefix] = useState('a');
+    const [isManualPrefix, setIsManualPrefix] = useState(false);
     const [isPublic, setIsPublic] = useState(false);
     const [isCreating, setIsCreating] = useState(false);
+
+    const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const newVal = e.target.value;
+        setTitle(newVal);
+
+        if (!isManualPrefix) {
+            const trimmed = newVal.trim();
+            if (trimmed.length > 0) {
+                // Check first letter for vowel
+                const firstChar = trimmed[0].toLowerCase();
+                if (['a', 'e', 'i', 'o', 'u'].includes(firstChar)) {
+                    setPrefix('an');
+                } else {
+                    setPrefix('a');
+                }
+            }
+        }
+    };
+
+    const handlePrefixChange = (value: string) => {
+        setPrefix(value);
+        setIsManualPrefix(true);
+    };
 
     const handleCreate = async () => {
         if (!title.trim()) return;
 
         setIsCreating(true);
         try {
-            await onCreate(title, isPublic);
+            let finalTitle = "";
+            if (prefix === '-') {
+                finalTitle = `${IDENTITY_START_PHRASE} ${title.trim()}`;
+            } else {
+                finalTitle = `${IDENTITY_START_PHRASE} ${prefix} ${title.trim()}`;
+            }
+            
+            await onCreate(finalTitle, isPublic);
+            // Reset state
             setTitle('');
+            setPrefix('a');
+            setIsManualPrefix(false);
             setIsPublic(false);
             onClose();
         } catch (error) {
@@ -42,27 +85,47 @@ export const CreateIdentityModal: React.FC<CreateIdentityModalProps> = ({isOpen,
         }
     };
 
-    return (<Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-            <DialogContent className="sm:max-w-[425px]">
+    const handleOpenChange = (open: boolean) => {
+        if (!open) {
+            onClose();
+        }
+    };
+
+    return (<Dialog open={isOpen} onOpenChange={handleOpenChange}>
+            <DialogContent className="sm:max-w-[500px]">
                 <DialogHeader>
                     <DialogTitle>Define New Identity</DialogTitle>
                     <DialogDescription>
-                        Who do you want to become? (e.g., "I am a runner")
+                        Who do you want to become?
                     </DialogDescription>
                 </DialogHeader>
 
                 <div className="grid gap-4 py-4">
                     <div className="grid gap-2">
                         <Label htmlFor="identity-title">Identity Statement</Label>
-                        <Input
-                            id="identity-title"
-                            value={title}
-                            onChange={(e) => setTitle(e.target.value)}
-                            placeholder="I am a..."
-                            autoFocus
-                        />
+                        <div className="flex gap-3 items-center">
+                            <span className="text-lg font-medium whitespace-nowrap text-muted-foreground">{IDENTITY_START_PHRASE}</span>
+                            <Select value={prefix} onValueChange={handlePrefixChange}>
+                                <SelectTrigger className="w-[70px] shrink-0">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="a">a</SelectItem>
+                                    <SelectItem value="an">an</SelectItem>
+                                    <SelectItem value="-">-</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <Input
+                                id="identity-title"
+                                value={title}
+                                onChange={handleTitleChange}
+                                placeholder="Runner, Entrepreneur..."
+                                className="flex-1"
+                                autoFocus
+                            />
+                        </div>
                     </div>
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between mt-2">
                         <Label htmlFor="public-mode">Public Identity</Label>
                         <Switch
                             id="public-mode"

@@ -1,4 +1,4 @@
-# Micro Copy Pack for whatcha-doin
+# Micro Copy Pack for whatcha-do.in
 
 ## Buttons
 
@@ -74,7 +74,7 @@ Footer: "Stack these days."
 
 ## PWA Install
 
-Banner: "Install whatcha-doin --- your identity-building sidekick."\
+Banner: "Install whatcha-do.in --- your identity-building sidekick."\
 CTA: "Add to Home"\
 Success: "Locked in. Your discipline hub is now one tap away."
 

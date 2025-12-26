@@ -10,7 +10,7 @@ export function ProfileMockup({ className }: { className?: string }) {
     <div className={cn("relative w-full h-full flex flex-col bg-background rounded-lg shadow-lg overflow-hidden p-2", className)}>
       {/* Header */}
       <div className="bg-gradient-to-br from-primary-400 to-primary-600 h-1/4 flex items-center justify-center relative rounded-t-md">
-        <h3 className="relative z-10 text-white text-base font-bold">whatcha-doin</h3>
+        <h3 className="relative z-10 text-white text-base font-bold">whatcha-do.in</h3>
       </div>
 
       {/* Profile Info */}

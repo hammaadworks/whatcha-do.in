@@ -9,11 +9,13 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { fetchJournalEntryByDate, upsertJournalEntry } from '@/lib/supabase/journal';
 import { CustomMarkdownEditor as MarkdownEditor } from '@/components/shared/CustomMarkdownEditor';
-import { Calendar } from '@/components/ui/calendar';
+import { Calendar } from '@/components/shared/Calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Button } from '@/components/ui/button';
 import { JournalEntry, ActivityLogEntry } from '@/lib/supabase/types'; // Import JournalEntry and ActivityLogEntry
+import { useSimulatedTime } from '@/components/layout/SimulatedTimeProvider';
+
 
 
 interface JournalPageContentProps {
@@ -41,8 +43,10 @@ const formatActivityLogEntry = (entry: ActivityLogEntry): string => {
 
 
 export function JournalPageContent({ profileUserId, isOwner }: JournalPageContentProps) {
-  const [date, setDate] = useState<Date>(new Date());
-  const [activeTab, setActiveTab] = useState<'public' | 'private'>(isOwner ? 'private' : 'public');
+      const { simulatedDate } = useSimulatedTime();
+  
+  const [date, setDate] = useState<Date>(simulatedDate || new Date());
+  const [activeTab, setActiveTab] = useState<'public' | 'private'>('public'); // Default to public
   const [content, setContent] = useState('');
   const [activityLog, setActivityLog] = useState<ActivityLogEntry[]>([]); // New state for activity log
   const [isLoading, setIsLoading] = useState(false);
@@ -50,6 +54,31 @@ export function JournalPageContent({ profileUserId, isOwner }: JournalPageConten
   const lastSavedContentRef = useRef('');
   
   const debouncedContent = useDebounce(content, 1000); // Debounce content for 1 second
+
+  // Update date when simulatedDate changes (e.g. time travel)
+  useEffect(() => {
+    if (simulatedDate) {
+      setDate(simulatedDate);
+    }
+  }, [simulatedDate]);
+
+
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [activitiesPerPage, setActivitiesPerPage] = useState(10); // Default for small screens
+
+  // Effect to determine activitiesPerPage based on screen size
+  useEffect(() => {
+    const handleResize = () => {
+      setActivitiesPerPage(window.innerWidth >= 1024 ? 20 : 10); // 20 for lg and up, 10 for smaller
+    };
+
+    // Set initial value
+    handleResize();
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const isPublic = activeTab === 'public';
   const canEdit = isOwner;
@@ -65,6 +94,7 @@ export function JournalPageContent({ profileUserId, isOwner }: JournalPageConten
         setContent(newContent);
         lastSavedContentRef.current = newContent;
         setActivityLog(entry?.activity_log || []); // Set the activity log
+        setCurrentPage(1); // Reset to first page on new entry load
       } catch (error) {
         console.error(error);
         toast.error('Failed to load journal entry');
@@ -106,10 +136,19 @@ export function JournalPageContent({ profileUserId, isOwner }: JournalPageConten
     }
   }, [debouncedContent, canEdit, saveEntry]);
 
+  // Sort activities by timestamp in descending order (most recent on top)
+  const sortedActivityLog = [...activityLog].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
-  const actions = activityLog.filter(item => item.type === 'action');
-  const habits = activityLog.filter(item => item.type === 'habit');
-  const targets = activityLog.filter(item => item.type === 'target');
+  // Apply pagination
+  const startIndex = (currentPage - 1) * activitiesPerPage;
+  const endIndex = startIndex + activitiesPerPage;
+  const paginatedActivityLog = sortedActivityLog.slice(startIndex, endIndex);
+
+  const actions = paginatedActivityLog.filter(item => item.type === 'action');
+  const habits = paginatedActivityLog.filter(item => item.type === 'habit');
+  const targets = paginatedActivityLog.filter(item => item.type === 'target');
+  
+  const totalPages = Math.ceil(activityLog.length / activitiesPerPage);
 
 
   return (
@@ -135,90 +174,91 @@ export function JournalPageContent({ profileUserId, isOwner }: JournalPageConten
                         <Calendar
                             mode="single"
                             selected={date}
-                            onSelect={(d) => d && setDate(d)}
+                            onSelect={(d: Date | undefined) => d && setDate(d)}
                             initialFocus
                         />
                     </PopoverContent>
                 </Popover>
 
-                <TooltipProvider>
-                    <div className="flex items-center bg-card rounded-full p-2 shadow-md border border-primary gap-x-4">
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <button
-                                    type="button"
-                                    onClick={() => setActiveTab('private')}
-                                    className={cn(
-                                        "px-3 py-1 text-xs sm:text-sm font-medium rounded-full whitespace-nowrap flex items-center justify-center",
-                                        "ring-2 ring-primary ring-offset-background", // Added solid ring styles
-                                        activeTab === 'private'
-                                            ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                                            : "bg-background text-muted-foreground hover:bg-accent hover:text-accent-foreground" // Adjusted for solid ring non-active state
-                                    )}
-                                    disabled={!isOwner} // Disable if not owner
-                                >
-                                    <Lock className="h-4 w-4" />
-                                    <span className={cn(
-                                        "ml-2",
-                                        activeTab === 'private' ? "inline-block" : "hidden",
-                                        "lg:inline-block"
-                                    )}>
-                                        Private
-                                    </span>
-                                </button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                <p>Private Journal</p>
-                            </TooltipContent>
-                        </Tooltip>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <button
-                                    type="button"
-                                    onClick={() => setActiveTab('public')}
-                                    className={cn(
-                                        "px-3 py-1 text-xs sm:text-sm font-medium rounded-full whitespace-nowrap flex items-center justify-center",
-                                        "ring-2 ring-primary ring-offset-background", // Added solid ring styles
-                                        activeTab === 'public'
-                                            ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                                            : "bg-background text-muted-foreground hover:bg-accent hover:text-accent-foreground" // Adjusted for solid ring non-active state
-                                    )}
-                                    disabled={!isOwner && activeTab === 'private'} // Disable if not owner and public tab is active
-                                >
-                                    <Globe className="h-4 w-4" />
-                                    <span className={cn(
-                                        "ml-2",
-                                        activeTab === 'public' ? "inline-block" : "hidden",
-                                        "lg:inline-block"
-                                    )}>
-                                        Public
-                                    </span>
-                                </button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                <p>Public Journal</p>
-                            </TooltipContent>
-                        </Tooltip>
+                {isOwner && (
+                    <TooltipProvider>
+                        <div className="flex items-center bg-card rounded-full p-2 shadow-md border border-primary gap-x-4">
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <button
+                                        type="button"
+                                        onClick={() => setActiveTab('public')}
+                                        className={cn(
+                                            "px-3 py-1 text-xs sm:text-sm font-medium rounded-full whitespace-nowrap flex items-center justify-center transition-all",
+                                            activeTab === 'public'
+                                                ? "bg-primary text-primary-foreground hover:bg-primary/90" // Selected: dim hover
+                                                : "bg-background/80 text-muted-foreground hover:bg-accent/50" // Unselected: light hover
+                                        )}
+                                        disabled={!isOwner && activeTab === 'private'}
+                                    >
+                                        <Globe className="h-4 w-4" />
+                                        <span className={cn(
+                                            "ml-2",
+                                            activeTab === 'public' ? "inline-block" : "hidden",
+                                            "lg:inline-block"
+                                        )}>
+                                            Public
+                                        </span>
+                                    </button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p>Public Journal</p>
+                                </TooltipContent>
+                            </Tooltip>
+                            
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <button
+                                        type="button"
+                                        onClick={() => setActiveTab('private')}
+                                        className={cn(
+                                            "px-3 py-1 text-xs sm:text-sm font-medium rounded-full whitespace-nowrap flex items-center justify-center transition-all",
+                                            activeTab === 'private'
+                                                ? "bg-primary text-primary-foreground hover:bg-primary/90" // Selected: dim hover
+                                                : "bg-background/80 text-muted-foreground hover:bg-accent/50" // Unselected: light hover
+                                        )}
+                                        disabled={!isOwner}
+                                    >
+                                        <Lock className="h-4 w-4" />
+                                        <span className={cn(
+                                            "ml-2",
+                                            activeTab === 'private' ? "inline-block" : "hidden",
+                                            "lg:inline-block"
+                                        )}>
+                                            Private
+                                        </span>
+                                    </button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p>Private Journal</p>
+                                </TooltipContent>
+                            </Tooltip>
 
-                        {/* Autosave Status Feedback */}
-                        {canEdit && (
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground ml-4">
-                                {autosaveStatus === 'saving' && (
-                                    <>
-                                        <Loader2 className="h-4 w-4 animate-spin" />
-                                        <span>Saving...</span>
-                                    </>
-                                )}
-                                {autosaveStatus === 'saved' && (
-                                    <span>Saved!</span>
-                                )}
-                                {autosaveStatus === 'error' && (
-                                    <span className="text-destructive">Autosave Error</span>
-                                )}
-                            </div>
-                        )}
-                    </div>
-                </TooltipProvider>
+                            {/* Autosave Status Feedback */}
+                            {canEdit && (
+                                <div className="flex items-center gap-2 text-sm text-muted-foreground ml-4">
+                                    {autosaveStatus === 'saving' && (
+                                        <>
+                                            <Loader2 className="h-4 w-4 animate-spin" />
+                                            <span>Saving...</span>
+                                        </>
+                                    )}
+                                    {autosaveStatus === 'saved' && (
+                                        <span>Saved!</span>
+                                    )}
+                                    {autosaveStatus === 'error' && (
+                                        <span className="text-destructive">Autosave Error</span>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    </TooltipProvider>
+                )}
             </div>
         </div>
 
@@ -228,7 +268,7 @@ export function JournalPageContent({ profileUserId, isOwner }: JournalPageConten
             {activityLog.length === 0 ? (
                 <p className="text-muted-foreground text-sm">No activities logged for this day yet.</p>
             ) : (
-                <div className="space-y-4">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                     {actions.length > 0 && (
                         <div>
                             <h3 className="text-md font-medium mb-1 text-primary">Actions</h3>

@@ -3,18 +3,12 @@ import type {Metadata} from "next";
 import {Geist, Geist_Mono} from "next/font/google";
 import "./globals.css";
 import {AuthProvider} from "@/components/auth/AuthProvider";
-import AppHeader from "@/components/layout/AppHeader";
-import AppFooter from "@/components/layout/AppFooter";
-import { createServerSideClient } from '@/lib/supabase/server';
-import logger from '@/lib/logger/server'; // Import the server logger
-import { Pointer } from "@/components/ui/pointer";
-import { Toaster } from "sonner";
-import {
-    DOMAIN_URL,
-    AUTHOR_NAME,
-    WEBSITE_URL,
-    AUTHOR_TWITTER_HANDLE
-} from "@/lib/constants";
+import {Pointer} from "@/components/ui/pointer";
+import {AUTHOR_NAME, AUTHOR_TWITTER_HANDLE, DOMAIN_URL, WEBSITE_URL} from "@/lib/constants";
+import {ThemeProvider} from "next-themes";
+import {KeyboardShortcutsProvider} from '@/components/shared/KeyboardShortcutsProvider';
+import {LayoutContent} from '@/components/layout/LayoutContent'; // New import for the client component
+import {SimulatedTimeProvider} from '@/components/layout/SimulatedTimeProvider';
 
 const geistSans = Geist({
     variable: "--font-geist-sans", subsets: ["latin"],
@@ -27,33 +21,33 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
     metadataBase: new URL(DOMAIN_URL),
     title: {
-        default: "whatcha-doin | Building Consistency, One Habit at a Time", template: "%s | whatcha-doin",
+        default: "whatcha-do.in | Building Consistency, One Habit at a Time", template: "%s | whatcha-do.in",
     },
-    description: "whatcha-doin helps you build consistency and achieve your goals by tracking habits, visualizing progress, and connecting with a supportive community. Building consistency one habit at a time.",
-    applicationName: "whatcha-doin",
+    description: "whatcha-do.in helps you build consistency and achieve your goals by tracking habits, visualizing progress, and connecting with a supportive community. Building consistency one habit at a time.",
+    applicationName: "whatcha-do.in",
     creator: AUTHOR_NAME,
     publisher: AUTHOR_NAME,
     keywords: ["habit tracker", "habit building", "consistency", "goal setting", "productivity", "personal growth", "wellness", "community",],
     authors: [{name: AUTHOR_NAME, url: WEBSITE_URL}],
     openGraph: {
-        title: "whatcha-doin | Building Consistency, One Habit at a Time",
-        description: "whatcha-doin helps you build consistency and achieve your goals by tracking habits, visualizing progress, and connecting with a supportive community. Building consistency one habit at a time.",
+        title: "whatcha-do.in | Building Consistency, One Habit at a Time",
+        description: "whatcha-do.in helps you build consistency and achieve your goals by tracking habits, visualizing progress, and connecting with a supportive community. Building consistency one habit at a time.",
         url: DOMAIN_URL,
-        siteName: "whatcha-doin",
+        siteName: "whatcha-do.in",
         images: [{
             url: "/favicons/light/logo-full.png", // Primary logo for OpenGraph
-            width: 1200, height: 630, alt: "whatcha-doin logo (light)",
+            width: 1200, height: 630, alt: "whatcha-do.in logo (light)",
         }, {
             url: "/favicons/dark/logo-full.png", // Alternative logo for OpenGraph
-            width: 1200, height: 630, alt: "whatcha-doin logo (dark)",
+            width: 1200, height: 630, alt: "whatcha-do.in logo (dark)",
         },],
         locale: "en_US",
         type: "website",
     },
     twitter: {
         card: "summary_large_image",
-        title: "whatcha-doin | Building Consistency, One Habit at a Time",
-        description: "whatcha-doin helps you build consistency and achieve your goals by tracking habits, visualizing progress, and connecting with a supportive community. Building consistency one habit at a time.",
+        title: "whatcha-do.in | Building Consistency, One Habit at a Time",
+        description: "whatcha-do.in helps you build consistency and achieve your goals by tracking habits, visualizing progress, and connecting with a supportive community. Building consistency one habit at a time.",
         creator: AUTHOR_TWITTER_HANDLE,
         images: ["/favicons/light/logo-full.png", // Primary logo for Twitter
             "/favicons/dark/logo-full.png", // Alternative logo for Twitter
@@ -67,43 +61,44 @@ export const metadata: Metadata = {
         }, {
             url: "/favicons/dark/web-app-manifest-192x192.png", sizes: "192x192", type: "image/png"
         }, {url: "/favicons/dark/web-app-manifest-512x512.png", sizes: "512x512", type: "image/png"},],
-        apple: "/favicons/apple-icon.png", // Path to your apple-touch-icon.png in public folder
+        apple: "/favicons/`apple-icon.png", // Path to your apple-touch-icon.png in public folder
     },
     manifest: "/manifest.json",
 };
 
-import { ThemeProvider } from "next-themes";
-import { KeyboardShortcutsProvider } from '@/components/shared/KeyboardShortcutsProvider';
-import { LayoutContent } from '@/components/layout/LayoutContent'; // New import for the client component
-
-// ... other imports ...
-
-export default async function RootLayout({children,}: Readonly<{ children: React.ReactNode; }>) {
-    // ... existing async function content ...
-
-    const supabase = await createServerSideClient();
-    const {
-        data: { user },
-    } = await supabase.auth.getUser();
-
-    logger.info(`RootLayout server-side user check: userId - ${user?.id}`);
-
+/**
+ * Root Layout Component
+ *
+ * This is the top-level layout for the entire application. It handles:
+ * - Global CSS imports (Tailwind, animations, fonts).
+ * - Metadata configuration (SEO, OpenGraph).
+ * - Core providers (Theme, Auth, Time, Keyboard Shortcuts).
+ * - Global UI elements (Pointer, Toaster).
+ *
+ * @param {Readonly<{ children: React.ReactNode }>} props - The component props.
+ * @param {React.ReactNode} props.children - The nested route content to render.
+ * @returns {JSX.Element} The rendered HTML structure.
+ */
+export default function RootLayout({children,}: Readonly<{ children: React.ReactNode; }>) {
     return (<html lang="en" suppressHydrationWarning>
-        <head>
-            <meta name="apple-mobile-web-app-title" content="whatcha-doin"/>
-            <title>whatcha-doin | Building Consistency, One Habit at a Time</title>
-        </head>
-        <body
-            className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}
-        >
-        <Pointer className="fill-primary" />
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-            <AuthProvider>
+    <head>
+        <meta name="apple-mobile-web-app-title" content="whatcha-do.in"/>
+        <title>whatcha-do.in | Building Consistency, One Habit at a Time</title>
+    </head>
+    <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}
+        suppressHydrationWarning={true}
+    >
+    <Pointer className="fill-primary"/>
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        <AuthProvider>
+            <SimulatedTimeProvider>
                 <KeyboardShortcutsProvider>
                     <LayoutContent>{children}</LayoutContent>
                 </KeyboardShortcutsProvider>
-            </AuthProvider>
-        </ThemeProvider>
-        </body>
-        </html>);
+            </SimulatedTimeProvider>
+        </AuthProvider>
+    </ThemeProvider>
+    </body>
+    </html>);
 }

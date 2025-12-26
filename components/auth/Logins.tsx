@@ -1,6 +1,7 @@
 "use client";
 
 import React, {useState, useEffect} from "react";
+import {useSearchParams} from "next/navigation";
 import {createClient} from "@/lib/supabase/client";
 import {Input} from "@/components/ui/input";
 import {Label} from "@/components/ui/label";
@@ -16,39 +17,74 @@ const isValidEmail = (email: string) => {
 };
 
 const openMailClient = (client: 'gmail' | 'outlook' | 'yahoo' | 'generic', userEmail: string) => {
-    let appUrl: string | null = null;
+    let appSchemeUrl: string | null = null; // e.g., googlegmail://, ms-outlook://
     let webUrl: string | null = null;
+    let androidIntentUrl: string | null = null;
 
     switch (client) {
         case 'gmail':
-            appUrl = 'googlegmail:///';
+            appSchemeUrl = 'googlegmail:///'; // For iOS
             webUrl = userEmail ? `https://mail.google.com/mail/u/0/?authuser=${userEmail}` : 'https://mail.google.com/';
+            // For Android, construct an intent URL with fallback
+            androidIntentUrl = `intent://#Intent;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;scheme=https;data=https://mail.google.com;package=com.google.android.gm;S.browser_fallback_url=${encodeURIComponent(webUrl)};end`;
             break;
         case 'outlook':
-            appUrl = 'ms-outlook://';
+            appSchemeUrl = 'ms-outlook://';
             webUrl = 'https://outlook.live.com/mail/';
             break;
         case 'yahoo':
             webUrl = 'https://mail.yahoo.com/';
             break;
         case 'generic':
-            // Attempt to open the default mail client for composing a new email, but no direct inbox opening
-            // This is not ideal for opening inbox, but is a fallback for generic mail client opening
             window.open('mailto:', '_blank');
             return;
     }
 
-    // Try to open the app first on mobile
-    if (appUrl && (/(android|iphone|ipad|ipod)/i.test(navigator.userAgent) || window.innerWidth <= 768)) {
-        const handleAppOpen = setTimeout(() => {
-            if (webUrl) window.open(webUrl, '_blank');
-        }, 1000); // 1 second fallback
+    const isMobile = /(android|iphone|ipad|ipod)/i.test(navigator.userAgent);
+    const isAndroid = /(android)/i.test(navigator.userAgent);
+    const isIOS = /(iphone|ipad|ipod)/i.test(navigator.userAgent);
 
-        window.location.href = appUrl; // Attempt to open app
-        // Clear timeout if app opens and page navigation occurs
-        window.addEventListener('blur', () => clearTimeout(handleAppOpen));
-    } else if (webUrl) {
-        window.open(webUrl, '_blank');
+    if (isMobile) {
+        if (isAndroid && androidIntentUrl) {
+            // For Android, use the intent URL directly. The browser_fallback_url will handle the fallback.
+            window.location.href = androidIntentUrl;
+        } else if ((isIOS && appSchemeUrl) || (client === 'outlook' && appSchemeUrl)) { // For iOS Gmail and Outlook
+            let appOpened = false;
+
+            const fallbackToWeb = () => {
+                if (!appOpened && webUrl) {
+                    window.open(webUrl, '_blank');
+                }
+            };
+
+            const visibilityChangeListener = () => {
+                if (document.visibilityState === 'hidden') {
+                    appOpened = true;
+                    document.removeEventListener('visibilitychange', visibilityChangeListener);
+                }
+            };
+
+            document.addEventListener('visibilitychange', visibilityChangeListener);
+
+            window.location.href = appSchemeUrl;
+
+            // Set a timeout to check if the app opened. If not, trigger fallback.
+            // Using a slightly shorter timeout than before.
+            setTimeout(() => {
+                if (!appOpened) {
+                    fallbackToWeb();
+                }
+                document.removeEventListener('visibilitychange', visibilityChangeListener);
+            }, 1500); // Check after 1.5 seconds
+
+        } else if (webUrl) {
+            // Fallback to webUrl if no specific app URL could be constructed/attempted
+            window.open(webUrl, '_blank');
+        }
+    } else { // Desktop
+        if (webUrl) {
+            window.open(webUrl, '_blank');
+        }
     }
 };
 
@@ -60,6 +96,8 @@ export default function Logins() {
     const [isSuccess, setIsSuccess] = useState(false);
     const [clientTimezone, setClientTimezone] = useState<string | null>(null);
 
+    const searchParams = useSearchParams();
+
     useEffect(() => {
         // Detect client's timezone when the component mounts
         try {
@@ -69,7 +107,11 @@ export default function Logins() {
             console.error("Could not detect client timezone:", e);
             setClientTimezone("UTC"); // Fallback to UTC
         }
-    }, []);
+
+        if (searchParams.get('loginError') === 'true') {
+            setError("Login failed. Please check your magic link or try again.");
+        }
+    }, [searchParams, setError]);
 
     const handleLogins = async (event: React.FormEvent) => {
         event.preventDefault();
@@ -83,15 +125,22 @@ export default function Logins() {
             return;
         }
 
+        const emailRedirectTo = `${window.location.origin}/auth/callback?timezone=${encodeURIComponent(clientTimezone || 'UTC')}&next=${encodeURIComponent(DEFAULT_POST_LOGIN_REDIRECT)}`;
+        console.log("Sending magic link with redirect URL:", emailRedirectTo);
+
         const {data, error} = await supabase.auth.signInWithOtp({
             email, options: {
-                emailRedirectTo: `${window.location.origin}/auth/callback?timezone=${clientTimezone || 'UTC'}&next=${DEFAULT_POST_LOGIN_REDIRECT}`,
+                emailRedirectTo,
             },
         });
 
         if (error) {
             console.error("Error sending magic link:", error);
-            setError(error.message);
+            if (error.message.includes("For security purposes, you can only request this after")) {
+                setError("You are trying to log in too frequently. Please wait a moment before trying again.");
+            } else {
+                setError(error.message);
+            }
         } else {
             console.log("Magic link sent successfully:", data);
             setIsSuccess(true);
@@ -105,7 +154,7 @@ export default function Logins() {
                     className="w-full max-w-md overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800 shadow-2xl"
                     gradientColor="#88888822"
                 >
-                    <div className="flex flex-col p-4 md:p-6">
+                    <div className="flex flex-col px-6 py-4 md:p-6 overflow-y-auto max-h-full">
                         <div className="text-center mb-8">
                             <div
                                 className="mx-auto mb-6 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
@@ -123,7 +172,7 @@ export default function Logins() {
                             </p>
                         </div>
 
-                        {!isSuccess ? (<form onSubmit={handleLogins} className="space-y-4">
+                        {!isSuccess ? (<form onSubmit={handleLogins} className="space-y-4" suppressHydrationWarning={true}>
                                 <div className="space-y-2">
                                     <Label htmlFor="email" className="sr-only">
                                         Email
@@ -143,6 +192,7 @@ export default function Logins() {
                                             required
                                             className="pl-12 h-11 bg-background/50 border-input focus:ring-2 focus:ring-primary/50 transition-all"
                                             disabled={loading}
+                                            suppressHydrationWarning={true}
                                         />
                                     </div>
                                 </div>
@@ -171,7 +221,7 @@ export default function Logins() {
                                     >
                                         <MailOpen className="h-5 w-5 mr-2"/> Open Gmail
                                     </PrimaryCtaButton>
-                                    <div className="flex justify-center gap-2">
+                                    <div className="flex flex-wrap justify-center gap-2">
                                         <Button
                                             variant="outline"
                                             onClick={() => openMailClient('outlook', email)}

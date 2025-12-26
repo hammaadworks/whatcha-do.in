@@ -1,4 +1,4 @@
-# whatcha-doin UX Design Specification
+# whatcha-do.in UX Design Specification
 
 _Created on 2025-11-12 by hammaadworks_
 _Generated using BMad Method - Create UX Design Workflow v1.0_
@@ -7,9 +7,7 @@ _Generated using BMad Method - Create UX Design Workflow v1.0_
 
 ## Executive Summary
 
-**NOTE:** For development purposes, Magic Link authentication is temporarily disabled. The application is configured to use a hardcoded test user session for all feature development. This is achieved by injecting a mock user via the `AuthProvider` component in `app/(main)/layout.tsx` when `NEXT_PUBLIC_DEV_MODE_ENABLED=true`. To re-enable Magic Link, set `NEXT_PUBLIC_DEV_MODE_ENABLED=false` in `.env.local` (or remove it) and set `enable_signup = true` in `supabase/config.toml` under both `[auth]` and `[auth.email]` sections.
-
-"whatcha-doin" is an identity-building toolkit focused on helping "The Ambitious Underachiever" build consistent habits. The core experience is about building identity through consistent actions, with a philosophy of "no friction, no stress, only pure productivity." It's the app where users build their identity with consistent habits one by one.
+"whatcha-do.in" is an identity-building toolkit focused on helping "The Ambitious Underachiever" build consistent habits. The core experience is about building identity through consistent actions, with a philosophy of "no friction, no stress, only pure productivity." It's the app where users build their identity with consistent habits one by one.
 
 ---
 
@@ -30,7 +28,7 @@ A prominent Light/Dark Mode switcher will be a key feature.
 
 ### 2.1 Defining Experience
 
-The core experience of "whatcha-doin" is defined by the principle that "It's the app where you build your identity with consistent habits one by one." It functions as an "identity-building toolkit," emphasizing "no friction, no stress, only pure productivity." The primary focus is on empowering users to build and maintain consistent habits as a foundation for their identity.
+The core experience of "whatcha-do.in" is defined by the principle that "It's the app where you build your identity with consistent habits one by one." It functions as an "identity-building toolkit," emphasizing "no friction, no stress, only pure productivity." The primary focus is on empowering users to build and maintain consistent habits as a foundation for their identity.
 
 ### 2.2 Novel UX Patterns
 
@@ -79,6 +77,9 @@ The overall design aesthetic will be "Professional, tech-savvy, out-of-the-box w
 ### 4.2 Overall Page Structure
 The main interface is organized with the following top-to-bottom structure to provide a clear and logical user flow:
 1.  **User Info/Bio** (Includes Avatar, Username, Bio [Full-screen Immersive Edit Modal], and **Local Time Display**)
+    - **Local Time Display (for Public Profiles):**
+        - For authenticated users, the displayed time reflects their configured timezone, retrieved from their profile settings.
+        - For guest users viewing a public profile, the clock will display the profile owner's local time, and a subtle subtitle will indicate the time difference relative to the guest's automatically detected local timezone. This provides immediate context to the guest without requiring them to input their timezone.
 2.  **"Actions" Section** (Todos)
 3.  **"Habits" Section** (The Identity Momentum Board: Today, Yesterday, The Pile)
 4.  **Journal Section** (Daily entry with date selector)
@@ -223,7 +224,7 @@ The application will adhere to the **Web Content Accessibility Guidelines (WCAG)
 
 ### 9.1 Completion Summary
 
-This UX Design Specification outlines the foundational design decisions for the "whatcha-doin" application. Key aspects covered include:
+This UX Design Specification outlines the foundational design decisions for the "whatcha-do.in" application. Key aspects covered include:
 
 *   **Project Vision & Core Philosophy:** Defined the project's purpose as an "identity-building toolkit" for "The Ambitious Underachiever," emphasizing "no friction, no stress, only pure productivity."
 *   **Design System Foundation:** Established `shadcn/ui` as the primary design system and `Aceternity UI` for animations, alongside a dual-theme strategy ("Zenith" for light mode, "Monolith" for dark mode).
@@ -272,12 +273,12 @@ This structure is designed to convert "ambitious underachievers" by addressing t
 
 This UX Design Specification was created through visual collaboration:
 
-- **Color Theme Visualizer**: /Users/alhamdulillah/codespace/whatcha-doin/docs/ux-color-themes.html
+- **Color Theme Visualizer**: /docs/ux-color-themes.html
   - Interactive HTML showing all color theme options explored
   - Live UI component examples in each theme
   - Side-by-side comparison and semantic color usage
 
-- **Design Direction Mockups**: /Users/alhamdulillah/codespace/whatcha-doin/docs/ux-design-directions.html
+- **Design Direction Mockups**: /docs/ux-design-directions.html
   - Interactive HTML with 6-8 complete design approaches
   - Full-screen mockups of key screens
   - Design philosophy and rationale for each direction

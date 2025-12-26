@@ -43,7 +43,7 @@ export function BackstorySection() {
                     Phineas always had an answer. Not because he was perfect, but because he always had <span className="text-foreground font-semibold underline decoration-wavy decoration-primary/30">something</span> cooking.
                   </p>
                   <p>
-                    <span className="font-bold text-foreground">whatcha-doin</span> captures that same spark: curious, creative, always building, even if it's tiny.
+                    <span className="font-bold text-foreground">whatcha-do.in</span> captures that same spark: curious, creative, always building, even if it's tiny.
                   </p>
                 </div>
               </div>

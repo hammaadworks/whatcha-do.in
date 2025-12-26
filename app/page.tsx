@@ -6,15 +6,20 @@ import { BeforeAfterSection } from "@/components/landing/BeforeAfterSection";
 import { PsychologySection } from "@/components/landing/PsychologySection";
 import { AISection } from "@/components/landing/AISection";
 import { FeaturesShowcaseSection } from "@/components/landing/FeaturesShowcaseSection";
+import { PWASection } from "@/components/landing/PWASection"; // Import PWASection
 import { StillUnsureSection } from "@/components/landing/StillUnsureSection";
 import { CTASection } from "@/components/landing/CTASection";
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: "whatcha-doin",
+  title: "whatcha-do.in",
   description: "The app that helps you become the person you keep imagining --- by stacking Identity × Discipline × Consistency, one tiny action at a time.",
 };
 
+/**
+ * The main Landing Page for the application (Root Route).
+ * Composes various marketing sections to introduce the product.
+ */
 export default function LandingPage() {
   return (
     <div className="relative min-h-screen w-full overflow-hidden bg-background text-foreground font-mono selection:bg-primary selection:text-primary-foreground">
@@ -26,6 +31,7 @@ export default function LandingPage() {
         <PsychologySection />
         <AISection />
         <FeaturesShowcaseSection />
+        <PWASection /> {/* Render the PWASection here */}
         <StillUnsureSection />
         <CTASection />
       </div>

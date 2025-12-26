@@ -1,7 +1,7 @@
 # Validation Report
 
-**Document:** /Users/alhamdulillah/codespace/whatcha-doin/docs/sprint-artifacts/1-3-establish-username-in-database-and-create-profile-page.md
-**Checklist:** /Users/alhamdulillah/codespace/whatcha-doin/.bmad/bmm/workflows/4-implementation/create-story/checklist.md
+**Document:** /docs/sprint-artifacts/1-3-establish-username-in-database-and-create-profile-page.md
+**Checklist:** /.bmad/bmm/workflows/4-implementation/create-story/checklist.md
 **Date:** 2025-11-22
 
 ## Summary
@@ -12,7 +12,7 @@
 
 ### 1. Load Story and Extract Metadata
 Pass Rate: 4/4 (100%)
-✓ Load story file: /Users/alhamdulillah/codespace/whatcha-doin/docs/sprint-artifacts/1-3-establish-username-in-database-and-create-profile-page.md
+✓ Load story file: /docs/sprint-artifacts/1-3-establish-username-in-database-and-create-profile-page.md
 Evidence: File was successfully loaded.
 
 ✓ Parse sections: Status, Story, ACs, Tasks, Dev Notes, Dev Agent Record, Change Log
@@ -26,7 +26,7 @@ Evidence: Issue trackers initialized.
 
 ### 2. Previous Story Continuity Check
 Pass Rate: 12/12 (100%)
-✓ Load /Users/alhamdulillah/codespace/whatcha-doin/docs/sprint-artifacts/sprint-status.yaml
+✓ Load /docs/sprint-artifacts/sprint-status.yaml
 Evidence: sprint-status.yaml loaded successfully.
 
 ✓ Find current 1-3-establish-username-in-database-and-create-profile-page in development_status
@@ -38,7 +38,7 @@ Evidence: Previous story identified as 1-2-implement-development-login-bypass.
 ✓ Check previous story status
 Evidence: Status is 'done'.
 
-✓ Load previous story file: /Users/alhamdulillah/codespace/whatcha-doin/docs/sprint-artifacts/1-2-implement-development-login-bypass.md
+✓ Load previous story file: /docs/sprint-artifacts/1-2-implement-development-login-bypass.md
 Evidence: Previous story file loaded successfully.
 
 ✓ Extract: Dev Agent Record (Completion Notes, File List with NEW/MODIFIED)
@@ -171,7 +171,7 @@ Evidence: All required Dev Agent Record sections are present.
 ✓ Change Log initialized
 Evidence: Change Log is initialized with a draft entry.
 
-✓ File in correct location: /Users/alhamdulillah/codespace/whatcha-doin/docs/sprint-artifacts/1-3-establish-username-in-database-and-create-profile-page.md
+✓ File in correct location: /docs/sprint-artifacts/1-3-establish-username-in-database-and-create-profile-page.md
 Evidence: File is in the correct location.
 
 ### 8. Unresolved Review Items Alert

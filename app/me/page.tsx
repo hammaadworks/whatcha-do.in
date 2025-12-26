@@ -1,6 +1,11 @@
 import { createServerSideClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 
+/**
+ * A redirector route (`/me`).
+ * Checks if the user is authenticated and redirects them to their dynamic profile (`/[username]`).
+ * If not authenticated, redirects to login.
+ */
 export default async function DashboardPage() {
   const supabase = await createServerSideClient()
   const { data: { user } } = await supabase.auth.getUser()

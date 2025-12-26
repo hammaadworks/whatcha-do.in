@@ -18,7 +18,7 @@ export function ShareLinkSection() {
         </BlurFade>
         <BlurFade delay={0.4} inView>
           <p className="text-xl md:text-2xl font-mono text-muted-foreground leading-relaxed max-w-3xl mx-auto">
-            Next time someone asks &quot;whatcha doin?&quot;, don&apos;t be dumbstruck. Just share your whatcha-doin link and let your consistency do the talking.
+            Next time someone asks &quot;whatcha doin?&quot;, don&apos;t be dumbstruck. Just share your whatcha-do.in link and let your consistency do the talking.
           </p>
         </BlurFade>
         <BlurFade delay={0.6} inView>

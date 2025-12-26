@@ -1,6 +1,6 @@
 # Story Quality Validation Report
 
-**Document:** /Users/alhamdulillah/codespace/whatcha-doin/docs/sprint-artifacts/1-5-implement-foundational-authenticated-main-view-layout.md
+**Document:** /docs/sprint-artifacts/1-5-implement-foundational-authenticated-main-view-layout.md
 **Checklist:** .bmad/bmm/workflows/4-implementation/create-story/checklist.md
 **Date:** 2025-11-22
 
@@ -12,7 +12,7 @@
 
 ### 1. Load Story and Extract Metadata
 Pass Rate: 4/4 (100%)
-✓ Load story file: /Users/alhamdulillah/codespace/whatcha-doin/docs/sprint-artifacts/1-5-implement-foundational-authenticated-main-view-layout.md
+✓ Load story file: /docs/sprint-artifacts/1-5-implement-foundational-authenticated-main-view-layout.md
 Evidence: Story file exists and was loaded.
 ✓ Parse sections: Status, Story, ACs, Tasks, Dev Notes, Dev Agent Record, Change Log
 Evidence: All sections were parsed.
@@ -88,7 +88,7 @@ Evidence: The story section follows the specified format.
 Evidence: All required sections are present in the Dev Agent Record.
 ✓ Change Log initialized
 Evidence: A "Change Log" section is now present at the end of the story.
-✓ File in correct location: /Users/alhamdulillah/codespace/whatcha-doin/docs/sprint-artifacts/1-5-implement-foundational-authenticated-main-view-layout.md
+✓ File in correct location: /docs/sprint-artifacts/1-5-implement-foundational-authenticated-main-view-layout.md
 Evidence: File is in the correct location.
 
 ### 8. Unresolved Review Items Alert
@@ -118,4 +118,4 @@ All quality standards met.
 1. The story is now ready for further processing.
 2. The user previously requested to "later run story-context for 1-5".
 
-**File:** /Users/alhamdulillah/codespace/whatcha-doin/docs/sprint-artifacts/validation-report-1-5-implement-foundational-authenticated-main-view-layout-20251122114000.md
+**File:** /docs/sprint-artifacts/validation-report-1-5-implement-foundational-authenticated-main-view-layout-20251122114000.md

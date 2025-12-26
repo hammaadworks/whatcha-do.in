@@ -20,7 +20,7 @@ tasks_subtasks:
     - "Subtask 1.2: Import the `HabitCard` component from `components/habits/HabitCard.tsx`."
     - "Subtask 1.3: Render a `HabitCard` component within the 'The Pile' column."
   - "Task 2: Populate `HabitCard` with mock data (AC: #2)"
-    - "Subtask 2.1: Create a mock `habit` object with `id`, `name` ('Sample Habit'), `is_public` (true), `pile_state` ('lively'), `current_streak` (0), `last_streak` (0), and null for `goal_value` and `goal_unit`."
+    - "Subtask 2.1: Create a mock `habit` object with `id`, `name` ('Sample Habit'), `is_public` (true), `habit_state` ('lively'), `current_streak` (0), `last_streak` (0), and null for `goal_value` and `goal_unit`."
     - "Subtask 2.2: Pass the mock `habit` object to the `habit` prop of `HabitCard`."
     - "Subtask 2.3: Provide dummy `onHabitUpdated` and `onHabitDeleted` functions to `HabitCard`."
   - "Task 3: (New) Enhance `HabitCard` visual design to match UX specifications (AC: #5, #6, #7, #8)"

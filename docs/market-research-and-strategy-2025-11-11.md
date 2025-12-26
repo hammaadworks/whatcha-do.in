@@ -1,11 +1,11 @@
-# Market Research & Strategy Report: "whatcha-doin"
+# Market Research & Strategy Report: "whatcha-do.in"
 
 **Date:** 2025-11-11
 **Author:** Mary, Business Analyst
 
 ## 1. Introduction
 
-This document summarizes the findings from the initial discovery and market research phase for the project "whatcha-doin". The objective of this research was to validate the product concept, define the target market, analyze the competitive landscape, and establish a clear strategic vision for the Minimum Viable Product (MVP).
+This document summarizes the findings from the initial discovery and market research phase for the project "whatcha-do.in". The objective of this research was to validate the product concept, define the target market, analyze the competitive landscape, and establish a clear strategic vision for the Minimum Viable Product (MVP).
 
 ## 2. Market Analysis
 
@@ -73,6 +73,6 @@ Based on the need for user profiles and data persistence, a key strategic decisi
 
 ## 7. Conclusion & Next Steps
 
-The "whatcha-doin" concept is well-positioned to address a clear need within a large and growing market. Its unique philosophical core and innovative feature set provide a strong foundation for differentiation.
+The "whatcha-do.in" concept is well-positioned to address a clear need within a large and growing market. Its unique philosophical core and innovative feature set provide a strong foundation for differentiation.
 
 The recommended next step is to proceed to the **Planning Phase** of the BMM workflow. This involves engaging the **Project Manager (pm)** agent to develop a detailed **Product Requirements Document (PRD)** based on the findings in this report.

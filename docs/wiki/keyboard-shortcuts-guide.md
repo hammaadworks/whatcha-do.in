@@ -1,6 +1,6 @@
-# Keyboard Shortcuts Guide for whatcha-doin
+# Keyboard Shortcuts Guide for whatcha-do.in
 
-This guide establishes conventions for implementing keyboard shortcuts across the *whatcha-doin* application. Adhering to these rules ensures a consistent, accessible, and non-conflicting user experience for all keyboard users, while respecting the diverse ways users interact with our app.
+This guide establishes conventions for implementing keyboard shortcuts across the *whatcha-do.in* application. Adhering to these rules ensures a consistent, accessible, and non-conflicting user experience for all keyboard users, while respecting the diverse ways users interact with our app.
 
 ---
 
@@ -28,13 +28,24 @@ This pattern is chosen because:
 *   It significantly reduces the likelihood of conflicts with common browser shortcuts (e.g., `Cmd/Ctrl + 1-9` for tabs, `Cmd/Ctrl + P` for print).
 *   It provides a shorter, more concise key combination compared to `Cmd/Ctrl + Shift + [Key]`.
 
+### 2.1. Extended Shortcut Pattern: Folding Actions
+
+For actions related to toggling the folding state of UI sections, an extended pattern is used to provide a distinct set of keybindings.
+
+**Pattern:** `[Platform Modifier] + Shift + [Key]`
+
+*   **Mac Users:** `⌥ (Option) + Shift + [Key]`
+*   **Windows/Linux Users:** `Alt + Shift + [Key]`
+
+This pattern is reserved for folding/unfolding specific sections within the application.
+
 ---
 
 ## 3. Key Selection Guidelines `([Key])`
 
 When choosing the `[Key]` part of the shortcut:
 
-*   **Prioritize First Letter:** Whenever possible, use the first letter of the action (e.g., `P` for Profile, `I` for Insights, `K` for Keyboard Shortcuts).
+*   **Prioritize First Letter:** Whenever possible, use the first letter of the action (e.g., `P` for Profile, `I` for Insights, `K` for Keyboard Shortcuts, `M` for Me section, `A` for Actions section, `J` for Journal section).
 *   **Memorability:** Choose keys that are easy to remember and associate with the action.
 *   **Avoid Overlap:** Ensure the chosen `[Key]` doesn't create conflicting application-specific shortcuts.
 *   **Special Characters:** Use sparingly. If a special character is highly intuitive (e.g., `/` for search, `?` for help), it can be considered (e.g., `Alt + ?`).
@@ -93,10 +104,12 @@ The `KeyboardShortcutsModal.tsx` component serves as the central hub for documen
 These shortcuts provide quick access to main sections of the user's dashboard.
 
 *   **View Profile:** `Alt/Option + P`
-*   **View Insights:** `Alt/Option + I`
 *   **Keyboard Shortcuts (this very list):** `Alt/Option + /`
 *   **Open Settings:** `Alt/Option + S`
 *   **Toggle Theme:** `Alt/Option + T` (Directly toggles the application theme between light and dark modes)
+*   **Toggle "Me" Section Fold:** `Alt/Option + Shift + M`
+*   **Toggle "Actions" Section Fold:** `Alt/Option + Shift + A`
+*   **Toggle "Journal" Section Fold:** `Alt/Option + Shift + J`
 
 ### B. `ActionItem.tsx` (In-Context Item Manipulation)
 

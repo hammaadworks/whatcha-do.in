@@ -3,7 +3,7 @@
 import React from 'react';
 import AppHeader from "@/components/layout/AppHeader";
 import AppFooter from "@/components/layout/AppFooter";
-import { Toaster } from "sonner";
+import { Toaster } from "sonner"; // Removed Toaster import
 import { useKeyboardShortcuts } from '@/components/shared/KeyboardShortcutsProvider';
 import { SettingsDrawer } from '@/components/layout/SettingsDrawer';
 import { TooltipProvider } from '@/components/ui/tooltip'; // Import TooltipProvider
@@ -15,7 +15,7 @@ export function LayoutContent({ children }: { children: React.ReactNode }) {
         <TooltipProvider> {/* Wrap with TooltipProvider */}
             <SettingsDrawer isOpen={isSettingsOpen} onOpenChange={toggleSettingsModal} children={null} />
             <AppHeader themeTogglerRef={themeTogglerRef}/>
-            <main className="flex-grow flex justify-center px-2 md:px-4 lg:px-8 pt-16 lg:pt-32 pb-4">
+            <main className="flex-grow flex justify-center px-2 md:px-4 lg:px-8 pt-16 lg:pt-28 pb-2 md:pb-4">
                 {children}
             </main>
             <AppFooter/>

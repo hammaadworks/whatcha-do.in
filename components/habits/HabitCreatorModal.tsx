@@ -15,6 +15,10 @@ interface HabitCreatorModalProps {
   onHabitCreated: () => void;
 }
 
+/**
+ * A dialog wrapper for the `HabitCreator` form.
+ * Handles the open/close state of the creation UI.
+ */
 export function HabitCreatorModal({ isOpen, onClose, onHabitCreated }: HabitCreatorModalProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>

@@ -15,7 +15,8 @@ interface UserMenuPopoverProps {
 }
 
 const UserMenuPopover: React.FC<UserMenuPopoverProps> = ({ user }) => {
-  const { toggleShortcutsModal, isInsightsOpen, toggleInsightsModal } = useKeyboardShortcuts(); // Use the hook and destructure new insights state/toggler
+  // Extract isInsightsOpen and toggleInsightsModal from the hook
+  const { toggleShortcutsModal, isInsightsOpen, toggleInsightsModal } = useKeyboardShortcuts();
 
   if (!user) {
     return null;
@@ -40,19 +41,15 @@ const UserMenuPopover: React.FC<UserMenuPopoverProps> = ({ user }) => {
               <KeyboardShortcut keys={["P"]} />
             </div>
           </Link>
-          {user.username && (
-            <InsightsTrigger username={user.username} open={isInsightsOpen} onOpenChange={toggleInsightsModal}> {/* Pass insights state and toggler */}
-              <div className="flex justify-between items-center px-4 py-2 text-sm text-foreground hover:bg-muted rounded-md cursor-pointer">
-                View Insights
-                <KeyboardShortcut keys={["I"]} />
-              </div>
-            </InsightsTrigger>
-          )}
           <div className="flex justify-between items-center px-4 py-2 text-sm text-foreground hover:bg-muted rounded-md cursor-pointer"
                onClick={toggleShortcutsModal}>
             Keyboard Shortcuts
             <KeyboardShortcut keys={["/"]} />
           </div>
+
+          {user?.username && ( // Conditionally render InsightsTrigger if user is logged in
+            <InsightsTrigger username={user.username} open={isInsightsOpen} onOpenChange={toggleInsightsModal} />
+          )}
 
           <div className="my-2 border-t border-border" />
           <LogoutButton />

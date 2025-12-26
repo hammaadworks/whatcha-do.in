@@ -17,7 +17,12 @@ interface NotFoundLayoutProps {
     secondaryLinkIcon?: React.ElementType; // Lucide icon component
 }
 
-const NotFoundLayout: React.FC<NotFoundLayoutProps> = ({
+/**
+ * A layout component for 404 pages.
+ * Displays a 404 glitch animation and navigation links.
+ * Adapts secondary link based on authentication status.
+ */
+export const NotFoundLayout: React.FC<NotFoundLayoutProps> = ({
                                                            title,
                                                            description,
                                                            homeLinkText = "Home",
@@ -76,4 +81,3 @@ const NotFoundLayout: React.FC<NotFoundLayoutProps> = ({
     </div>);
 };
 
-export default NotFoundLayout;

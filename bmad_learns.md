@@ -18,4 +18,10 @@ favicons.io [https://favicon.io/favicon-converter/] to create awesome favicons
 15. bro keep both pro and flash, one as a senior and one as a junior helper
 16. do the landing page in the last as you can generate good visually from real components from your app, so real and cool
 17. I had added a cond in pointer that it must be diabled for touch screens so i had a pad but connected to kb so the pointer wasnt available, gemini was able to catch it
-18. 
+18. Give beutification tasks to higher model
+19. refine epics and make wikis, you are good to go with adhoc dev/ course corrections
+20. ask your model to read wikis while implementing
+21. ask to model to always give you a summary of "I have successfully completed all tasks:" so you can keep track and also use it as a git commit message.
+22. always implement skeletons and iterate with examples/screenshots
+23. Ask if ambigious, do not assume
+24. 

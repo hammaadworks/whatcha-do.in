@@ -39,7 +39,7 @@
     ".next/dev/dev/types/**/*.ts"
   ],
   "exclude": [
-    "whatcha-doin/node_modules",
+    "whatcha-do.in/node_modules",
     "tests/e2e"
   ]
 }

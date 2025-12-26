@@ -1,19 +1,19 @@
-# whatcha-doin: Stop Dreaming. Start Doing. 🚀
+# whatcha-do.in: Stop Dreaming. Start Doing. 🚀
 
-[![Build Status](https://img.shields.io/badge/Build-Passing-brightgreen)](https://github.com/hammaadworks/whatcha-doin/actions)
-[![License](https://img.shields.io/github/license/hammaadworks/whatcha-doin)](https://github.com/hammaadworks/whatcha-doin/blob/main/LICENSE)
-[![GitHub Stars](https://img.shields.io/github/stars/hammaadworks/whatcha-doin?style=social)](https://github.com/hammaadworks/whatcha-doin/stargazers)
+[![Build Status](https://img.shields.io/badge/Build-Passing-brightgreen)](https://github.com/hammaadworks/whatcha-do.in/actions)
+[![License](https://img.shields.io/github/license/hammaadworks/whatcha-doin)](https://github.com/hammaadworks/whatcha-do.in/blob/main/LICENSE)
+[![GitHub Stars](https://img.shields.io/github/stars/hammaadworks/whatcha-doin?style=social)](https://github.com/hammaadworks/whatcha-do.in/stargazers)
 [![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Next.js](https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
 [![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)](https://supabase.com/)
 [![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
 
 
-"whatcha-doin" isn't just another habit tracker; it's your personal identity-building toolkit, inspired by that iconic question from Phineas and Ferb! Ever been asked "Whatcha doin'?" and wished you had a killer answer? Now you will. This app empowers you to turn dreams into a daily grind, build consistent routines, and reflect on your epic progress, all leading to a more organized, fulfilling, and publicly showcase-able life! 🌟 Don't let another day of untapped potential slip by – start building your legacy today!
+"whatcha-do.in" isn't just another habit tracker; it's your personal identity-building toolkit, inspired by that iconic question from Phineas and Ferb! Ever been asked "Whatcha doin'?" and wished you had a killer answer? Now you will. This app empowers you to turn dreams into a daily grind, build consistent routines, and reflect on your epic progress, all leading to a more organized, fulfilling, and publicly showcase-able life! 🌟 Don't let another day of untapped potential slip by – start building your legacy today!
 
 ---
 
-## About whatcha-doin 🧠
+## About whatcha-do.in 🧠
 
 Dive into the app that makes consistency cool. We're here to help you:
 
@@ -23,9 +23,9 @@ Dive into the app that makes consistency cool. We're here to help you:
 
 ### Why is This App So Special? ✨
 
-"whatcha-doin" is packed with unique features designed to supercharge your consistency:
+"whatcha-do.in" is packed with unique features designed to supercharge your consistency:
 
-*   **Phineas & Ferb Inspired!** 🧑‍🔬 "Whatcha doin'?" is no longer a rhetorical question! Share your personalized public profile (`domain/[username]`) and let your success be the testimony of whatcha-doin. Build in public, inspire others, and always have an epic answer ready!
+*   **Phineas & Ferb Inspired!** 🧑‍🔬 "Whatcha doin'?" is no longer a rhetorical question! Share your personalized public profile (`whatcha-doin.hammaadworks.com/[username]`) and let your success be the testimony of whatcha-do.in. Build in public, inspire others, and always have an epic answer ready!
 *   **Keyboard-First Design:** Speed is king! Navigate, create, and complete tasks faster than ever. Stop wasting time on clunky interfaces.
 *   **The Two-Day Rule:** Say goodbye to broken streaks! Miss a day? No sweat. We keep you motivated with a smart grace period – because one slip-up shouldn't derail your entire journey.
 *   **Positive Urgency UI:** Gentle nudges and visual cues keep you on track without the guilt trip. Turn procrastination into consistent action.
@@ -54,7 +54,7 @@ Ready to stop dreaming and start doing?
 
 1.  **Clone the repository:**
     ```bash
-    git clone https://github.com/hammaadworks/whatcha-doin.git
+    git clone https://github.com/hammaadworks/whatcha-do.in.git
     cd whatcha-doin
     ```
 2.  **Install dependencies:**
@@ -65,7 +65,7 @@ Ready to stop dreaming and start doing?
     Create a `.env.local` file based on `.env.local.example`. You'll need:
     *   `NEXT_PUBLIC_SUPABASE_URL`
     *   `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-    *   `NEXT_PUBLIC_DEV_MODE_ENABLED` (set to `true` for development login bypass)
+    *   `NEXT_PUBLIC_DEV_USER`
 
 4.  **Run the development server:**
     ```bash
@@ -79,7 +79,7 @@ Ready to stop dreaming and start doing?
 
 ## Contributing 🤝
 
-We love contributions! Whether it's a bug report, feature request, or a pull request, your input helps make whatcha-doin better. Check out our [Contribution Guidelines](CONTRIBUTING.md) (coming soon!)
+We love contributions! Whether it's a bug report, feature request, or a pull request, your input helps make whatcha-do.in better. Check out our [Contribution Guidelines](CONTRIBUTING.md) (coming soon!)
 
 ---
 
@@ -97,7 +97,7 @@ Let's build awesome things together!
 
 *   **Email:** hammaadworks@gmail.com
 *   **Mobile:** +918310428923
-*   **WhatsApp:** [Send a message](https://api.whatsapp.com/send/?phone=918310428923&text=%22Hey%20_hammaadworks_,%20I%20got%20here%20from%20your%20*whatcha-doin*%20app.%20Wazzup!%22)
+*   **WhatsApp:** [Send a message](https://api.whatsapp.com/send/?phone=918310428923&text=%22Hey%20_hammaadworks_,%20I%20got%20here%20from%20your%20*whatcha-do.in*%20app.%20Wazzup!%22)
 *   **X:** [https://x.com/hammaadworks](https://x.com/hammaadworks)
 *   **GitHub:** [https://github.com/hammaadworks](https://github.com/hammaadworks)
 *   **LinkedIn:** [https://www.linkedin.com/in/hammaadworks](https://www.linkedin.com/in/hammaadworks)

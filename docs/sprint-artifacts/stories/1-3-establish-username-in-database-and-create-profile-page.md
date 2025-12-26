@@ -74,7 +74,7 @@ So that there is a foundation for the user's profile and main authenticated view
 
 ### Context Reference
 
-- `/Users/alhamdulillah/codespace/whatcha-doin/docs/sprint-artifacts/stories/1-3-establish-username-in-database-and-create-profile-page.context.xml`
+- `/docs/sprint-artifacts/stories/1-3-establish-username-in-database-and-create-profile-page.context.xml`
 
 ### Agent Model Used
 

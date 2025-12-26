@@ -43,31 +43,31 @@
     <docs>
       <doc>
         <path>docs/PRD.md</path>
-        <title>whatcha-doin - Product Requirements Document</title>
+        <title>whatcha-do.in - Product Requirements Document</title>
         <section>Executive Summary</section>
         <snippet>For development, Supabase authentication is temporarily bypassed. The application interacts directly with Supabase tables using a hardcoded user_id for all feature development.</snippet>
       </doc>
       <doc>
         <path>docs/PRD.md</path>
-        <title>whatcha-doin - Product Requirements Document</title>
+        <title>whatcha-do.in - Product Requirements Document</title>
         <section>Project Classification</section>
-        <snippet>whatcha-doin is a Moderate to High complexity Single Page Application (SPA) built with Next.js in the Personal Productivity / Habit Tracking domain.</snippet>
+        <snippet>whatcha-do.in is a Moderate to High complexity Single Page Application (SPA) built with Next.js in the Personal Productivity / Habit Tracking domain.</snippet>
       </doc>
       <doc>
         <path>docs/PRD.md</path>
-        <title>whatcha-doin - Product Requirements Document</title>
+        <title>whatcha-do.in - Product Requirements Document</title>
         <section>Web App Specific Requirements</section>
         <snippet>The project will be a Single Page Application (SPA) built with Next.js, utilizing shadcn/ui and Aceternity UI. It must support real-time synchronization of user data.</snippet>
       </doc>
       <doc>
         <path>docs/PRD.md</path>
-        <title>whatcha-doin - Product Requirements Document</title>
+        <title>whatcha-do.in - Product Requirements Document</title>
         <section>Non-Functional Requirements</section>
         <snippet>NFR-1.1: Public profile pages must achieve fast load times. NFR-3.1: Serverless/scalable architecture optimized for free-tier MVP. NFR-4.1: WCAG 2.1 Level AA accessibility compliance.</snippet>
       </doc>
       <doc>
         <path>docs/PRD.md</path>
-        <title>whatcha-doin - Product Requirements Document</title>
+        <title>whatcha-do.in - Product Requirements Document</title>
         <section>Implementation Planning</section>
         <snippet>The revised development strategy prioritizes incremental and integrated delivery, aiming to deliver a visible, testable feature integrated directly into the main application with foundational UI first.</snippet>
       </doc>
@@ -75,7 +75,7 @@
         <path>docs/architecture.md</path>
         <title>Architecture</title>
         <section>Executive Summary</section>
-        <snippet>This document outlines architectural decisions for 'whatcha-doin', a Next.js application using Supabase for backend, deployed on Vercel with GitHub Actions for CI/CD, prioritizing frugality and scalability.</snippet>
+        <snippet>This document outlines architectural decisions for 'whatcha-do.in', a Next.js application using Supabase for backend, deployed on Vercel with GitHub Actions for CI/CD, prioritizing frugality and scalability.</snippet>
       </doc>
       <doc>
         <path>docs/architecture.md</path>
@@ -109,43 +109,43 @@
       </doc>
       <doc>
         <path>docs/ux-design-specification.md</path>
-        <title>whatcha-doin UX Design Specification</title>
+        <title>whatcha-do.in UX Design Specification</title>
         <section>Design System Foundation</section>
         <snippet>Primary design system is shadcn/ui for foundational components, complemented by Aceternity UI for animations and "wow" moments. Dual-theme strategy: "Zenith" (light) and "Monolith" (dark).</snippet>
       </doc>
       <doc>
         <path>docs/ux-design-specification.md</path>
-        <title>whatcha-doin UX Design Specification</title>
+        <title>whatcha-do.in UX Design Specification</title>
         <section>Component Strategy</section>
         <snippet>Leverages shadcn/ui for core components, Aceternity UI for animations, and Magic UI for further enhancements, ensuring consistency and rapid development.</snippet>
       </doc>
       <doc>
         <path>docs/ux-design-specification.md</path>
-        <title>whatcha-doin UX Design Specification</title>
+        <title>whatcha-do.in UX Design Specification</title>
         <section>Responsive Design & Accessibility</section>
         <snippet>Application will adhere to WCAG 2.1 Level AA standard, ensuring usability across devices and for individuals with disabilities.</snippet>
       </doc>
       <doc>
         <path>docs/epics.md</path>
-        <title>whatcha-doin - Epic Breakdown</title>
+        <title>whatcha-do.in - Epic Breakdown</title>
         <section>Epic 1: Core Application Foundation & Authenticated Root View</section>
         <snippet>Goal: Establish foundational project infrastructure, implement dev bypass for Supabase data interaction, and lay out basic authenticated UI via public profile slug.</snippet>
       </doc>
       <doc>
         <path>docs/epics.md</path>
-        <title>whatcha-doin - Epic Breakdown</title>
+        <title>whatcha-do.in - Epic Breakdown</title>
         <section>Story 1.1: Project Setup and Core Infrastructure</section>
         <snippet>This story aims to establish a standardized project setup with core dependencies, build system, and a basic deployment pipeline for efficient and consistent development.</snippet>
       </doc>
       <doc>
         <path>docs/epics.md</path>
-        <title>whatcha-doin - Epic Breakdown</title>
+        <title>whatcha-do.in - Epic Breakdown</title>
         <section>Story 1.2: Implement Development Login Bypass</section>
         <snippet>This story focuses on bypassing the full Supabase login flow during local development to quickly test core features using a predefined user session without repeated logins.</snippet>
       </doc>
       <doc>
         <path>docs/epics.md</path>
-        <title>whatcha-doin - Epic Breakdown</title>
+        <title>whatcha-do.in - Epic Breakdown</title>
         <section>Story 1.3: Implement Foundational Dashboard Layout</section>
         <snippet>This story focuses on laying out the fundamental UI for the private dashboard, establishing visual structure for bio, todo list, and habit columns.</snippet>
       </doc>

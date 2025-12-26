@@ -20,7 +20,14 @@ type ProfilePageClientProps = {
     privateCount?: number; // Add privateCount
 };
 
-export default function PrivatePage({
+/**
+ * The client-side entry point for the Profile/Dashboard page.
+ * Determines if the viewer is the 'Owner' (authenticated user matches profile username)
+ * or a 'Guest', and renders the appropriate view (OwnerProfileView vs PublicPage).
+ * 
+ * Handles client-side auth loading states.
+ */
+export function PrivatePage({
                                         username,
                                         initialProfileUser,
                                         publicActions,

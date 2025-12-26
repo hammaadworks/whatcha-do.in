@@ -92,7 +92,7 @@ const AppHeader = ({ themeTogglerRef }: AppHeaderProps) => {
                             </div>
                             <span className="text-muted-foreground/50">|</span>
                             <span className="text-base sm:text-lg font-bold tracking-tight text-foreground/90 transition-opacity duration-300 whitespace-nowrap">
-                                whatcha-doin
+                                whatcha-do.in
                             </span>
                         </Link>
                     </div>

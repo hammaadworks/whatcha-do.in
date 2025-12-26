@@ -3,6 +3,7 @@ import { cn } from '@/lib/utils';
 import { toZonedTime } from 'date-fns-tz';
 import { ShineBorder } from '@/components/ui/shine-border';
 import { motion, AnimatePresence } from "framer-motion";
+import { useSimulatedTime } from '@/components/layout/SimulatedTimeProvider';
 
 interface UserClockProps {
   timezone: string;
@@ -56,11 +57,11 @@ export const UserClock: React.FC<UserClockProps> = ({ timezone, className, isOwn
   const [diffInfo, setDiffInfo] = useState<{ text: string; isSame: boolean }>({ text: '', isSame: true });
   const [showDate, setShowDate] = useState<boolean>(false); // New state for showing date
   const [displayDateContent, setDisplayDateContent] = useState<string>(''); // New state for formatted date
-
-  useEffect(() => {
+      const { simulatedDate } = useSimulatedTime();
+    useEffect(() => {
     const updateTime = () => {
       try {
-        const now = new Date();
+        const now = simulatedDate || new Date();
         
         // Use formatToParts for explicit extraction of weekday, hour, minute, and dayPeriod
         const parts = new Intl.DateTimeFormat('en-US', {
@@ -142,7 +143,7 @@ export const UserClock: React.FC<UserClockProps> = ({ timezone, className, isOwn
     updateTime();
     const interval = setInterval(updateTime, 1000);
     return () => clearInterval(interval);
-  }, [timezone, viewerTimezone]);
+  }, [timezone, viewerTimezone, simulatedDate]);
 
   const handleClick = () => {
     setShowDate(true);

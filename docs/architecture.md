@@ -2,14 +2,7 @@
 
 ## Executive Summary
 
-**NOTE:** For development purposes, Supabase authentication is temporarily bypassed. The application is configured to
-directly interact with Supabase tables using a hardcoded test user's `user_id` for all feature development. This is
-achieved by injecting the `user_id` via the `AuthProvider` component in `app/(main)/layout.tsx` when
-`NEXT_PUBLIC_DEV_MODE_ENABLED=true`. Full Supabase authentication will be integrated in the final epic. To re-enable
-Magic Link functionality for testing the final epic, set `NEXT_PUBLIC_DEV_MODE_ENABLED=false` in `.env.local` (or remove
-it) and set `enable_signup = true` in `supabase/config.toml` under both `[auth]` and `[auth.email]` sections.
-
-This document outlines the architectural decisions for 'whatcha-doin', a Next.js application leveraging Supabase for its
+This document outlines the architectural decisions for 'whatcha-do.in', a Next.js application leveraging Supabase for its
 backend services (PostgreSQL, Authentication, Realtime, Storage, and PostgREST API) and deployed on Vercel with GitHub
 Actions for CI/CD. The architecture prioritizes frugality, scalability, and a robust user experience, implementing novel
 UX patterns through a hybrid client-side/Supabase Database Function approach for critical logic like the Grace Period
@@ -22,7 +15,7 @@ The project will adopt a Next.js App Router-based structure, designed for clear 
 and efficient development. This structure accommodates our chosen technologies and facilitates collaboration.
 
 ```
-whatcha-doin/
+whatcha-do.in/
 ├── .github/                     # GitHub Actions workflows for CI/CD
 ├── app/                         # Next.js App Router (pages, layouts, API routes)
 │   ├── (auth)/                  # Authentication related routes/components (logins, signup)
@@ -36,7 +29,7 @@ whatcha-doin/
 │   │   └── layout.tsx           # Layout for all user-specific routes
 │   └── layout.tsx               # Root layout
 ├── components/                  # Reusable React components (UI, shared)
-│   ├── ui/                      # shadcn/ui components (customized)
+│   ├── ui/                      # shadcn/ui components (customized, including Magic UI)
 │   ├── common/                  # General purpose components
 │   └── habits/                  # Habit-specific components (e.g., HabitCard)
 ├── lib/                         # Utility functions, helpers, Supabase client initialization
@@ -44,6 +37,7 @@ whatcha-doin/
 │   ├── utils.ts                 # General utilities
 │   └── date.ts                  # Date/time utilities (e.g., timezone handling)
 ├── hooks/                       # Custom React hooks
+│   ├── useConfettiColors.ts     # Hook to get theme-aware colors for confetti
 ├── styles/                      # Tailwind CSS configuration, global styles
 ├── public/                      # Static assets
 ├── types/                       # Global TypeScript types/interfaces
@@ -140,8 +134,8 @@ first implementation story will involve executing this command to set up the pro
 
 * **Feature-Based Organization for Routes (`app/`):** The `app/` directory will be structured primarily by feature (
   e.g., `app/habits`, `app/journal`), leveraging Next.js App Router's conventions.
-* **Hybrid Organization for Shared Elements:**
-    * `components/ui/`: For `shadcn/ui` components.
+*   **Hybrid Organization for Shared Elements:**
+    * `components/ui/`: For `shadcn/ui` and Magic UI components (customized).
     * `components/common/`: For general-purpose, reusable components.
     * `components/features/[feature-name]/`: For components specific to a feature but reusable within it.
 * **Colocation of Related Files:** Tightly coupled files (component, types, tests) will be kept together.
@@ -225,7 +219,7 @@ users, habits, todos, and journal entries.
   `email`, `bio`, `timezone`, `grace_screen_shown_for_date`, `username`).
 * **Habits:** Will store recurring habit details (e.g., `habit_id`, `user_id`, `name`, `is_public`, `current_streak`,
   `last_streak`, `created_at`, `goal_value`, `goal_unit`, `last_recorded_mood`, `last_recorded_work_value`,
-  `last_recorded_work_unit`, `pile_state`, `junked_at`).
+  `last_recorded_work_unit`, `habit_state`, `junked_at`).
 * **Habit Completions (NEW Table):** A new table `habit_completions` will store each instance of a habit being
   completed.
     * `completion_id`: Unique identifier.
@@ -342,7 +336,7 @@ client, a consistent JSON response format will be adhered to:
 
 ## Security Architecture
 
-The security architecture for 'whatcha-doin' will be built upon the robust features provided by Supabase, ensuring data
+The security architecture for 'whatcha-do.in' will be built upon the robust features provided by Supabase, ensuring data
 protection and user privacy.
 
 * **Authentication:** Supabase Auth will handle user authentication, specifically implementing **Magic Link logins** (
@@ -376,7 +370,7 @@ protection and user privacy.
 
 ## Performance Considerations
 
-Performance is a key Non-Functional Requirement (NFR-1) for 'whatcha-doin', particularly for public profile page load
+Performance is a key Non-Functional Requirement (NFR-1) for 'whatcha-do.in', particularly for public profile page load
 times and real-time data synchronization. Our architectural choices inherently support strong performance:
 
 * **Next.js Optimizations:**
@@ -413,7 +407,7 @@ tier is well-suited for the MVP, and its serverless architecture provides inhere
 
 ### Prerequisites
 
-To set up the development environment for 'whatcha-doin', developers will need the following:
+To set up the development environment for 'whatcha-do.in', developers will need the following:
 
 * **Node.js:** Latest LTS version (e.g., v20.x).
 * **pnpm:** A package manager.
@@ -527,10 +521,16 @@ each choice.
     * **Rationale:** Ensures maintainability, debuggability, and centralized visibility of application health.
 
 10. **ADR 010: Date/Time Handling**
-    * **Decision:** Store UTC in DB (`TIMESTAMP WITH TIME ZONE`), transmit ISO 8601 UTC strings, client converts for
+
+    *   **Decision:** Store UTC in DB (`TIMESTAMP WITH TIME ZONE`), transmit ISO 8601 UTC strings, client converts for
+
       local display/input, server-side calculations use UTC with user's stored timezone.
-    * **Rationale:** Ensures data integrity, avoids timezone bugs, provides correct local user experience, and maintains
+
+    *   **Rationale:** Ensures data integrity, avoids timezone bugs, provides correct local user experience, and maintains
+
       server as source of truth.
+
+    *   **Guest User Timezone Detection:** For guest users viewing a public profile, the `UserClock` component automatically detects the guest's local timezone using `Intl.DateTimeFormat().resolvedOptions().timeZone` to calculate the time difference relative to the profile owner's timezone. This allows for an accurate time difference display without requiring guest authentication.
 
 11. **ADR 011: API Response Format**
     * **Decision:** Standard JSON structure with `data` for success, `error` for failures (message, code, details), and
@@ -563,18 +563,8 @@ each choice.
     * **Rationale:** Balances the need for historical context and trend analysis with concerns about database efficiency
       and storage. Provides valuable insights without overwhelming the database with granular daily entries.
 
-16. **ADR 016: Development Mode User Injection**
-    * **Decision:** Implement an `AuthProvider` client component to directly inject a mock user's `user_id` into the
-      session when `NEXT_PUBLIC_DEV_MODE_ENABLED=true` in `app/(main)/layout.tsx`. This allows for direct interaction
-      with Supabase tables using the provided `user_id` for all data operations.
-    * **Rationale:** This strategy allows for seamless feature development and testing without requiring a live Supabase
-      authentication flow, improving developer experience and enabling rapid iteration. It explicitly bypasses Supabase
-      Auth for data operations in development, while Supabase tables are still used as the primary data store. This
-      temporary bypass will be replaced by full Supabase Auth integration in the final epic.
-
 * **ADR 017: Dynamic Root Routing for User Profiles**
-    * **Decision:** Implement a unified routing model using a dynamic root segment `/[username]` (e.g.,
-      `whatcha-doin.com/hammaadworks`). This route serves as the single entry point for all of a user's content.
+    * **Decision:** Implement a unified routing model using a dynamic root segment `/[username]. This route serves as the single entry point for all of a user's content.
         - The root page (`app/[username]/page.tsx`) will dynamically render either the **private, editable dashboard**
           if the visitor is the authenticated owner, or the **public, read-only profile** for all other visitors.
         - All private feature pages (e.g., Habits, Journal, Todos) will be nested under this dynamic route (e.g.,

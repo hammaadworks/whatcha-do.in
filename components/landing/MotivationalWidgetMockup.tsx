@@ -12,10 +12,10 @@ export function MotivationalWidgetMockup({ className }: { className?: string }) 
   return (
     <div className={cn("relative w-full h-full flex items-center justify-center", className)}>
       <MagicCard
-        className="flex flex-col items-center justify-center shadow-lg p-6 text-center w-full h-full"
+        className="flex flex-col items-center justify-center shadow-lg p-8 text-center w-full max-w-xs mx-auto sm:p-8"
         gradientColor="#e5e7eb" // A light gray gradient for subtle effect
       >
-        <AnimatedShinyText className="text-xl font-medium italic mb-4">
+        <AnimatedShinyText className="text-xl font-medium italic mb-4 break-words pl-4">
           "{quote}"
         </AnimatedShinyText>
         <p className="text-sm text-muted-foreground">- {author}</p>

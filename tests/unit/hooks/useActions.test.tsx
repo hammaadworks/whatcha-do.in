@@ -1,7 +1,8 @@
-
 import { renderHook, act } from '@testing-library/react';
 import { useActions } from '@/hooks/useActions';
 import * as SupabaseActions from '@/lib/supabase/actions';
+import { SimulatedTimeProvider } from '@/components/layout/SimulatedTimeProvider';
+import React from 'react';
 
 // Mock the Supabase service
 jest.mock('@/lib/supabase/actions', () => ({
@@ -23,6 +24,10 @@ jest.mock('uuid', () => ({
     .mockReturnValue('id-n'),
 }));
 
+const wrapper = ({ children }: { children: React.ReactNode }) => (
+  <SimulatedTimeProvider>{children}</SimulatedTimeProvider>
+);
+
 describe('useActions Hook', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -30,14 +35,14 @@ describe('useActions Hook', () => {
   });
 
   test('should fetch actions on mount if owner', async () => {
-    const { result } = renderHook(() => useActions(true));
+    const { result } = renderHook(() => useActions(true), { wrapper });
     
     expect(SupabaseActions.fetchActions).toHaveBeenCalledWith('test-user', 'UTC');
     // Wait for async state update (React 18 automatic batching might handle this, but standard practice)
   });
 
   test('should ADD a root action', async () => {
-    const { result } = renderHook(() => useActions(true));
+    const { result } = renderHook(() => useActions(true), { wrapper });
     
     await act(async () => {
       result.current.addAction('New Root Task');
@@ -51,7 +56,7 @@ describe('useActions Hook', () => {
   });
 
   test('should ADD a child action (nesting)', async () => {
-    const { result } = renderHook(() => useActions(true));
+    const { result } = renderHook(() => useActions(true), { wrapper });
     
     // Add Parent
     await act(async () => {
@@ -69,7 +74,7 @@ describe('useActions Hook', () => {
   });
 
   test('should TOGGLE completion', async () => {
-    const { result } = renderHook(() => useActions(true));
+    const { result } = renderHook(() => useActions(true), { wrapper });
     
     await act(async () => {
       result.current.addAction('Task');
@@ -92,7 +97,7 @@ describe('useActions Hook', () => {
   });
 
   test('should EDIT action text', async () => {
-    const { result } = renderHook(() => useActions(true));
+    const { result } = renderHook(() => useActions(true), { wrapper });
     
     await act(async () => {
       result.current.addAction('Old Name');
@@ -106,7 +111,7 @@ describe('useActions Hook', () => {
   });
 
   test('should DELETE action (and implicitly children)', async () => {
-    const { result } = renderHook(() => useActions(true));
+    const { result } = renderHook(() => useActions(true), { wrapper });
     
     await act(async () => {
       result.current.addAction('Task to Delete');
@@ -122,7 +127,7 @@ describe('useActions Hook', () => {
   });
 
   test('should DELETE child action only', async () => {
-    const { result } = renderHook(() => useActions(true));
+    const { result } = renderHook(() => useActions(true), { wrapper });
     
     await act(async () => {
       result.current.addAction('Parent'); // id-1
