@@ -57,29 +57,41 @@ export function useHabitDnd({
     let newHabitState: HabitState = HabitState.LIVELY;
     if (targetBox === HabitBoxType.TODAY) newHabitState = HabitState.TODAY; else if (targetBox === HabitBoxType.YESTERDAY) newHabitState = HabitState.YESTERDAY; else newHabitState = HabitState.LIVELY; // Default for Pile
 
-    // 5. Optimistic Update
-    const newHabits = habits.map((h) => {
-      if (h.id === habitId) {
-        return { ...h, habit_state: newHabitState };
-      }
-      return h;
-    });
-    setOptimisticHabits(newHabits);
-
     // 6. Special Case: Completion (Today)
     if (targetBox === HabitBoxType.TODAY && sourceBox !== HabitBoxType.TODAY && onCompleteHabit) {
       onCompleteHabit(habitId);
       return;
     }
 
+    // 5. Optimistic Update
+    let updates: Partial<Habit> = { habit_state: newHabitState };
+    // If Unmarking (Today -> Pile/Yesterday), apply Undo logic optimistically
+    if (sourceBox === HabitBoxType.TODAY && (targetBox === HabitBoxType.YESTERDAY || targetBox === HabitBoxType.PILE)) {
+         try {
+             const undoUpdates = calculateHabitUpdates(habit, HabitLifecycleEvent.USER_UNDO, todayISO);
+             updates = { ...updates, ...undoUpdates };
+         } catch (e) {
+             console.warn("Optimistic undo calculation failed", e);
+         }
+    }
+
+    const newHabits = habits.map((h) => {
+      if (h.id === habitId) {
+        return { ...h, ...updates };
+      }
+      return h;
+    });
+    setOptimisticHabits(newHabits);
+
     try {
       if (sourceBox === HabitBoxType.TODAY && (targetBox === HabitBoxType.YESTERDAY || targetBox === HabitBoxType.PILE)) {
         const performUnmark = async () => {
           if (habit) {
-            const updates = calculateHabitUpdates(habit, HabitLifecycleEvent.USER_UNDO, todayISO);
-            await unmarkHabit(habit, updates);
-            habit = { ...habit, ...updates };
+            // Recalculate strictly for DB call to be safe, or reuse 'updates'
+            const dbUpdates = calculateHabitUpdates(habit, HabitLifecycleEvent.USER_UNDO, todayISO);
+            await unmarkHabit(habit, dbUpdates);
           }
+          setOptimisticHabits(null); // Clear optimistic state so fresh data takes over
           onHabitMoved?.();
         };
 
@@ -96,6 +108,7 @@ export function useHabitDnd({
         }
       } else {
         await updateHabit(habitId, { habit_state: newHabitState });
+        setOptimisticHabits(null); // Clear optimistic state here too for standard moves
         onHabitMoved?.();
       }
     } catch (error) {

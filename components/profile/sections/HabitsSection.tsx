@@ -108,8 +108,8 @@ export const HabitsSection: React.FC<HabitsSectionProps> = ({
     habits, todayISO
   });
 
-  const handleCreateHabit = () => {
-    onHabitCreated(setIsCreateHabitModalOpen);
+  const handleCreateHabit = (habit: Habit) => {
+    onHabitCreated(habit, setIsCreateHabitModalOpen);
   };
 
   const todayHabits = habits.filter((h) => h.habit_state === HabitState.TODAY);

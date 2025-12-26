@@ -3,6 +3,8 @@ import { CompletionsData, Habit, ISODate } from "@/lib/supabase/types";
 import { toast } from "sonner";
 import { calculateHabitUpdates } from "@/lib/logic/habits/habitLifecycle.ts";
 import { HabitLifecycleEvent } from "@/lib/enums";
+import { getReferenceDateUI } from "@/lib/date";
+import { useSimulatedTime } from "@/components/layout/SimulatedTimeProvider";
 
 interface UseHabitActionsProps {
   onActivityLogged?: () => void;
@@ -24,6 +26,9 @@ export const useHabitActions = ({
                                   habits,
                                   todayISO
                                 }: UseHabitActionsProps) => {
+  // Get canonical "now" respecting Time Travel
+  const { simulatedDate } = useSimulatedTime();
+  const refDate = getReferenceDateUI(simulatedDate);
 
   /**
    * Updates an existing habit's details.
@@ -77,8 +82,14 @@ export const useHabitActions = ({
   /**
    * Handles post-creation logic for habits (closing modal, logging).
    */
-  const handleCreateHabit = (setIsCreateHabitModalOpen: (open: boolean) => void) => {
-    console.log("[useHabitActions] Habit creation flow completed (UI)");
+  const handleCreateHabit = (newHabit: Habit, setIsCreateHabitModalOpen: (open: boolean) => void) => {
+    console.log("[useHabitActions] Habit creation flow completed (UI)", newHabit);
+    
+    // Optimistic Update (Append new habit)
+    if (setOptimisticHabits) {
+      setOptimisticHabits((prev) => [...prev, newHabit]);
+    }
+
     setIsCreateHabitModalOpen(false);
     toast.success("Habit created!");
     onActivityLogged?.();
@@ -109,7 +120,7 @@ export const useHabitActions = ({
     }
 
     try {
-      await markHabit(habitToComplete, updates, data);
+      await markHabit(habitToComplete, updates, data, refDate);
       console.log(`[useHabitActions] Habit completed successfully: ${habitId}`);
       toast.success("Habit completed! 🔥");
       onActivityLogged?.();
