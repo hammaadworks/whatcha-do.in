@@ -4,12 +4,13 @@ import React, { useState } from "react";
 import { CompletionsData, Habit } from "@/lib/supabase/types";
 import HabitInfoModal from "./HabitInfoModal";
 import { HabitCompletionsModal } from "./HabitCompletionsModal";
-import { GripVertical, Info, Skull } from "lucide-react";
+import { GripVertical, Lock, Flame, Ghost, Zap, Sparkles, History } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { HabitBoxType, HabitState } from "@/lib/enums";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { useSimulatedTime } from "@/components/layout/SimulatedTimeProvider";
-import { daysSince, getReferenceDateUI, getTodayISO } from "@/lib/date";
+import { getReferenceDateUI, getTodayISO } from "@/lib/date";
 import { SyntheticListenerMap } from "@dnd-kit/core/dist/hooks/utilities";
 
 interface HabitChipProps {
@@ -56,8 +57,31 @@ export const HabitChip: React.FC<HabitChipProps> = ({
   const isJunked = habit.habit_state === HabitState.JUNKED;
   const canBeDeleted = box === HabitBoxType.PILE;
 
-  // Calculate days neglected using ISO dates
-  const daysNeglected = isJunked && habit.junked_date ? daysSince(habit.junked_date, todayISO) : 0;
+  // Display Streak Logic
+  const displayStreak = isJunked ? -Math.abs(habit.streak) : habit.streak;
+
+  // Icon & Style Logic based on State
+  let StateIcon = Zap;
+  let stateStyles = "bg-primary/10 text-primary";
+
+  switch (habit.habit_state) {
+      case HabitState.JUNKED:
+          StateIcon = Ghost;
+          stateStyles = "bg-destructive/10 text-destructive/70";
+          break;
+      case HabitState.LIVELY:
+          StateIcon = Sparkles;
+          stateStyles = "bg-secondary text-secondary-foreground/70";
+          break;
+      case HabitState.YESTERDAY:
+          StateIcon = History;
+          stateStyles = "bg-orange-500/10 text-orange-600 dark:text-orange-400";
+          break;
+      case HabitState.TODAY:
+          StateIcon = Flame;
+          stateStyles = "bg-blue-500/10 text-blue-600 dark:text-blue-400";
+          break;
+  }
 
   const handleClick = () => {
     if (disableClick) return;
@@ -65,51 +89,56 @@ export const HabitChip: React.FC<HabitChipProps> = ({
   };
 
   return (<>
-    <div className="group relative flex items-center w-fit">
+    <div className="group relative flex items-center w-full sm:w-fit">
       <div
         onClick={handleClick}
-        className={cn("group relative flex items-center gap-x-2 rounded-full py-2.5 pl-3 pr-4 font-bold border transition-colors w-fit", isJunked ? "bg-gray-800 text-gray-300 border-gray-600 grayscale border-dashed cursor-not-allowed" : "bg-[--chip-bg] text-[--chip-text] border-[--chip-border] hover:bg-[--secondary-bg]", (disableClick || isJunked) ? "cursor-default" : "cursor-pointer")}
+        className={cn(
+            "group relative flex items-center gap-3 rounded-xl py-2 px-3 pl-1 border transition-all w-full sm:w-auto min-w-[140px] select-none",
+            isJunked 
+                ? "bg-muted/30 text-muted-foreground border-dashed border-border/60 hover:bg-muted/50" 
+                : "bg-card text-card-foreground border-border/60 shadow-sm hover:shadow-md hover:border-primary/30 active:scale-[0.98]",
+            (disableClick) ? "cursor-default" : "cursor-pointer"
+        )}
       >
         {/* Drag Handle (Only if listeners provided) */}
         {dragListeners && (
           <div
             {...dragListeners}
             onClick={(e) => e.stopPropagation()} // Prevent click propagation
-            className="cursor-grab hover:text-primary active:cursor-grabbing p-1 -ml-1 text-muted-foreground/50 hover:text-muted-foreground/80 transition-colors touch-none"
+            className="cursor-grab hover:text-primary active:cursor-grabbing p-1 text-muted-foreground/40 hover:text-foreground/80 transition-colors touch-none flex items-center justify-center h-full"
           >
-            <GripVertical size={16} />
+            <GripVertical size={14} />
           </div>
         )}
 
         {/* Main content */}
-        <div className="flex items-center gap-x-2">
-          <span>{habit.name}</span>
+        <div className="flex flex-1 items-center justify-between gap-3 overflow-hidden">
+          <div className="flex items-center gap-1.5 truncate">
+             <span className="font-semibold text-sm truncate max-w-[120px]">{habit.name}</span>
+             {!habit.is_public && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Lock size={12} className="text-muted-foreground/50 shrink-0" />
+                    </TooltipTrigger>
+                    <TooltipContent>Private</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+             )}
+          </div>
 
-          {isJunked ? (<div
-            className="inline-block rounded-[0.5rem] bg-destructive/20 px-2 py-1 text-[0.9rem] font-extrabold text-destructive items-center gap-1">
-            <Skull size={14} />
-            {daysNeglected > 0 ? `${daysNeglected}d` : ""}
-          </div>) : (/* Streak Counter */
-            <div
-              className="inline-block rounded-[0.5rem] bg-primary px-2 py-1 text-[0.9rem] font-extrabold text-primary-foreground items-center gap-1">
-              {habit.streak}
-            </div>)}
+          {/* Streak Badge */}
+          <div className={cn(
+              "flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold",
+              stateStyles
+          )}>
+            <StateIcon size={12} className="shrink-0" />
+            <span>{displayStreak}</span>
+          </div>
         </div>
 
         {/* Public Addon */}
         {rightAddon}
-
-        {/* Owner Addon (Info Button) - formerly in Private wrapper */}
-        {isOwner && (<button
-          onClick={(e) => {
-            e.stopPropagation();
-            setIsInfoModalOpen(true);
-          }}
-          className="ml-2 rounded-full p-1.5 hover:bg-gray-500/20"
-          title="Habit Info & Actions"
-        >
-          <Info size={16} />
-        </button>)}
       </div>
     </div>
 

@@ -12,7 +12,11 @@ import {
     Target,
     Zap,
     Clock,
-    CloudCheck
+    CloudCheck,
+    Smile,
+    Briefcase,
+    Timer,
+    StickyNote
 } from 'lucide-react';
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,} from "@/components/ui/tooltip";
 import {Button} from '@/components/ui/button';
@@ -41,6 +45,7 @@ interface JournalSectionProps {
 }
 
 const ActivityItem = ({ entry }: { entry: ActivityLogEntry }) => {
+    const [isNoteExpanded, setIsNoteExpanded] = useState(false);
     const time = format(new Date(entry.timestamp), 'h:mm a');
     
     // Determine Icon and Color
@@ -58,41 +63,64 @@ const ActivityItem = ({ entry }: { entry: ActivityLogEntry }) => {
         bgColor = "bg-rose-500/10";
     }
 
-    // Parse details for display
-    const details = entry.details ? Object.entries(entry.details)
-        .filter(([, value]) => value !== undefined && value !== null)
-        .map(([key, value]) => {
-             let formattedValue = value;
-             if (key === 'mood_score') formattedValue = `Mood: ${value}/100`;
-             else if (key === 'work_value' && entry.details?.duration_unit) formattedValue = `${value} ${entry.details.duration_unit}`;
-             else if (key === 'duration_value' && entry.details?.duration_unit) formattedValue = `${value} ${entry.details.duration_unit}`;
-             
-             return { key, value: formattedValue };
-        }) : [];
+    // Extract known details
+    const { mood, work_value, time_taken, time_taken_unit, notes } = entry.details || {};
 
     return (
-        <div className="group flex items-center gap-3 p-3 rounded-xl border bg-card/50 hover:bg-card hover:shadow-sm transition-all duration-200">
-            <div className={cn("p-2 rounded-full shrink-0", bgColor, iconColor)}>
+        <div className="group flex items-start gap-3 p-3 rounded-xl border bg-card/50 hover:bg-card hover:shadow-sm transition-all duration-200">
+            <div className={cn("p-2 rounded-full shrink-0 mt-0.5", bgColor, iconColor)}>
                 <Icon className="w-4 h-4" />
             </div>
             <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-0.5">
+                <div className="flex items-center gap-2 mb-1">
                     <span className="text-sm font-medium truncate">{entry.description}</span>
                 </div>
                 
                 {/* Details Row */}
-                <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+                <div className="flex flex-wrap gap-2 text-xs text-muted-foreground items-center">
                    {/* Time */}
                    <span className="flex items-center gap-1 text-xs font-mono opacity-70">
                         <Clock className="w-3 h-3" />
                         {time}
                    </span>
-                   {details.length > 0 && <span className="text-border">|</span>}
-                   {details.map((d, i) => (
-                       <span key={i} className="px-1.5 py-0.5 rounded-md bg-muted/50 border border-border/50">
-                          {d.value}
+                   
+                   {(mood !== undefined || work_value !== undefined || time_taken !== undefined || notes) && (
+                       <span className="text-border">|</span>
+                   )}
+
+                   {mood !== undefined && (
+                       <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-muted/50 border border-border/50">
+                           <Smile className="w-3 h-3" /> Mood: {mood}
                        </span>
-                   ))}
+                   )}
+                   
+                   {work_value !== undefined && (
+                       <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-muted/50 border border-border/50">
+                           <Briefcase className="w-3 h-3" /> Work: {work_value}
+                       </span>
+                   )}
+                   
+                   {time_taken !== undefined && (
+                       <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-muted/50 border border-border/50">
+                           <Timer className="w-3 h-3" /> {time_taken} {time_taken_unit || 'min'}
+                       </span>
+                   )}
+
+                   {notes && (
+                       <button 
+                           onClick={() => setIsNoteExpanded(!isNoteExpanded)}
+                           className={cn(
+                               "flex items-start gap-1 px-1.5 py-0.5 rounded-md bg-muted/50 border border-border/50 hover:bg-muted/80 transition-all text-left cursor-pointer group-hover:border-border/80",
+                               isNoteExpanded ? "max-w-full" : "max-w-[200px]"
+                           )}
+                           title={isNoteExpanded ? "Click to collapse" : "Click to expand"}
+                       >
+                           <StickyNote className="w-3 h-3 shrink-0 mt-0.5" /> 
+                           <span className={cn(isNoteExpanded ? "whitespace-pre-wrap break-words" : "truncate")}>
+                               {notes}
+                           </span>
+                       </button>
+                   )}
                 </div>
             </div>
         </div>

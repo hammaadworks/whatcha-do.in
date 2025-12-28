@@ -12,23 +12,24 @@ import {
   DialogTitle
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Check, Plus, X } from "lucide-react";
 import { HabitCompletionsModal } from "@/components/habits/HabitCompletionsModal";
-import { createHabit, markHabit } from "@/lib/supabase/habit";
+import { markHabit } from "@/lib/supabase/habit";
 import { useAuth } from "@/hooks/useAuth";
 import { useSimulatedTime } from "@/components/layout/SimulatedTimeProvider";
 import { getReferenceDateUI, getTodayISO } from "@/lib/date";
 import { toast } from "sonner";
 import { calculateHabitUpdates } from "@/lib/logic/habits/habitLifecycle.ts";
+import { HabitCreator } from "@/components/habits/HabitCreator";
 
 interface GracePeriodScreenProps {
   habits: Habit[];
   onComplete: (habitId: string, data: CompletionsData) => Promise<void>;
   onSkip: (habit: Habit) => Promise<void>;
+  onHabitCreated: (habit: Habit) => void;
 }
 
-export function GracePeriodScreen({ habits, onComplete, onSkip }: Readonly<GracePeriodScreenProps>) {
+export function GracePeriodScreen({ habits, onComplete, onSkip, onHabitCreated }: Readonly<GracePeriodScreenProps>) {
   // Canonical Time Logic
   const { user } = useAuth();
   const timezone = user?.timezone || "UTC";
@@ -41,8 +42,6 @@ export function GracePeriodScreen({ habits, onComplete, onSkip }: Readonly<Grace
 
   // Add Habit State
   const [isAdding, setIsAdding] = useState(false);
-  const [newHabitName, setNewHabitName] = useState("");
-  const [isCreating, setIsCreating] = useState(false);
 
   // If no habits, don't render (should be handled by parent, but safe guard)
   if (!habits || habits.length === 0) return null;
@@ -68,6 +67,7 @@ export function GracePeriodScreen({ habits, onComplete, onSkip }: Readonly<Grace
     try {
       const updates = calculateHabitUpdates(selectedHabitForCompletion, HabitLifecycleEvent.GRACE_COMPLETE, todayISO);
       await markHabit(selectedHabitForCompletion, updates, data);
+      await onComplete(selectedHabitForCompletion.id, data);
       setSelectedHabitForCompletion(null);
     } catch (err) {
       console.error(err);
@@ -77,43 +77,11 @@ export function GracePeriodScreen({ habits, onComplete, onSkip }: Readonly<Grace
     }
   };
 
-  // Wrapper for list items to use Grace logic
-  const handleListCompletion = async (data: CompletionsData) => {
-    if (!selectedHabitForCompletion) return;
-    try {
-      const updates = calculateHabitUpdates(selectedHabitForCompletion, HabitLifecycleEvent.GRACE_COMPLETE, todayISO);
-      await markHabit(selectedHabitForCompletion, updates, data);
-      await onComplete(selectedHabitForCompletion.id, data);
-      setSelectedHabitForCompletion(null);
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
-  const handleCreateAndComplete = async () => {
-    if (!newHabitName.trim() || !user) return;
-    setIsCreating(true);
-    try {
-      // 1. Create
-      const { data: newHabit, error } = await createHabit({
-        user_id: user.id,
-        name: newHabitName,
-        is_public: false, // Default private for grace?
-        habit_state: HabitState.LIVELY // Init state
-      });
-
-      if (error || !newHabit) throw error;
-
-      // 2. Open Completion Modal for this new habit
-      // We set it as selected, and set a flag that it's "adding".
-      setIsAdding(true); // Flag to know we are in add mode
+  const handleNewHabitCreated = (newHabit: Habit) => {
+      onHabitCreated(newHabit);
+      setIsAdding(true);
       setSelectedHabitForCompletion(newHabit);
-
-    } catch (e) {
-      toast.error("Failed to create habit.");
-    } finally {
-      setIsCreating(false);
-    }
+      toast.success("Habit created! Now let's check it off.");
   };
 
   // Intercept completion for the NEW habit
@@ -122,7 +90,6 @@ export function GracePeriodScreen({ habits, onComplete, onSkip }: Readonly<Grace
       const updates = calculateHabitUpdates(selectedHabitForCompletion, HabitLifecycleEvent.GRACE_COMPLETE, todayISO);
       await markHabit(selectedHabitForCompletion, updates, data);
       setIsAdding(false);
-      setNewHabitName("");
       setSelectedHabitForCompletion(null);
       toast.success("Added & Checked off for yesterday!");
     }
@@ -183,16 +150,9 @@ export function GracePeriodScreen({ habits, onComplete, onSkip }: Readonly<Grace
           ) : (
             <div className="flex flex-col gap-4 py-4">
               <h3 className="text-md font-medium">Add a missed habit</h3>
-              <Input
-                placeholder="Habit name (e.g. Read 5 pages)"
-                value={newHabitName}
-                onChange={(e) => setNewHabitName(e.target.value)}
-              />
+              <HabitCreator onHabitCreated={handleNewHabitCreated} />
               <DialogFooter>
                 <Button variant="ghost" onClick={() => setIsAdding(false)}>Cancel</Button>
-                <Button onClick={handleCreateAndComplete} disabled={isCreating || !newHabitName.trim()}>
-                  {isCreating ? "Creating..." : "Next: Log Details"}
-                </Button>
               </DialogFooter>
             </div>
           )}
