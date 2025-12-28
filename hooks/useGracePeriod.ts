@@ -46,11 +46,10 @@ export function useGracePeriod(userId: string | undefined, todayISO: ISODate) {
   }, [userId, todayISO]);
 
   // Function to manually refresh (e.g., after resolving a grace habit)
-  const refresh = async () => {
+  const refresh = async (graceHabits: Habit[], habitId: string) => {
     if (!userId) return;
     setIsLoading(true);
-    const { graceHabits: needed } = await processHabitLifecycle(userId, todayISO);
-    setGraceHabits(needed);
+    setGraceHabits(graceHabits.filter(item => item.id !== habitId));
     setIsLoading(false);
   };
 
@@ -63,7 +62,7 @@ export function useGracePeriod(userId: string | undefined, todayISO: ISODate) {
     try {
       const updates = calculateHabitUpdates(habit, HabitLifecycleEvent.GRACE_INCOMPLETE, todayISO);
       await updateHabit(habit.id, updates);
-      await refresh(); // Refresh list to remove resolved habit
+      await refresh(graceHabits, habit.id); // Refresh list to remove resolved habit
     } catch (error) {
       console.error(`Failed to resolve habit ${habit.id} as incomplete:`, error);
       throw error; // Let UI handle error

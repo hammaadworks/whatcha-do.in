@@ -62,7 +62,12 @@ export default function OwnerProfileView({
   const todayISO = getTodayISO(timezone, refDate);
 
   // Grace Period Logic
-  const { graceHabits, resolveHabitIncomplete, refresh: refreshGraceHabits, isLoading: isGraceLoading } = useGracePeriod(authenticatedUser?.id, todayISO);
+  const {
+    graceHabits,
+    resolveHabitIncomplete,
+    refresh: refreshGraceHabits,
+    isLoading: isGraceLoading
+  } = useGracePeriod(authenticatedUser?.id, todayISO);
 
   const currentViewMode = (searchParams.get("vibe") as "edit" | "private" | "public") || "edit";
   const isReadOnly = currentViewMode !== "edit";
@@ -197,7 +202,7 @@ export default function OwnerProfileView({
       .filter((node) => node.is_public)
       .map((node) => ({
         ...node,
-        children: node.children ? filterPublicActions(node.children) : undefined,
+        children: node.children ? filterPublicActions(node.children) : undefined
       }));
   };
 
@@ -215,14 +220,14 @@ export default function OwnerProfileView({
   // If actions are loading or empty, fallback to publicActions prop (unless we know we have 0 actions)
   // However, useActions loads initially. If it's empty, it might be truly empty.
   // We can check `actionsLoading`.
-  const livePublicActions = (!actionsLoading && actions.length > 0) 
-    ? filterPublicActions(actions) 
+  const livePublicActions = (!actionsLoading && actions.length > 0)
+    ? filterPublicActions(actions)
     : (actionsLoading ? publicActions : []); // If loaded and empty, then empty. If loading, use stale public.
 
   // Better logic: if we have actions (or finished loading), use derived.
   const derivedPublicActions = filterPublicActions(actions);
   const shouldUseDerivedActions = !actionsLoading;
-  
+
   const finalPublicActions = shouldUseDerivedActions ? derivedPublicActions : publicActions;
 
   // Calculate private count
@@ -240,7 +245,7 @@ export default function OwnerProfileView({
       habits={graceHabits}
       onComplete={async (id, data) => {
         await handleHabitComplete(id, data, true);
-        await refreshGraceHabits();
+        await refreshGraceHabits(graceHabits, id);
       }}
       onSkip={resolveHabitIncomplete}
       onHabitCreated={(newHabit) => setOwnerHabits((prev) => [...prev, newHabit])}

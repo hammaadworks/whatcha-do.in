@@ -77,7 +77,8 @@ export const HabitCompletionsModal: React.FC<HabitCompletionsModalProps> = ({ is
         <div className="flex justify-center items-center gap-4 p-4 bg-muted/30 rounded-lg">
           <div className="text-center">
             <p className="text-xs text-muted-foreground uppercase tracking-wide">Current</p>
-            <Badge variant="secondary" className="text-lg px-3 py-1 mt-1">{habit.streak}</Badge>
+            <Badge variant="secondary"
+                   className="text-lg px-3 py-1 mt-1">{habit.streak < 1 ? habit.streak + 1 : habit.streak}</Badge>
           </div>
           <div className="text-primary font-bold text-xl">→</div>
           <div className="text-center">
