@@ -9,10 +9,12 @@ import {
 } from "@/components/ui/dialog";
 import { HabitCreator } from "./HabitCreator";
 
+import { Habit } from "@/lib/supabase/types";
+
 interface HabitCreatorModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onHabitCreated: () => void;
+  onHabitCreated: (habit: Habit) => void;
 }
 
 /**

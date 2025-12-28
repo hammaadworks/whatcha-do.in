@@ -11,7 +11,6 @@ import { calculateHabitUpdates } from "@/lib/logic/habits/habitLifecycle.ts";
  */
 export interface LifecycleResult {
   graceHabits: Habit[];
-  processedCount: number;
 }
 
 /**
@@ -26,7 +25,6 @@ export async function processHabitLifecycle(userId: string, todayISO: ISODate): 
   const habits = await fetchUnprocessedHabits(userId, todayISO);
 
   const graceHabits: Habit[] = [];
-  let processedCount = 0;
 
   for (const h of habits) {
     let habit = h;
@@ -37,6 +35,7 @@ export async function processHabitLifecycle(userId: string, todayISO: ISODate): 
         processed_date: todayISO
       };
       await updateHabit(habit.id, update);
+      continue;
     }
 
     if (gap > 1) {
@@ -55,10 +54,8 @@ export async function processHabitLifecycle(userId: string, todayISO: ISODate): 
     } else {
       graceHabits.push(habit);
     }
-
-    processedCount += 1;
   }
 
-  return { graceHabits, processedCount };
+  return { graceHabits };
 }
 

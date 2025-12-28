@@ -97,12 +97,12 @@ export const DesktopHabitsLayout: React.FC<HabitsLayoutProps> = ({
                                                                  }) => {
     return (
         <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-2 gap-4">
-            <div className="relative overflow-hidden rounded-xl shadow">
+            <div className="relative overflow-hidden rounded-xl shadow h-full">
                 <HabitBox
                     id={HabitBoxType.TODAY}
                     habits={todayHabits}
                     renderHabit={renderHabitChip}
-                    className="p-4 bg-background border border-primary rounded-xl z-10 relative min-h-[100px]"
+                    className="p-4 bg-background border border-primary rounded-xl z-10 relative min-h-[100px] h-full"
                     disabled={isReadOnly}
                     emptyMessage={activeId ? "" : "No habits for today."}
                 />

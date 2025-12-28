@@ -19,6 +19,7 @@ type PublicProfileViewProps = {
   publicIdentities: (Identity & { backingCount: number })[]; // Add
   publicTargets: ActionNode[]; // Add
   privateCount?: number; // Add privateCount
+  showViewSelector?: boolean; // New prop
 };
 
 export function PublicPage({
@@ -28,7 +29,8 @@ export function PublicPage({
                              publicJournalEntries,
                              publicIdentities,
                              publicTargets,
-                             privateCount = 0
+                             privateCount = 0,
+                             showViewSelector = true
                            }: Readonly<PublicProfileViewProps>) {
   // Canonical Time Logic
   const timezone = user?.timezone || "UTC";
@@ -37,9 +39,11 @@ export function PublicPage({
   const todayISO = getTodayISO(timezone, refDate);
   return (
     <div className="relative pt-8 lg:pt-4 w-full max-w-6xl">
-      <div className="flex justify-end mb-6">
-        <ViewSelector />
-      </div>
+      {showViewSelector && (
+        <div className="flex justify-end mb-6">
+          <ViewSelector />
+        </div>
+      )}
       <ProfileLayout
         username={user.username || ""}
         isOwner={false}

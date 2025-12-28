@@ -62,7 +62,12 @@ export default function OwnerProfileView({
   const todayISO = getTodayISO(timezone, refDate);
 
   // Grace Period Logic
-  const { graceHabits, resolveHabitIncomplete } = useGracePeriod(authenticatedUser?.id, todayISO);
+  const {
+    graceHabits,
+    resolveHabitIncomplete,
+    refresh: refreshGraceHabits,
+    isLoading: isGraceLoading
+  } = useGracePeriod(authenticatedUser?.id, todayISO);
 
   const currentViewMode = (searchParams.get("vibe") as "edit" | "private" | "public") || "edit";
   const isReadOnly = currentViewMode !== "edit";
@@ -73,7 +78,7 @@ export default function OwnerProfileView({
   const [ownerJournalEntries, setOwnerJournalEntries] = useState<JournalEntry[]>([]);
   const [ownerJournalEntriesLoading, setOwnerJournalEntriesLoading] = useState(false);
 
-  const refreshHabits = async () => {
+  const refreshHabits = useCallback(async () => {
     if (!authenticatedUser?.id) return;
     setOwnerHabitsLoading(true);
     try {
@@ -84,9 +89,9 @@ export default function OwnerProfileView({
     } finally {
       setOwnerHabitsLoading(false);
     }
-  };
+  }, [authenticatedUser?.id]);
 
-  const refreshJournalEntries = async () => {
+  const refreshJournalEntries = useCallback(async () => {
     if (!authenticatedUser?.id) return;
     setOwnerJournalEntriesLoading(true);
     try {
@@ -97,12 +102,18 @@ export default function OwnerProfileView({
     } finally {
       setOwnerJournalEntriesLoading(false);
     }
-  };
+  }, [authenticatedUser?.id]);
+
+  // Sync ownerHabits when Grace Period finishes or initializes with no items
+  // This ensures that any server-side lifecycle changes (like Lively -> Junked) are reflected
+  useEffect(() => {
+    if (!isGraceLoading && graceHabits.length === 0) {
+      refreshHabits();
+    }
+  }, [isGraceLoading, graceHabits.length, refreshHabits]);
 
   const handleActivityLogged = async () => {
-    // Optimistic updates handle habit state; only refresh journal entries to show new logs.
-    // Habits refetch is skipped to reduce API calls.
-    await refreshJournalEntries();
+    await Promise.all([refreshHabits(), refreshJournalEntries()]);
   };
 
   const {
@@ -185,6 +196,46 @@ export default function OwnerProfileView({
     return deletedContext;
   };
 
+  // Helper functions for Public View Live Preview
+  const filterPublicActions = (nodes: ActionNode[]): ActionNode[] => {
+    return nodes
+      .filter((node) => node.is_public)
+      .map((node) => ({
+        ...node,
+        children: node.children ? filterPublicActions(node.children) : undefined
+      }));
+  };
+
+  const countNodes = (nodes: ActionNode[]): number => {
+    return nodes.reduce((acc, node) => {
+      return acc + 1 + (node.children ? countNodes(node.children) : 0);
+    }, 0);
+  };
+
+  // Derive live public data from owner state
+  const livePublicHabits = ownerHabits.length > 0 ? ownerHabits.filter((h) => h.is_public) : publicHabits;
+  const livePublicJournal = ownerJournalEntries.length > 0 ? ownerJournalEntries.filter((j) => j.is_public) : publicJournalEntries;
+
+  // For actions, we need to filter the tree
+  // If actions are loading or empty, fallback to publicActions prop (unless we know we have 0 actions)
+  // However, useActions loads initially. If it's empty, it might be truly empty.
+  // We can check `actionsLoading`.
+  const livePublicActions = (!actionsLoading && actions.length > 0)
+    ? filterPublicActions(actions)
+    : (actionsLoading ? publicActions : []); // If loaded and empty, then empty. If loading, use stale public.
+
+  // Better logic: if we have actions (or finished loading), use derived.
+  const derivedPublicActions = filterPublicActions(actions);
+  const shouldUseDerivedActions = !actionsLoading;
+
+  const finalPublicActions = shouldUseDerivedActions ? derivedPublicActions : publicActions;
+
+  // Calculate private count
+  const totalActionCount = shouldUseDerivedActions ? countNodes(actions) : (publicActions.length + privateCount); // Approx fallback
+  const publicActionCount = shouldUseDerivedActions ? countNodes(finalPublicActions) : countNodes(publicActions);
+  const livePrivateCount = shouldUseDerivedActions ? (totalActionCount - publicActionCount) : privateCount;
+
+
   if (!profileToDisplay) {
     return <div>Error: User profile not found for owner.</div>;
   }
@@ -192,8 +243,12 @@ export default function OwnerProfileView({
   return (<div className="relative pt-8 lg:pt-4 w-full max-w-6xl">
     <GracePeriodScreen
       habits={graceHabits}
-      onComplete={(id, data) => handleHabitComplete(id, data, true)}
+      onComplete={async (id, data) => {
+        await handleHabitComplete(id, data, true);
+        await refreshGraceHabits(graceHabits, id);
+      }}
       onSkip={resolveHabitIncomplete}
+      onHabitCreated={(newHabit) => setOwnerHabits((prev) => [...prev, newHabit])}
     />
 
     <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
@@ -207,12 +262,13 @@ export default function OwnerProfileView({
     {currentViewMode === "public" ? (<div className="animate-in fade-in duration-300">
       <PublicPage
         user={profileToDisplay}
-        publicActions={publicActions}
-        publicHabits={publicHabits}
-        publicJournalEntries={publicJournalEntries}
+        publicActions={finalPublicActions}
+        publicHabits={livePublicHabits}
+        publicJournalEntries={livePublicJournal}
         publicIdentities={publicIdentities}
         publicTargets={publicTargets}
-        privateCount={privateCount}
+        privateCount={livePrivateCount}
+        showViewSelector={false}
       />
     </div>) : (<ProfileLayout
       username={username}

@@ -131,78 +131,80 @@ const EditHabitModal: React.FC<EditHabitModalProps> = ({ isOpen, onClose, habit,
         </>
       }
     >
-        <div className="grid gap-4 py-4">
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="name" className="text-right">
-              Name
-            </Label>
-            <Input
-              id="name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="col-span-3"
-            />
-          </div>
-          {nameError && <p className="text-red-500 text-sm col-start-2 col-span-3">{nameError}</p>}
-
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="isPublic" className="text-right">
-              Public
-            </Label>
-            <Switch
-              id="isPublic"
-              checked={isPublic}
-              onCheckedChange={setIsPublic}
-              className="col-span-3"
-            />
+        <div className="flex flex-col gap-6 py-4">
+          {/* Name and Public Row */}
+          <div className="flex gap-4 items-start">
+            <div className="flex-1 grid gap-2">
+              <Label htmlFor="name">Name</Label>
+              <Input
+                id="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+              />
+              {nameError && <p className="text-destructive text-xs">{nameError}</p>}
+            </div>
+            <div className="grid gap-2 pt-6">
+               <div className="flex items-center gap-2">
+                  <Switch
+                    id="isPublic"
+                    checked={isPublic}
+                    onCheckedChange={setIsPublic}
+                  />
+                  <Label htmlFor="isPublic">Public</Label>
+               </div>
+            </div>
           </div>
 
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="goalValue" className="text-right">
-              Goal Value
-            </Label>
-            <Input
-              id="goalValue"
-              type="number"
-              value={goalValue === undefined || goalValue === null ? "" : goalValue}
-              onChange={(e) => setGoalValue(parseFloat(e.target.value) || null)}
-              className="col-span-3"
-            />
+          {/* Goal Settings */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor="goalValue">Goal Value</Label>
+              <Input
+                id="goalValue"
+                type="number"
+                value={goalValue === undefined || goalValue === null ? "" : goalValue}
+                onChange={(e) => setGoalValue(parseFloat(e.target.value) || null)}
+                placeholder="e.g. 10"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="goalUnit">Goal Unit</Label>
+              <Select value={goalUnit} onValueChange={setGoalUnit}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a unit" />
+                </SelectTrigger>
+                <SelectContent>
+                  {predefinedUnits.map((unit) => (
+                    <SelectItem key={unit} value={unit}>
+                      {unit}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
-          {goalValueError && <p className="text-red-500 text-sm col-start-2 col-span-3">{goalValueError}</p>}
-
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="goalUnit" className="text-right">
-              Goal Unit
-            </Label>
-            <Select value={goalUnit} onValueChange={setGoalUnit}>
-              <SelectTrigger className="col-span-3">
-                <SelectValue placeholder="Select a unit" />
-              </SelectTrigger>
-              <SelectContent>
-                {predefinedUnits.map((unit) => (
-                  <SelectItem key={unit} value={unit}>
-                    {unit}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          
+          {/* Custom Unit Field */}
           {goalUnit === "Custom..." && (
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="customUnit" className="text-right">
-                Custom Unit
-              </Label>
+            <div className="grid gap-2">
+              <Label htmlFor="customUnit">Custom Unit</Label>
               <Input
                 id="customUnit"
                 type="text"
                 value={customUnit}
                 onChange={(e) => setCustomUnit(e.target.value)}
-                className="col-span-3"
+                placeholder="e.g. pushups"
               />
             </div>
           )}
-          {goalUnitError && <p className="text-red-500 text-sm col-start-2 col-span-3">{goalUnitError}</p>}
+
+          {/* Goal Errors */}
+          {(goalValueError || goalUnitError) && (
+             <div className="flex flex-col gap-1">
+                {goalValueError && <p className="text-destructive text-xs">{goalValueError}</p>}
+                {goalUnitError && <p className="text-destructive text-xs">{goalUnitError}</p>}
+             </div>
+          )}
         </div>
     </BaseModal>
   );

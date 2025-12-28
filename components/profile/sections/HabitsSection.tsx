@@ -10,7 +10,7 @@ import { HabitCompletionsModal } from "@/components/habits/HabitCompletionsModal
 import { Plus } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { HabitCreatorModal } from "@/components/habits/HabitCreatorModal";
-import { closestCorners, DndContext, DragOverlay } from "@dnd-kit/core";
+import { closestCenter, DndContext, DragOverlay } from "@dnd-kit/core";
 import { useHabitDnd } from "@/hooks/useHabitDnd";
 import { HabitBoxType, HabitState } from "@/lib/enums";
 import UnmarkConfirmationModal from "@/components/habits/UnmarkConfirmationModal";
@@ -108,8 +108,8 @@ export const HabitsSection: React.FC<HabitsSectionProps> = ({
     habits, todayISO
   });
 
-  const handleCreateHabit = () => {
-    onHabitCreated(setIsCreateHabitModalOpen);
+  const handleCreateHabit = (habit: Habit) => {
+    onHabitCreated(habit, setIsCreateHabitModalOpen);
   };
 
   const todayHabits = habits.filter((h) => h.habit_state === HabitState.TODAY);
@@ -210,7 +210,7 @@ export const HabitsSection: React.FC<HabitsSectionProps> = ({
 
     <DndContext
       sensors={sensors}
-      collisionDetection={closestCorners}
+      collisionDetection={closestCenter}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >

@@ -20,6 +20,9 @@
   },
   "registries": {
     "@aceternity": "https://ui.aceternity.com/registry/{name}.json",
-    "@magicui": "https://magicui.design/r/{name}.json"
+    "@magicui": "https://magicui.design/r/{name}.json",
+    "@react-bits": "https://reactbits.dev/r/{name}.json",
+    "@tour": "https://onboarding-tour.vercel.app/r/{name}.json",
+    "@wigggle-ui": "https://wigggle-ui.vercel.app/r/{name}.json"
   }
 }

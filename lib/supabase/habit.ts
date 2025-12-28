@@ -172,9 +172,15 @@ export async function deleteHabit(habitId: string): Promise<void> {
  * @param habit
  * @param updates
  * @param completions_data - The completion details (mood, work value, duration, notes).
+ * @param completionTime - The exact timestamp of completion (optional, defaults to now).
  * @returns A promise resolving to an object containing the new completion ID or an error.
  */
-export async function markHabit(habit: Habit, updates: Partial<Habit>, completions_data: CompletionsData) {
+export async function markHabit(
+  habit: Habit,
+  updates: Partial<Habit>,
+  completions_data: CompletionsData,
+  completionTime?: Date
+) {
   const supabase = createClient();
   const journalActivityService = new JournalActivityService(supabase);
 
@@ -198,13 +204,17 @@ export async function markHabit(habit: Habit, updates: Partial<Habit>, completio
     notes: completions_data.notes
   };
 
+  // Use provided completionTime or fallback to now (system time)
+  // This allows Time Travel logic to pass a simulated "now"
+  const timestamp = completionTime ? completionTime.toISOString() : new Date().toISOString();
+
   // We log using the reference date provided (which preserves time) but ensured it's consistent with "Today"
   if (updates.completed_date) {
     await journalActivityService.logActivity(habit.user_id, updates.completed_date, {
       id: habit.id,
       type: "habit",
       description: habit.name,
-      timestamp: updates.completed_date.toISOString(),
+      timestamp: timestamp,
       is_public: habit.is_public,
       status: "completed",
       details: logEntryDetails

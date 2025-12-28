@@ -41,7 +41,10 @@ export function HabitCreator({ onHabitCreated }: Readonly<HabitCreatorProps>) {
       setError("User not authenticated.");
       return;
     }
-    if (!habitName.trim()) return;
+    if (!habitName.trim()) {
+        setError("Habit name cannot be empty.");
+        return;
+    }
 
     setLoading(true);
     setError(null);
@@ -49,6 +52,24 @@ export function HabitCreator({ onHabitCreated }: Readonly<HabitCreatorProps>) {
     let finalGoalUnit = goalUnit;
     if (goalUnit === "Custom...") {
       finalGoalUnit = customUnit.trim();
+      if (!finalGoalUnit) {
+          setError("Please specify a custom unit.");
+          setLoading(false);
+          return;
+      }
+    }
+    
+    if (showGoalInput) {
+        if (goalValue !== undefined && goalValue <= 0) {
+            setError("Goal value must be a positive number.");
+            setLoading(false);
+            return;
+        }
+        if (goalValue !== undefined && !finalGoalUnit) {
+             setError("Unit cannot be empty if value is set.");
+             setLoading(false);
+             return;
+        }
     }
 
 

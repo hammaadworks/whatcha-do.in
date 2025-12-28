@@ -1,4 +1,5 @@
 import Logins from "@/components/auth/Logins";
+import { Suspense } from "react";
 
 /**
  * The Login/Signup page.
@@ -7,7 +8,9 @@ import Logins from "@/components/auth/Logins";
 export default function LoginPage() {
   return (
     <div className="flex-grow flex items-center justify-center">
-      <Logins />
+      <Suspense fallback={null}>
+        <Logins />
+      </Suspense>
     </div>
   );
 }

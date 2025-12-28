@@ -11,6 +11,7 @@ import { AddActionForm } from './AddActionForm';
 import { Input } from "@/components/ui/input";
 import { ActionNode } from '@/lib/supabase/types';
 import { areAllChildrenCompleted } from '@/lib/logic/actions/tree-utils';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 /**
  * Props for the ActionItem component.
@@ -291,8 +292,7 @@ export const ActionItem: React.FC<ActionItemProps> = ({
           isFocused ? "border-primary-light ring-2 ring-primary-light" : "border-card-border",
           {
             "bg-accent/30 scale-95": justCompletedId === action.id,
-            "bg-card": !action.completed && isPublic,
-            "bg-yellow-50/50 dark:bg-yellow-900/10 border-dashed border-yellow-300 dark:border-yellow-800": !isPublic,
+            "bg-card": !action.completed,
             "bg-muted-foreground/10 text-muted-foreground": action.completed && !isFocused,
           }
         )}
@@ -355,7 +355,16 @@ export const ActionItem: React.FC<ActionItemProps> = ({
             }}
             >
             {action.description}
-            {!isPublic && <Lock size={12} className="ml-2 text-yellow-600 dark:text-yellow-400 opacity-50" aria-label="Private" />}
+            {!isPublic && (
+                <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Lock size={14} className="ml-2 text-muted-foreground/60" aria-label="Private" />
+                        </TooltipTrigger>
+                        <TooltipContent>This action is private</TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
+            )}
             </Label>
         )}
 
