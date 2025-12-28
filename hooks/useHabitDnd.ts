@@ -52,6 +52,10 @@ export function useHabitDnd({
       toast.error("Invalid move: Cannot move from Pile to Yesterday.");
       return;
     }
+    if (sourceBox === HabitBoxType.YESTERDAY && targetBox === HabitBoxType.PILE) {
+      toast.error("Invalid move: Cannot move from Yesterday to Pile.");
+      return;
+    }
 
     // 4. Map Target Box to Habit State
     let newHabitState: HabitState = HabitState.LIVELY;

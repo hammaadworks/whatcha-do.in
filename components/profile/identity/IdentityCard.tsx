@@ -1,10 +1,10 @@
 'use client';
 
 import React from 'react';
-import {Card, CardContent} from '@/components/ui/card';
-import {Badge} from '@/components/ui/badge';
 import {Globe, Lock, Target} from 'lucide-react';
 import {Identity} from '@/lib/supabase/types';
+import { cn } from '@/lib/utils';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface IdentityCardProps {
     identity: Identity & { backingCount: number };
@@ -12,23 +12,35 @@ interface IdentityCardProps {
 }
 
 export const IdentityCard: React.FC<IdentityCardProps> = ({identity, onClick}) => {
-    return (<Card
-            className="cursor-pointer hover:bg-muted/50 transition-colors border-l-4 border-l-primary"
+    return (
+        <div
             onClick={onClick}
+            className={cn(
+                "group relative flex items-center justify-between gap-3 rounded-xl py-3 px-4 border transition-all cursor-pointer select-none",
+                "bg-card text-card-foreground border-border/60 shadow-sm hover:shadow-md hover:border-primary/30 active:scale-[0.98]"
+            )}
         >
-            <CardContent className="p-4 flex flex-col gap-2">
-                <div className="flex justify-between items-start">
-                    <h3 className="font-bold text-lg leading-tight">{identity.title}</h3>
-                    {identity.is_public ? (<Globe className="h-4 w-4 text-muted-foreground flex-shrink-0"/>) : (
-                        <Lock className="h-4 w-4 text-muted-foreground flex-shrink-0"/>)}
-                </div>
+            <div className="flex items-center gap-2 min-w-0">
+                <h3 className="font-semibold text-base truncate">{identity.title}</h3>
+                {!identity.is_public && (
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Lock size={14} className="text-muted-foreground/50 shrink-0" />
+                            </TooltipTrigger>
+                            <TooltipContent>Private Identity</TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+                )}
+            </div>
 
-                <div className="flex items-center gap-2 mt-1">
-                    <Badge variant="secondary" className="flex items-center gap-1">
-                        <Target className="h-3 w-3"/>
-                        {identity.backingCount} Habits
-                    </Badge>
-                </div>
-            </CardContent>
-        </Card>);
+            <div className={cn(
+                "flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium",
+                "bg-primary/10 text-primary"
+            )}>
+                <Target size={12} className="shrink-0" />
+                <span>{identity.backingCount}</span>
+            </div>
+        </div>
+    );
 };
