@@ -24,7 +24,10 @@ export async function fetchPublicHabitsServer(userId: string): Promise<Habit[]> 
     `)
     .eq("user_id", userId)
     .eq("is_public", true)
-    .neq("habit_state", HabitState.JUNKED); // Ensure only public habits are fetched
+    .neq("habit_state", HabitState.JUNKED) // Ensure only public habits are fetched
+    .order("target_time", { ascending: true, nullsFirst: false })
+    .order("streak", { ascending: false })
+    .order("updated_at", { ascending: false });
 
   if (error) {
     console.error("Supabase Fetch Error (Server Public Habits):", JSON.stringify(error, null, 2));

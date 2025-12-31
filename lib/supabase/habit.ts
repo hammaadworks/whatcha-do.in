@@ -27,7 +27,10 @@ export async function fetchUnprocessedHabits(userId: string, todayDate: ISODate)
       )
     `)
     .eq("user_id", userId)
-    .neq("processed_date", todayDate);
+    .neq("processed_date", todayDate)
+    .order("target_time", { ascending: true, nullsFirst: false })
+    .order("streak", { ascending: false })
+    .order("updated_at", { ascending: false });
 
   if (error) {
     console.error("Error fetching owner's habits:", error);
@@ -62,7 +65,10 @@ export async function fetchOwnerHabits(userId: string): Promise<Habit[]> {
         )
       )
     `)
-    .eq("user_id", userId);
+    .eq("user_id", userId)
+    .order("target_time", { ascending: true, nullsFirst: false })
+    .order("streak", { ascending: false })
+    .order("updated_at", { ascending: false });
 
   if (error) {
     console.error("Error fetching owner's habits:", error);
