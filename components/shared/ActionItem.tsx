@@ -124,12 +124,53 @@ export const ActionItem: React.FC<ActionItemProps> = ({
   const divRef = useRef<HTMLDivElement>(null);
   const [isFocused, setIsFocused] = useState(false);
 
+  // Local state for delayed completion
+  const [isCompleting, setIsCompleting] = useState(false);
+  const completionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   const hasChildren = action.children && action.children.length > 0;
   const { total, completed } = getCompletionCounts(action);
   const progressPercentage = total > 0 ? (completed / total) * 100 : 0;
   const isDisabledForCompletion = hasChildren && !areAllChildrenCompleted(action);
 
   const isPublic = action.is_public ?? true;
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (completionTimeoutRef.current) {
+        clearTimeout(completionTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  // Handle delayed toggle
+  const handleToggle = async () => {
+    if (!onActionToggled) return;
+
+    if (action.completed) {
+      // Unmarking: Immediate
+      await onActionToggled(action.id);
+    } else {
+      // Marking as done: Delayed
+      if (isCompleting) {
+        // User cancelled the completion (e.g., clicked again during delay)
+        if (completionTimeoutRef.current) {
+          clearTimeout(completionTimeoutRef.current);
+          completionTimeoutRef.current = null;
+        }
+        setIsCompleting(false);
+      } else {
+        // Start completion timer
+        setIsCompleting(true);
+        completionTimeoutRef.current = setTimeout(async () => {
+          await onActionToggled(action.id);
+          // We don't necessarily need to set isCompleting(false) here because component might unmount/rerender with new state
+          if (divRef.current) setIsCompleting(false); 
+        }, 2000);
+      }
+    }
+  };
 
   // Focus input when editing starts
   useEffect(() => {
@@ -211,7 +252,7 @@ export const ActionItem: React.FC<ActionItemProps> = ({
           }
         } else {
           // Enter: Toggle completion
-          await onActionToggled?.(action.id);
+          handleToggle();
         }
         break;
       case " ":
@@ -293,19 +334,15 @@ export const ActionItem: React.FC<ActionItemProps> = ({
           isFocused ? "border-primary-light ring-2 ring-primary-light" : "border-card-border",
           {
             "bg-accent/30 scale-95": justCompletedId === action.id,
-            "bg-card": !action.completed,
-            "bg-muted-foreground/10 text-muted-foreground": action.completed && !isFocused
+            "bg-card": !action.completed && !isCompleting,
+            "bg-muted-foreground/10 text-muted-foreground": (action.completed || isCompleting) && !isFocused
           }
         )}
       >
         <Checkbox
           id={action.id}
-          checked={action.completed}
-          onCheckedChange={() => {
-            if (onActionToggled) {
-              onActionToggled(action.id);
-            }
-          }}
+          checked={action.completed || isCompleting}
+          onCheckedChange={handleToggle}
           disabled={isDisabledForCompletion && !action.completed}
           className={cn(
             "h-5 w-5 rounded-full z-10",
@@ -341,7 +378,7 @@ export const ActionItem: React.FC<ActionItemProps> = ({
             className={cn(
               "text-base font-medium text-foreground cursor-pointer flex-1 flex items-center select-none z-10",
               {
-                "line-through text-muted-foreground": action.completed
+                "line-through text-muted-foreground": action.completed || isCompleting
               }
             )}
             onDoubleClick={() => {
