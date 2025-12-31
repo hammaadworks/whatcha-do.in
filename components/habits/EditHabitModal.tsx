@@ -23,13 +23,15 @@ interface EditHabitModalProps {
     is_public: boolean;
     goal_value?: number | null; // Add goal_value
     goal_unit?: string | null; // Add goal_unit
+    target_time?: string | null; // Add target_time
   };
   onSave: (
     habitId: string,
     name: string,
     isPublic: boolean,
     goalValue?: number | null, // Add goalValue to onSave
-    goalUnit?: string | null // Add goalUnit to onSave
+    goalUnit?: string | null, // Add goalUnit to onSave
+    targetTime?: string | null // Add targetTime to onSave
   ) => void;
 }
 
@@ -53,6 +55,7 @@ const EditHabitModal: React.FC<EditHabitModalProps> = ({ isOpen, onClose, habit,
   const [goalValue, setGoalValue] = useState<number | undefined | null>(habit.goal_value);
   const [goalUnit, setGoalUnit] = useState<string>(habit.goal_unit && predefinedUnits.includes(habit.goal_unit) ? habit.goal_unit : "Custom...");
   const [customUnit, setCustomUnit] = useState<string>(habit.goal_unit && !predefinedUnits.includes(habit.goal_unit) ? habit.goal_unit : "");
+  const [targetTime, setTargetTime] = useState<string>(habit.target_time || ""); // targetTime state
   const [nameError, setNameError] = useState('');
   const [goalValueError, setGoalValueError] = useState('');
   const [goalUnitError, setGoalUnitError] = useState('');
@@ -64,6 +67,7 @@ const EditHabitModal: React.FC<EditHabitModalProps> = ({ isOpen, onClose, habit,
       setGoalValue(habit.goal_value);
       setGoalUnit(habit.goal_unit && predefinedUnits.includes(habit.goal_unit) ? habit.goal_unit : "Custom...");
       setCustomUnit(habit.goal_unit && !predefinedUnits.includes(habit.goal_unit) ? habit.goal_unit : "");
+      setTargetTime(habit.target_time || "");
       setNameError('');
       setGoalValueError('');
       setGoalUnitError('');
@@ -111,7 +115,7 @@ const EditHabitModal: React.FC<EditHabitModalProps> = ({ isOpen, onClose, habit,
       return;
     }
 
-    onSave(habit.id, name, isPublic, finalGoalValue, finalGoalUnit);
+    onSave(habit.id, name, isPublic, finalGoalValue, finalGoalUnit, targetTime || null);
     onClose();
   };
 
@@ -197,6 +201,18 @@ const EditHabitModal: React.FC<EditHabitModalProps> = ({ isOpen, onClose, habit,
               />
             </div>
           )}
+
+          {/* Target Time Field */}
+          <div className="grid gap-2">
+            <Label htmlFor="targetTime">Target Time</Label>
+            <Input
+              id="targetTime"
+              type="time"
+              value={targetTime}
+              onChange={(e) => setTargetTime(e.target.value)}
+              step="600"
+            />
+          </div>
 
           {/* Goal Errors */}
           {(goalValueError || goalUnitError) && (

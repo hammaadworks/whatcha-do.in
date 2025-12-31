@@ -3,7 +3,7 @@
 import React, {useEffect, useState, useCallback} from 'react';
 import Link from 'next/link';
 import {useAuth} from '@/hooks/useAuth';
-import {AnimatedThemeToggler, AnimatedThemeTogglerRef} from '@/components/ui/animated-theme-toggler'; // Re-added import and new import for ref type
+import {AnimatedThemeToggler, AnimatedThemeTogglerRef} from '@/components/ui/animated-theme-toggler';
 import UserMenuPopover from '@/components/auth/UserMenuPopover';
 import {KeyRound, Settings} from "lucide-react";
 import {cn} from "@/lib/utils";

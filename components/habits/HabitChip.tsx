@@ -75,11 +75,11 @@ export const HabitChip: React.FC<HabitChipProps> = ({
           break;
       case HabitState.YESTERDAY:
           StateIcon = History;
-          stateStyles = "bg-orange-500/10 text-orange-600 dark:text-orange-400";
+          stateStyles = "bg-chart-2/10 text-chart-2";
           break;
       case HabitState.TODAY:
           StateIcon = Flame;
-          stateStyles = "bg-blue-500/10 text-blue-600 dark:text-blue-400";
+          stateStyles = "bg-chart-4/10 text-chart-4";
           break;
   }
 
@@ -127,13 +127,30 @@ export const HabitChip: React.FC<HabitChipProps> = ({
              )}
           </div>
 
-          {/* Streak Badge */}
-          <div className={cn(
-              "flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold",
-              stateStyles
-          )}>
-            <StateIcon size={12} className="shrink-0" />
-            <span>{displayStreak}</span>
+          <div className="flex items-center gap-2">
+              {/* Identity Heartbeats */}
+              {habit.linked_identities && habit.linked_identities.length > 0 && (
+                  <div className="flex -space-x-1 items-center">
+                      {habit.linked_identities.map((identity, index) => (
+                          <div
+                              key={identity.id || index}
+                              className={cn(
+                                  "w-2 h-2 rounded-full ring-1 ring-background/50",
+                                  identity.color || "bg-primary/30"
+                              )}
+                          />
+                      ))}
+                  </div>
+              )}
+
+              {/* Streak Badge */}
+              <div className={cn(
+                  "flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold",
+                  stateStyles
+              )}>
+                <StateIcon size={12} className="shrink-0" />
+                <span>{displayStreak}</span>
+              </div>
           </div>
         </div>
 

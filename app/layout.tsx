@@ -79,7 +79,33 @@ export const metadata: Metadata = {
  * @param {React.ReactNode} props.children - The nested route content to render.
  * @returns {JSX.Element} The rendered HTML structure.
  */
-export default function RootLayout({children,}: Readonly<{ children: React.ReactNode; }>) {
+import {BrandThemeProvider} from "@/components/theme/BrandThemeProvider";
+
+// ... existing imports
+
+import { BackgroundEffects } from "@/components/ui/background-effects";
+
+// ... existing imports
+
+import {ThemePreviewListener} from "@/components/theme/ThemePreviewListener";
+import { cookies } from 'next/headers';
+
+export default async function RootLayout({children,}: Readonly<{ children: React.ReactNode; }>) {
+    const cookieStore = await cookies();
+    const uiStorage = cookieStore.get('ui-storage')?.value;
+    let defaultTheme: string | undefined = undefined;
+    
+    if (uiStorage) {
+        try {
+            const parsed = JSON.parse(decodeURIComponent(uiStorage));
+            if (parsed.state && parsed.state.activeTheme) {
+                defaultTheme = parsed.state.activeTheme;
+            }
+        } catch (e) {
+            console.error("Failed to parse ui-storage cookie", e);
+        }
+    }
+
     return (<html lang="en" suppressHydrationWarning>
     <head>
         <meta name="apple-mobile-web-app-title" content="whatcha-do.in"/>
@@ -88,15 +114,22 @@ export default function RootLayout({children,}: Readonly<{ children: React.React
     <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}
         suppressHydrationWarning={true}
+        data-theme={defaultTheme || "zenith"}
     >
     <Pointer className="fill-primary"/>
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        <BackgroundEffects />
         <AuthProvider>
-            <SimulatedTimeProvider>
-                <KeyboardShortcutsProvider>
-                    <LayoutContent>{children}</LayoutContent>
-                </KeyboardShortcutsProvider>
-            </SimulatedTimeProvider>
+            <BrandThemeProvider defaultTheme={defaultTheme as any}>
+                <SimulatedTimeProvider>
+                    <KeyboardShortcutsProvider>
+                        <LayoutContent>
+                            <ThemePreviewListener />
+                            {children}
+                        </LayoutContent>
+                    </KeyboardShortcutsProvider>
+                </SimulatedTimeProvider>
+            </BrandThemeProvider>
         </AuthProvider>
     </ThemeProvider>
     </body>

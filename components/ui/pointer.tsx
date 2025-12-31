@@ -1,13 +1,9 @@
-"use client"
+"use client";
 
-import { useEffect, useRef } from "react" // Removed useState
-import {
-  HTMLMotionProps,
-  motion,
-  useMotionValue,
-} from "motion/react"
+import { useEffect, useRef } from "react"; // Removed useState
+import { HTMLMotionProps, motion, useMotionValue } from "motion/react";
 
-import { cn, isTouchDevice } from "@/lib/utils"
+import { cn, isTouchDevice } from "@/lib/utils";
 
 /**
  * A custom pointer component that displays an animated cursor.
@@ -18,14 +14,14 @@ import { cn, isTouchDevice } from "@/lib/utils"
  * @param {HTMLMotionProps<"div">} props - The component props
  */
 export function Pointer({
-  className,
-  style,
-  children,
-  ...props
-}: HTMLMotionProps<"div">): React.ReactNode {
-  const x = useMotionValue(0)
-  const y = useMotionValue(0)
-  const containerRef = useRef<HTMLDivElement>(null) // Ref for consistency
+                          className,
+                          style,
+                          children,
+                          ...props
+                        }: HTMLMotionProps<"div">): React.ReactNode {
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  const containerRef = useRef<HTMLDivElement>(null); // Ref for consistency
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -40,7 +36,7 @@ export function Pointer({
         x.set(e.clientX);
         y.set(e.clientY);
       };
-      
+
       // Attach event listeners to the window for global coverage
       window.addEventListener("mousemove", handleMouseMove);
 
@@ -53,27 +49,27 @@ export function Pointer({
   }, [x, y]); // Dependencies are just motion values
 
   if (typeof window !== "undefined" && isTouchDevice()) {
-    return null // Do not render custom pointer on touch devices
+    return null; // Do not render custom pointer on touch devices
   }
 
   return (
     // Always render the motion.div for the pointer, AnimatePresence is not needed if always rendered.
     <motion.div
       ref={containerRef} // Using ref here to keep consistency
-      className="pointer-events-none fixed z-[9999999]"
+      className="pointer-events-none fixed z-[99999999]"
       style={{
         x: x,
         y: y,
         transform: "translate(-50%, -50%)",
-        ...style,
+        ...style
       }}
       initial={{
         scale: 0,
-        opacity: 0,
+        opacity: 0
       }}
       animate={{
         scale: 1,
-        opacity: 1,
+        opacity: 1
       }}
       // exit is not needed if component is always mounted
       {...props}
@@ -92,9 +88,10 @@ export function Pointer({
             className
           )}
         >
-          <path d="M14.082 2.182a.5.5 0 0 1 .103.557L8.528 15.467a.5.5 0 0 1-.917-.007L5.57 10.694.803 8.652a.5.5 0 0 1-.006-.916l12.728-5.657a.5.5 0 0 1 .556.103z" />
+          <path
+            d="M14.082 2.182a.5.5 0 0 1 .103.557L8.528 15.467a.5.5 0 0 1-.917-.007L5.57 10.694.803 8.652a.5.5 0 0 1-.006-.916l12.728-5.657a.5.5 0 0 1 .556.103z" />
         </svg>
       )}
     </motion.div>
-  )
+  );
 }

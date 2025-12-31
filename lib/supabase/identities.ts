@@ -46,6 +46,7 @@ async function _createIdentity(
     title: string;
     description?: string;
     is_public: boolean;
+    color?: string; // Added color
   }
 ): Promise<Identity | null> {
   const supabase = createClient();
@@ -58,6 +59,7 @@ async function _createIdentity(
         title: identity.title,
         description: identity.description,
         is_public: identity.is_public,
+        color: identity.color, // Added color
       },
     ])
     .select()

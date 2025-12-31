@@ -8,6 +8,10 @@ import {useAuth} from '@/hooks/useAuth';
 import {updateUserTimezone} from '@/lib/supabase/user.client';
 import {toast} from 'sonner'; // Switch to sonner for consistency
 import {TimeTravelSection} from "@/components/layout/TimeTravel";
+import { Button } from "@/components/ui/button";
+import { Map } from "lucide-react";
+import { restartTour } from "@/components/profile/TourGuide";
+import { ThemeSelector } from "@/components/settings/ThemeSelector";
 
 interface SettingsDrawerProps {
     children: React.ReactNode;
@@ -60,6 +64,23 @@ export function SettingsDrawer({children, isOpen, onOpenChange}: Readonly<Settin
                 {/* Preferences Section */}
                 <section className="space-y-4">
                     <h3 className="text-lg font-medium border-b pb-2">Preferences</h3>
+
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium">Appearance</label>
+                        <div className="flex items-center gap-4">
+                            <ThemeSelector />
+                        </div>
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium">Tour</label>
+                        <div>
+                            <Button variant="outline" size="sm" onClick={restartTour} className="w-full sm:w-auto">
+                                <Map className="w-4 h-4 mr-2" />
+                                Restart Tour
+                            </Button>
+                        </div>
+                    </div>
 
                     <div className="space-y-2">
                         <label

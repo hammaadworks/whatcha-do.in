@@ -18,7 +18,8 @@ interface HabitInfoModalProps {
     name: string,
     isPublic: boolean,
     goalValue?: number | null,
-    goalUnit?: string | null
+    goalUnit?: string | null,
+    targetTime?: string | null // Add targetTime
   ) => void;
   onHabitDeleted?: (habitId: string) => void;
   onHabitMove?: (habitId: string, targetBox: HabitBoxType) => Promise<void>; // New prop
@@ -47,9 +48,10 @@ const HabitInfoModal: React.FC<HabitInfoModalProps> = ({
     name: string,
     isPublic: boolean,
     goalValue?: number | null,
-    goalUnit?: string | null
+    goalUnit?: string | null,
+    targetTime?: string | null // Add targetTime
   ) => {
-    onHabitUpdated?.(habitId, name, isPublic, goalValue, goalUnit);
+    onHabitUpdated?.(habitId, name, isPublic, goalValue, goalUnit, targetTime);
     setIsEditModalOpen(false);
     onClose(); // Close info modal after saving
   };
@@ -126,6 +128,14 @@ const HabitInfoModal: React.FC<HabitInfoModalProps> = ({
             <span className="text-muted-foreground">Longest Streak</span>
             <span className="font-semibold">{habit.longest_streak} days</span>
           </div>
+          {habit.target_time && (
+            <div className="flex justify-between items-center">
+              <span className="text-muted-foreground">Target Time</span>
+              <span className="font-semibold">
+                {new Date(`1970-01-01T${habit.target_time}`).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+              </span>
+            </div>
+          )}
           {habit.goal_value && habit.goal_unit && (
             <div className="flex justify-between items-center">
               <span className="text-muted-foreground">Goal</span>

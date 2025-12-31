@@ -6,9 +6,11 @@ interface UiState {
     isUsernameSticky: boolean;
     stickyUsername: string | null;
     layoutMode: 'card' | 'section';
+    activeTheme: string;
     setUsernameSticky: (isSticky: boolean) => void;
     setStickyUsername: (username: string | null) => void;
     setLayoutMode: (mode: 'card' | 'section') => void;
+    setActiveTheme: (theme: string) => void;
 }
 
 const cookieStorage: StateStorage = {
@@ -36,14 +38,16 @@ export const useUiStore = create<UiState>()(
             isUsernameSticky: false,
             stickyUsername: null,
             layoutMode: 'card', // Default to card view
+            activeTheme: 'zenith',
             setUsernameSticky: (isSticky) => set({ isUsernameSticky: isSticky }),
             setStickyUsername: (username) => set({ stickyUsername: username }),
             setLayoutMode: (mode) => set({ layoutMode: mode }),
+            setActiveTheme: (theme) => set({ activeTheme: theme }),
         }),
         {
             name: 'ui-storage', // name of the item in the storage (must be unique)
             storage: createJSONStorage(() => cookieStorage),
-            partialize: (state) => ({ layoutMode: state.layoutMode }), // Only persist layoutMode
+            partialize: (state) => ({ layoutMode: state.layoutMode, activeTheme: state.activeTheme }), // Persist layoutMode and activeTheme
         }
     )
 );

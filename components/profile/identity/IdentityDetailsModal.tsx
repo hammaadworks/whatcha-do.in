@@ -8,7 +8,7 @@ import {Textarea} from '@/components/ui/textarea';
 import {Switch} from '@/components/ui/switch';
 import {Label} from '@/components/ui/label';
 import {Badge} from '@/components/ui/badge';
-import {Loader2, Plus, Trash2, X} from 'lucide-react';
+import {Check, Loader2, Plus, Trash2, X} from 'lucide-react';
 import {Habit, Identity} from '@/lib/supabase/types';
 import {Popover, PopoverContent, PopoverTrigger} from '@/components/ui/popover';
 import {Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList} from '@/components/ui/command';
@@ -19,7 +19,8 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { IDENTITY_START_PHRASE } from '@/lib/constants';
+import { IDENTITY_START_PHRASE, IDENTITY_COLORS } from '@/lib/constants';
+import { cn } from '@/lib/utils';
 
 interface IdentityDetailsModalProps {
     identity: Identity;
@@ -51,6 +52,7 @@ export const IdentityDetailsModal: React.FC<IdentityDetailsModalProps> = ({
     const [isManualPrefix, setIsManualPrefix] = useState(false);
     const [description, setDescription] = useState(identity.description || '');
     const [isPublic, setIsPublic] = useState(identity.is_public);
+    const [selectedColor, setSelectedColor] = useState(identity.color || IDENTITY_COLORS[0]);
     const [isSaving, setIsSaving] = useState(false);
     const [isLinking, setIsLinking] = useState(false);
     const [openCombobox, setOpenCombobox] = useState(false);
@@ -61,6 +63,7 @@ export const IdentityDetailsModal: React.FC<IdentityDetailsModalProps> = ({
             parseTitleToState(identity.title);
             setDescription(identity.description || '');
             setIsPublic(identity.is_public);
+            setSelectedColor(identity.color || IDENTITY_COLORS[0]);
         }
     }, [identity, isOpen]);
 
@@ -122,7 +125,12 @@ export const IdentityDetailsModal: React.FC<IdentityDetailsModalProps> = ({
                 finalTitle = `${IDENTITY_START_PHRASE} ${prefix} ${title.trim()}`;
             }
 
-            await onUpdate(identity.id, {title: finalTitle, description, is_public: isPublic});
+            await onUpdate(identity.id, {
+                title: finalTitle, 
+                description, 
+                is_public: isPublic,
+                color: selectedColor
+            });
             onClose();
         } catch (error) {
             console.error("Failed to update identity", error);
@@ -199,6 +207,28 @@ export const IdentityDetailsModal: React.FC<IdentityDetailsModalProps> = ({
                                 disabled={isReadOnly}
                                 className="flex-1"
                             />
+                        </div>
+                    </div>
+
+                    <div className="grid gap-2">
+                        <Label>Color Code</Label>
+                        <div className="flex flex-wrap gap-2">
+                            {IDENTITY_COLORS.map((color) => (
+                                <button
+                                    key={color}
+                                    type="button"
+                                    onClick={() => !isReadOnly && setSelectedColor(color)}
+                                    disabled={isReadOnly}
+                                    className={cn(
+                                        "w-6 h-6 rounded-full transition-all flex items-center justify-center",
+                                        color,
+                                        selectedColor === color ? "ring-2 ring-offset-2 ring-primary scale-110" : "hover:scale-110 opacity-70 hover:opacity-100",
+                                        isReadOnly && "opacity-50 cursor-not-allowed hover:scale-100 hover:opacity-50"
+                                    )}
+                                >
+                                    {selectedColor === color && <Check className="w-3 h-3 text-white drop-shadow-md" strokeWidth={3} />}
+                                </button>
+                            ))}
                         </div>
                     </div>
 

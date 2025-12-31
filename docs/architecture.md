@@ -2,7 +2,8 @@
 
 ## Executive Summary
 
-This document outlines the architectural decisions for 'whatcha-do.in', a Next.js application leveraging Supabase for its
+This document outlines the architectural decisions for 'whatcha-do.in', a Next.js application leveraging Supabase for
+its
 backend services (PostgreSQL, Authentication, Realtime, Storage, and PostgREST API) and deployed on Vercel with GitHub
 Actions for CI/CD. The architecture prioritizes frugality, scalability, and a robust user experience, implementing novel
 UX patterns through a hybrid client-side/Supabase Database Function approach for critical logic like the Grace Period
@@ -37,7 +38,6 @@ whatcha-do.in/
 │   ├── utils.ts                 # General utilities
 │   └── date.ts                  # Date/time utilities (e.g., timezone handling)
 ├── hooks/                       # Custom React hooks
-│   ├── useConfettiColors.ts     # Hook to get theme-aware colors for confetti
 ├── styles/                      # Tailwind CSS configuration, global styles
 ├── public/                      # Static assets
 ├── types/                       # Global TypeScript types/interfaces
@@ -134,7 +134,7 @@ first implementation story will involve executing this command to set up the pro
 
 * **Feature-Based Organization for Routes (`app/`):** The `app/` directory will be structured primarily by feature (
   e.g., `app/habits`, `app/journal`), leveraging Next.js App Router's conventions.
-*   **Hybrid Organization for Shared Elements:**
+* **Hybrid Organization for Shared Elements:**
     * `components/ui/`: For `shadcn/ui` and Magic UI components (customized).
     * `components/common/`: For general-purpose, reusable components.
     * `components/features/[feature-name]/`: For components specific to a feature but reusable within it.
@@ -278,7 +278,8 @@ users, habits, todos, and journal entries.
     * `entry_date`: The logical date of the entry (e.g. '2023-10-27').
     * `content`: Markdown content for user's free-form reflections.
     * `is_public`: Visibility flag for `content` and `activity_log`.
-    * `activity_log`: **JSONB** column storing an array of structured activity objects (actions, habits, targets) completed/uncompleted in real-time. This is the source of truth for daily accomplishments.
+    * `activity_log`: **JSONB** column storing an array of structured activity objects (actions, habits, targets)
+      completed/uncompleted in real-time. This is the source of truth for daily accomplishments.
     * `created_at`, `updated_at`.
 * **Relationships:** Foreign keys will establish relationships between users and their habits, todos, and journal
   entries. Sub-todos will have a self-referencing relationship.
@@ -522,15 +523,18 @@ each choice.
 
 10. **ADR 010: Date/Time Handling**
 
-    *   **Decision:** Store UTC in DB (`TIMESTAMP WITH TIME ZONE`), transmit ISO 8601 UTC strings, client converts for
+    * **Decision:** Store UTC in DB (`TIMESTAMP WITH TIME ZONE`), transmit ISO 8601 UTC strings, client converts for
 
-      local display/input, server-side calculations use UTC with user's stored timezone.
+    local display/input, server-side calculations use UTC with user's stored timezone.
 
-    *   **Rationale:** Ensures data integrity, avoids timezone bugs, provides correct local user experience, and maintains
+    * **Rationale:** Ensures data integrity, avoids timezone bugs, provides correct local user experience, and maintains
 
-      server as source of truth.
+    server as source of truth.
 
-    *   **Guest User Timezone Detection:** For guest users viewing a public profile, the `UserClock` component automatically detects the guest's local timezone using `Intl.DateTimeFormat().resolvedOptions().timeZone` to calculate the time difference relative to the profile owner's timezone. This allows for an accurate time difference display without requiring guest authentication.
+    * **Guest User Timezone Detection:** For guest users viewing a public profile, the `UserClock` component
+      automatically detects the guest's local timezone using `Intl.DateTimeFormat().resolvedOptions().timeZone` to
+      calculate the time difference relative to the profile owner's timezone. This allows for an accurate time
+      difference display without requiring guest authentication.
 
 11. **ADR 011: API Response Format**
     * **Decision:** Standard JSON structure with `data` for success, `error` for failures (message, code, details), and
@@ -564,7 +568,8 @@ each choice.
       and storage. Provides valuable insights without overwhelming the database with granular daily entries.
 
 * **ADR 017: Dynamic Root Routing for User Profiles**
-    * **Decision:** Implement a unified routing model using a dynamic root segment `/[username]. This route serves as the single entry point for all of a user's content.
+    * **Decision:** Implement a unified routing model using a dynamic root segment `/[username]. This route serves as
+      the single entry point for all of a user's content.
         - The root page (`app/[username]/page.tsx`) will dynamically render either the **private, editable dashboard**
           if the visitor is the authenticated owner, or the **public, read-only profile** for all other visitors.
         - All private feature pages (e.g., Habits, Journal, Todos) will be nested under this dynamic route (e.g.,
@@ -579,9 +584,13 @@ each choice.
 
 * **ADR 018: Target and Action Lifecycle (Delete-on-Journal)**
     * **Decision:** Actions and Targets will adhere to a strict "Lightweight" data policy. Once an item is completed and
-      the "day has passed" (Next Day Clearing), it is strictly **deleted** from the structured database tables/JSONB. Their real-time completion records are now permanently stored in the `journal_entries.activity_log` (JSONB), and the `content` field in `journal_entries` is reserved for the user's free-form daily notes.
+      the "day has passed" (Next Day Clearing), it is strictly **deleted** from the structured database tables/JSONB.
+      Their real-time completion records are now permanently stored in the `journal_entries.activity_log` (JSONB), and
+      the `content` field in `journal_entries` is reserved for the user's free-form daily notes.
     * **Rationale:** This decision prioritizes database performance and minimizes storage bloat for the recursive JSONB
-      structures. It aligns with the user's desire to have a "clean slate" and uses the `activity_log` as the immutable, permanent record of achievement, while keeping `content` for personal reflection. It also simplifies the mental model: "If it's in the list, it's active (or just finished). If it's history, it's in the `activity_log`."
+      structures. It aligns with the user's desire to have a "clean slate" and uses the `activity_log` as the immutable,
+      permanent record of achievement, while keeping `content` for personal reflection. It also simplifies the mental
+      model: "If it's in the list, it's active (or just finished). If it's history, it's in the `activity_log`."
 
 ---
 

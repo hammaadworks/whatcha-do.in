@@ -30,6 +30,7 @@ export function HabitCreator({ onHabitCreated }: Readonly<HabitCreatorProps>) {
   const [goalValue, setGoalValue] = useState<number | undefined>(undefined);
   const [goalUnit, setGoalUnit] = useState<string>(predefinedUnits[0]);
   const [customUnit, setCustomUnit] = useState("");
+  const [targetTime, setTargetTime] = useState(""); // New state for target_time
   const [isPublic, setIsPublic] = useState(true); // New state for public/private
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -79,7 +80,8 @@ export function HabitCreator({ onHabitCreated }: Readonly<HabitCreatorProps>) {
       is_public: isPublic,
       goal_value: showGoalInput && goalValue !== undefined ? goalValue : undefined,
       goal_unit: showGoalInput && finalGoalUnit ? finalGoalUnit : undefined,
-      processed_date: formatISO(refDate)
+      processed_date: formatISO(refDate),
+      target_time: targetTime || undefined // Add target_time
     };
     console.log("[HabitCreator] Submitting new habit:", newHabitPayload);
 
@@ -95,6 +97,7 @@ export function HabitCreator({ onHabitCreated }: Readonly<HabitCreatorProps>) {
       setGoalValue(undefined);
       setGoalUnit(predefinedUnits[0]);
       setCustomUnit("");
+      setTargetTime(""); // Reset targetTime
       setIsPublic(true); // Reset isPublic to default
     } catch (err: unknown) {
       setError((err instanceof Error) ? err.message : "Failed to create habit.");
@@ -122,7 +125,7 @@ export function HabitCreator({ onHabitCreated }: Readonly<HabitCreatorProps>) {
       />
       {habitName.trim() && !showGoalInput && (
         <Button variant="outline" onClick={() => setShowGoalInput(true)} disabled={loading}>
-          + Add Goal
+          + Add Goal/Time
         </Button>)}
       <Button onClick={handleCreate} disabled={loading || !habitName.trim()}>
         {loading ? "Adding..." : "Add Habit"}
@@ -139,34 +142,50 @@ export function HabitCreator({ onHabitCreated }: Readonly<HabitCreatorProps>) {
       />
     </div>
 
-    {showGoalInput && (<div className="flex items-center gap-2 flex-wrap">
-      <Input
-        type="number"
-        placeholder="Goal value"
-        value={goalValue ?? ""}
-        onChange={(e) => setGoalValue(Number.parseFloat(e.target.value) || undefined)}
-        className="w-full sm:w-32"
-        disabled={loading}
-      />
-      <Select value={goalUnit} onValueChange={setGoalUnit} disabled={loading}>
-        <SelectTrigger className="w-full sm:w-[176px]">
-          <SelectValue placeholder="Select a unit" />
-        </SelectTrigger>
-        <SelectContent>
-          {predefinedUnits.map((unit) => (<SelectItem key={unit} value={unit}>
-            {unit}
-          </SelectItem>))}
-        </SelectContent>
-      </Select>
-      {goalUnit === "Custom..." && (<Input
-        type="text"
-        placeholder="Enter custom unit"
-        value={customUnit}
-        onChange={(e) => setCustomUnit(e.target.value)}
-        className="w-full sm:flex-grow"
-        disabled={loading}
-      />)}
-    </div>)}
+    {showGoalInput && (
+    <div className="grid gap-4">
+      <div className="flex items-center gap-2 flex-wrap">
+        <Input
+          type="number"
+          placeholder="Goal value"
+          value={goalValue ?? ""}
+          onChange={(e) => setGoalValue(Number.parseFloat(e.target.value) || undefined)}
+          className="w-full sm:w-32"
+          disabled={loading}
+        />
+        <Select value={goalUnit} onValueChange={setGoalUnit} disabled={loading}>
+          <SelectTrigger className="w-full sm:w-[176px]">
+            <SelectValue placeholder="Select a unit" />
+          </SelectTrigger>
+          <SelectContent>
+            {predefinedUnits.map((unit) => (<SelectItem key={unit} value={unit}>
+              {unit}
+            </SelectItem>))}
+          </SelectContent>
+        </Select>
+        {goalUnit === "Custom..." && (<Input
+          type="text"
+          placeholder="Enter custom unit"
+          value={customUnit}
+          onChange={(e) => setCustomUnit(e.target.value)}
+          className="w-full sm:flex-grow"
+          disabled={loading}
+        />)}
+      </div>
+      <div className="flex items-center gap-2">
+          <Label htmlFor="target-time" className="shrink-0">Target Time:</Label>
+          <Input
+            id="target-time"
+            type="time"
+            value={targetTime}
+            onChange={(e) => setTargetTime(e.target.value)}
+            className="w-full sm:w-auto"
+            disabled={loading}
+            step="600"
+          />
+      </div>
+    </div>
+    )}
     {error && <p className="text-destructive-foreground mt-2">{error}</p>}
   </div>);
 }

@@ -9,7 +9,7 @@ async function _getUserByUsernameServer(username: string): Promise<PublicUserDis
     const supabase = await createServerSideClient();
     const { data, error } = await supabase
         .from('users')
-        .select('id, username, bio, timezone')
+        .select('id, username, bio, timezone, active_theme')
         .eq('username', username)
         .single();
 

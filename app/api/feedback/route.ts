@@ -83,7 +83,7 @@ ${contactDetail ? `**Contact Detail:** ${contactDetail}` : ''}
     const finalLarkMessage = `${larkPrefix} ${envTag} ${rawLarkMessageContent}`;
     logger.debug({ finalLarkMessage }, "Final message to be sent to Lark");
 
-    const success = await sendLarkMessage(finalLarkMessage);
+    const success = await sendLarkMessage(finalLarkMessage, "📢 New Feedback/Bug Report");
 
     if (success) {
       return NextResponse.json({ success: true }, { status: 200 });

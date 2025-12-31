@@ -1,6 +1,7 @@
 import {fetchRawTargets, updateTargets} from '@/lib/supabase/targets';
 import {getCurrentMonthStartISO} from '@/lib/date';
 import {ActionNode} from '@/lib/supabase/types';
+import {partitionActionsByClearingStatus, filterCompletedBeforeDate} from '@/lib/logic/actions/processors';
 
 /**
  * Orchestrates the monthly rollover of targets.
@@ -16,17 +17,31 @@ export async function processTargetLifecycle(userId: string, timezone: string, r
     // If no targets exist for the previous month, there's nothing to process
     if (prevTargets.length === 0) return;
 
-    const {active, completed} = splitActiveCompleted(prevTargets);
+    // 1. Identify Active Targets (to move)
+    // Use partitionActionsByClearingStatus to find items that are NOT completed before currentMonthDate
+    // (or have active children). These are the ones continuing into the new month.
+    const { kept: activeToMigrate } = partitionActionsByClearingStatus(prevTargets, currentMonthDate, timezone);
 
-    // 1. Migrate Active Targets to Current Month
-    if (active.length > 0) {
-        await migrateActiveTargets(userId, active, currentMonthDate);
+    // 2. Identify Completed Targets (to keep in history)
+    // Filter the ORIGINAL prevTargets tree to keep only items completed BEFORE currentMonthDate.
+    // These remain in the previous month's bucket as history.
+    const completedToRetain = filterCompletedBeforeDate(prevTargets, currentMonthDate, timezone);
+
+    // 3. Migrate Active Targets to Current Month
+    if (activeToMigrate.length > 0) {
+        await migrateActiveTargets(userId, activeToMigrate, currentMonthDate);
     }
 
-    // 2. Clear Previous Month Bucket
-    // This effectively archives completed items (by removing them from the active view)
-    // and cleans up the active items that were just moved.
-    await clearPreviousMonthTargets(userId, prevMonthDate, completed.length);
+    // 4. Update Previous Bucket
+    // Overwrite the previous bucket with ONLY the completed items (and their necessary containers).
+    // This removes the active items (which were moved) but preserves the history.
+    await updateTargets(userId, prevMonthDate, completedToRetain);
+    
+    if (completedToRetain.length > 0) {
+        console.log(`[TargetLifecycle] Retained completed history in ${prevMonthDate}.`);
+    } else {
+        console.log(`[TargetLifecycle] Cleared ${prevMonthDate} (no completed items to retain).`);
+    }
 }
 
 /**
@@ -35,12 +50,22 @@ export async function processTargetLifecycle(userId: string, timezone: string, r
 async function migrateActiveTargets(userId: string, activeTargets: ActionNode[], currentMonthDate: string) {
     const currentTargets = await fetchRawTargets(userId, currentMonthDate);
     
-    // Merge: Append active targets from previous month to the end of current month's list
-    // Assumption: IDs are UUIDs and unique enough to avoid collision during simple merge
-    const mergedTargets = [...currentTargets, ...activeTargets];
+    // Create a Set of existing IDs for O(1) lookup
+    const existingIds = new Set(currentTargets.map(t => t.id));
+
+    // Filter out targets that already exist in the destination bucket to prevent duplicates
+    const uniqueActiveTargets = activeTargets.filter(t => !existingIds.has(t.id));
+
+    if (uniqueActiveTargets.length === 0) {
+        console.log(`[TargetLifecycle] All active targets from previous month already exist in ${currentMonthDate}. Skipping migration.`);
+        return;
+    }
+
+    // Merge: Append unique active targets from previous month to the end of current month's list
+    const mergedTargets = [...currentTargets, ...uniqueActiveTargets];
     
     await updateTargets(userId, currentMonthDate, mergedTargets);
-    console.log(`[TargetLifecycle] Carried forward ${activeTargets.length} active targets from previous month to ${currentMonthDate}.`);
+    console.log(`[TargetLifecycle] Carried forward ${uniqueActiveTargets.length} active targets from previous month to ${currentMonthDate}.`);
 }
 
 /**
@@ -52,22 +77,4 @@ async function clearPreviousMonthTargets(userId: string, prevMonthDate: string, 
     if (completedCount > 0) {
         console.log(`[TargetLifecycle] Cleared ${completedCount} completed targets from ${prevMonthDate}.`);
     }
-}
-
-/**
- * Helper to separate a list of nodes into active (uncompleted) and completed lists.
- */
-function splitActiveCompleted(nodes: ActionNode[]): { active: ActionNode[], completed: ActionNode[] } {
-    const active: ActionNode[] = [];
-    const completed: ActionNode[] = [];
-
-    nodes.forEach(node => {
-        if (!node.completed) {
-            active.push(node);
-        } else {
-            completed.push(node);
-        }
-    });
-
-    return {active, completed};
 }

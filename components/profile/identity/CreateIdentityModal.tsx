@@ -20,13 +20,14 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import {Loader2} from 'lucide-react';
-import { IDENTITY_START_PHRASE } from '@/lib/constants';
+import {Check, Loader2} from 'lucide-react';
+import { IDENTITY_START_PHRASE, IDENTITY_COLORS } from '@/lib/constants';
+import { cn } from '@/lib/utils';
 
 interface CreateIdentityModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onCreate: (title: string, isPublic: boolean) => Promise<void>;
+    onCreate: (title: string, isPublic: boolean, color: string) => Promise<void>;
 }
 
 export const CreateIdentityModal: React.FC<CreateIdentityModalProps> = ({isOpen, onClose, onCreate}) => {
@@ -35,6 +36,7 @@ export const CreateIdentityModal: React.FC<CreateIdentityModalProps> = ({isOpen,
     const [isManualPrefix, setIsManualPrefix] = useState(false);
     const [isPublic, setIsPublic] = useState(false);
     const [isCreating, setIsCreating] = useState(false);
+    const [selectedColor, setSelectedColor] = useState(IDENTITY_COLORS[0]);
 
     const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const newVal = e.target.value;
@@ -71,12 +73,13 @@ export const CreateIdentityModal: React.FC<CreateIdentityModalProps> = ({isOpen,
                 finalTitle = `${IDENTITY_START_PHRASE} ${prefix} ${title.trim()}`;
             }
             
-            await onCreate(finalTitle, isPublic);
+            await onCreate(finalTitle, isPublic, selectedColor);
             // Reset state
             setTitle('');
             setPrefix('a');
             setIsManualPrefix(false);
             setIsPublic(false);
+            setSelectedColor(IDENTITY_COLORS[0]);
             onClose();
         } catch (error) {
             console.error("Failed to create identity", error);
@@ -125,6 +128,27 @@ export const CreateIdentityModal: React.FC<CreateIdentityModalProps> = ({isOpen,
                             />
                         </div>
                     </div>
+
+                    <div className="grid gap-2">
+                        <Label>Color Code</Label>
+                        <div className="flex flex-wrap gap-2">
+                            {IDENTITY_COLORS.map((color) => (
+                                <button
+                                    key={color}
+                                    type="button"
+                                    onClick={() => setSelectedColor(color)}
+                                    className={cn(
+                                        "w-6 h-6 rounded-full transition-all flex items-center justify-center",
+                                        color,
+                                        selectedColor === color ? "ring-2 ring-offset-2 ring-primary scale-110" : "hover:scale-110 opacity-70 hover:opacity-100"
+                                    )}
+                                >
+                                    {selectedColor === color && <Check className="w-3 h-3 text-white drop-shadow-md" strokeWidth={3} />}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
                     <div className="flex items-center justify-between mt-2">
                         <Label htmlFor="public-mode">Public Identity</Label>
                         <Switch

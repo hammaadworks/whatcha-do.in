@@ -1,5 +1,5 @@
 import { fetchRawActions, updateActions } from '@/lib/supabase/actions';
-import { getStartOfTodayInTimezone } from '@/lib/date';
+import { getTodayISO } from '@/lib/date';
 import { partitionActionsByClearingStatus } from './processors';
 
 /**
@@ -12,16 +12,17 @@ import { partitionActionsByClearingStatus } from './processors';
  * 
  * @param userId The ID of the user to process.
  * @param timezone The user's timezone string (e.g., 'America/New_York').
+ * @param referenceDate Optional reference date (e.g., simulated time). Defaults to current system time.
  */
-export async function processActionLifecycle(userId: string, timezone: string) {
-    const startOfToday = getStartOfTodayInTimezone(timezone);
+export async function processActionLifecycle(userId: string, timezone: string, referenceDate: Date = new Date()) {
+    const todayISO = getTodayISO(timezone, referenceDate);
 
     // 1. Fetch current RAW actions tree (no auto-filtering)
     const actions = await fetchRawActions(userId);
     if (actions.length === 0) return;
 
     // 2. Partition into kept and removed items
-    const { kept: cleanedTree, removed: itemsToClear } = partitionActionsByClearingStatus(actions, startOfToday);
+    const { kept: cleanedTree, removed: itemsToClear } = partitionActionsByClearingStatus(actions, todayISO, timezone);
 
     // 3. Update Actions DB if there are items to clear
     if (itemsToClear.length > 0) {

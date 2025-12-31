@@ -104,7 +104,7 @@ const ProfileLayout: React.FC<ProfileLayoutProps> = ({
                     className={cn(
                         "absolute z-30 flex items-center gap-3",
                         isCardMode
-                            ? "top-12 right-4 md:top-14 md:right-6"
+                            ? "top-4 sm:top-8 right-4 md:top-14 md:right-6"
                             : "hidden" // Hide in section mode (fixed positioning removed)
                     )}
                 >

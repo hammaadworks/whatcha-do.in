@@ -17,7 +17,15 @@ export async function fetchUnprocessedHabits(userId: string, todayDate: ISODate)
   const supabase = createClient();
   const { data, error } = await supabase
     .from("habits")
-    .select("*")
+    .select(`
+      *,
+      habit_identities (
+        identities (
+          id,
+          color
+        )
+      )
+    `)
     .eq("user_id", userId)
     .neq("processed_date", todayDate);
 
@@ -25,7 +33,13 @@ export async function fetchUnprocessedHabits(userId: string, todayDate: ISODate)
     console.error("Error fetching owner's habits:", error);
     throw error;
   }
-  return data || [];
+
+  // Transform nested response to match Habit interface
+  return (data || []).map((habit: any) => ({
+    ...habit,
+    habit_identities: undefined, // Remove the raw relation
+    linked_identities: habit.habit_identities?.map((hi: any) => hi.identities) || []
+  }));
 }
 
 /**
@@ -39,14 +53,32 @@ export async function fetchOwnerHabits(userId: string): Promise<Habit[]> {
   const supabase = createClient();
   const { data, error } = await supabase
     .from("habits")
-    .select("*")
+    .select(`
+      *,
+      habit_identities (
+        identities (
+          id,
+          color
+        )
+      )
+    `)
     .eq("user_id", userId);
 
   if (error) {
     console.error("Error fetching owner's habits:", error);
     throw error;
   }
-  return data || [];
+  
+  // Transform nested response to match Habit interface
+  return (data || []).map((habit: any) => {
+    const linked = habit.habit_identities?.map((hi: any) => hi.identities) || [];
+    // console.log(`[Habit Fetch] ${habit.name} linked:`, linked); // Debug log
+    return {
+      ...habit,
+      habit_identities: undefined, // Remove the raw relation
+      linked_identities: linked
+    };
+  });
 }
 
 /**

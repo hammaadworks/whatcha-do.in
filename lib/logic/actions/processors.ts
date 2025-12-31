@@ -1,5 +1,5 @@
 import { ActionNode } from '@/lib/supabase/types';
-import { getStartOfTodayInTimezone } from '@/lib/date';
+import { getTodayISO } from '@/lib/date';
 
 /**
  * Applies "Next Day Clearing" logic to an ActionNode tree.
@@ -7,8 +7,8 @@ import { getStartOfTodayInTimezone } from '@/lib/date';
  * unless they have visible children.
  */
 export function applyNextDayClearing(nodes: ActionNode[], timezone: string): ActionNode[] {
-  const startOfToday = getStartOfTodayInTimezone(timezone);
-  const { kept } = partitionActionsByClearingStatus(nodes, startOfToday);
+  const todayISO = getTodayISO(timezone);
+  const { kept } = partitionActionsByClearingStatus(nodes, todayISO, timezone);
   return kept;
 }
 
@@ -17,16 +17,17 @@ export function applyNextDayClearing(nodes: ActionNode[], timezone: string): Act
  * based on the "Next Day Clearing" logic.
  * 
  * @param nodes The list of actions to process.
- * @param startOfToday The timestamp (ms) representing the start of the current day.
+ * @param todayISO The current date in the user's timezone (YYYY-MM-DD).
+ * @param timezone The user's timezone string.
  * @returns An object containing the 'kept' tree and a flat array of 'removed' nodes.
  */
-export function partitionActionsByClearingStatus(nodes: ActionNode[], startOfToday: number): { kept: ActionNode[], removed: ActionNode[] } {
+export function partitionActionsByClearingStatus(nodes: ActionNode[], todayISO: string, timezone: string): { kept: ActionNode[], removed: ActionNode[] } {
   const kept: ActionNode[] = [];
   const removed: ActionNode[] = [];
 
   for (const node of nodes) {
     const { kept: keptChildren, removed: removedChildren } = node.children 
-        ? partitionActionsByClearingStatus(node.children, startOfToday) 
+        ? partitionActionsByClearingStatus(node.children, todayISO, timezone) 
         : { kept: [], removed: [] };
     
     // Add removed children to the global removed list
@@ -36,8 +37,11 @@ export function partitionActionsByClearingStatus(nodes: ActionNode[], startOfTod
     let shouldClear = false;
     
     if (node.completed && node.completed_at) {
-        const completedTime = new Date(node.completed_at).getTime();
-        if (completedTime < startOfToday) {
+        // Convert completion timestamp to Date in user's timezone
+        const completedDateISO = getTodayISO(timezone, new Date(node.completed_at));
+        
+        // If completed on a previous day (completedDateISO < todayISO) -> clear it
+        if (completedDateISO < todayISO) {
             shouldClear = true;
         }
     }
@@ -57,6 +61,52 @@ export function partitionActionsByClearingStatus(nodes: ActionNode[], startOfTod
 
   return { kept, removed };
 }
+
+/**
+ * Filters a tree to retain only items that were completed before a specific ISO date (threshold),
+ * or items that act as containers for such completed items.
+ * 
+ * Used for "Previous Month" history, where we want to show what was done, but remove what was moved forward.
+ * 
+ * @param nodes The action tree.
+ * @param thresholdISO The ISO date string (YYYY-MM-DD). Items completed BEFORE this are kept.
+ * @param timezone The user's timezone.
+ */
+export function filterCompletedBeforeDate(nodes: ActionNode[], thresholdISO: string, timezone: string): ActionNode[] {
+    const filtered: ActionNode[] = [];
+
+    for (const node of nodes) {
+        // 1. Recurse first
+        const keptChildren = node.children 
+            ? filterCompletedBeforeDate(node.children, thresholdISO, timezone) 
+            : [];
+
+        let keepNode = false;
+
+        // 2. Check if node itself is "Old Completed"
+        if (node.completed && node.completed_at) {
+            const completedDateISO = getTodayISO(timezone, new Date(node.completed_at));
+            if (completedDateISO < thresholdISO) {
+                keepNode = true;
+            }
+        }
+
+        // 3. Keep if it has children (Container)
+        if (keptChildren.length > 0) {
+            keepNode = true;
+        }
+
+        if (keepNode) {
+            filtered.push({
+                ...node,
+                children: keptChildren
+            });
+        }
+    }
+
+    return filtered;
+}
+
 
 /**
  * Recursively filters an ActionNode tree to include only nodes marked as public,

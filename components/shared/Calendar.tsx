@@ -10,6 +10,9 @@ import {useSimulatedTime} from "@/components/layout/SimulatedTimeProvider";
 import {getReferenceDateUI} from "@/lib/date";
 
 
+import {MagicCard} from "@/components/ui/magic-card";
+import {useTheme} from "next-themes";
+
 /* ------------------------------------------------------------------ */
 /* Calendar */
 
@@ -25,41 +28,47 @@ function Calendar({
      * NOTE: This is a VIEW concern, not business logic.
      */
     const { simulatedDate } = useSimulatedTime();
+    const { resolvedTheme } = useTheme();
     const refDate = getReferenceDateUI(simulatedDate);
 
-    return (<DayPicker
+    return (
+    <MagicCard 
+        className={cn("rounded-xl border p-3 shadow-lg", className)} 
+        gradientColor={resolvedTheme === "dark" ? "#262626" : "#D9D9D955"}
+    >
+    <DayPicker
         showOutsideDays={showOutsideDays}
         captionLayout={captionLayout}
         /**
          * Prevent selecting future dates
          * relative to EFFECTIVE (simulated) today
          */
-        hidden={{after: refDate}}
+        disabled={{after: refDate}}
         /**
          * Force DayPicker to understand "today"
          * under time travel
          */
         today={refDate}
-        className={cn("rounded-xl border bg-background p-3", className)}
+        className={cn("bg-transparent", className)}
         classNames={{
             months: "flex flex-col sm:flex-row gap-4",
             month: "space-y-4",
-            caption: "relative flex items-center justify-center pt-1",
-            caption_label: "text-sm font-semibold tracking-tight",
+            caption: "relative flex items-center justify-center pt-1 mb-2",
+            caption_label: "text-sm font-bold tracking-tight text-foreground",
             nav: "flex items-center gap-1",
-            nav_button: cn(buttonVariants({variant: "ghost"}), "h-7 w-7 rounded-md", "hover:bg-accent hover:text-accent-foreground", "focus-visible:ring-2 focus-visible:ring-ring"),
+            nav_button: cn(buttonVariants({variant: "ghost"}), "h-7 w-7 rounded-md bg-transparent", "hover:bg-primary/10 hover:text-primary transition-colors", "focus-visible:ring-2 focus-visible:ring-ring"),
             nav_button_previous: "absolute left-1",
             nav_button_next: "absolute right-1",
-            table: "w-full border-collapse",
-            head_row: "flex",
-            head_cell: "w-9 text-center text-[0.75rem] font-medium text-muted-foreground",
-            row: "mt-2 flex w-full",
+            table: "w-full border-collapse space-y-1",
+            head_row: "flex mb-2",
+            head_cell: "w-9 text-center text-[0.7rem] uppercase font-bold text-muted-foreground tracking-wider",
+            row: "flex w-full mt-1",
             cell: "relative h-9 w-9 p-0 text-center text-sm focus-within:z-20",
-            day: cn(buttonVariants({variant: "ghost"}), "h-9 w-9 rounded-full p-0 font-normal transition-colors"),
-            day_selected: "bg-primary text-primary-foreground hover:bg-primary/90",
-            day_today: "border-2 border-primary text-primary",
-            day_outside: "text-muted-foreground opacity-40",
-            day_disabled: "text-muted-foreground opacity-30",
+            day: cn(buttonVariants({variant: "ghost"}), "h-9 w-9 rounded-full p-0 font-normal transition-all duration-200 hover:scale-110 hover:bg-primary/20 hover:text-primary", "text-foreground"),
+            day_selected: "relative z-10 !bg-primary !text-primary-foreground shadow-xl shadow-primary/60 hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground scale-110 font-bold !ring-4 ring-primary ring-offset-2 ring-offset-background aria-selected:opacity-100",
+            day_today: "relative z-10 bg-transparent text-primary font-bold ring-2 ring-primary ring-offset-2 ring-offset-background",
+            day_outside: "text-muted-foreground opacity-30",
+            day_disabled: "text-muted-foreground opacity-50 cursor-not-allowed pointer-events-none hover:bg-transparent hover:text-muted-foreground",
             day_range_middle: "bg-accent text-accent-foreground rounded-none",
             day_hidden: "invisible", ...classNames,
         }}
@@ -73,7 +82,8 @@ function Calendar({
             />),
         }}
         {...props}
-    />);
+    />
+    </MagicCard>);
 }
 
 /* ------------------------------------------------------------------ */

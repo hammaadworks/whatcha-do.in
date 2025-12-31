@@ -7,9 +7,11 @@ import { Toaster } from "sonner"; // Removed Toaster import
 import { useKeyboardShortcuts } from '@/components/shared/KeyboardShortcutsProvider';
 import { SettingsDrawer } from '@/components/layout/SettingsDrawer';
 import { TooltipProvider } from '@/components/ui/tooltip'; // Import TooltipProvider
+import {AnimatedThemeTogglerRef} from '@/components/ui/animated-theme-toggler';
 
 export function LayoutContent({ children }: { children: React.ReactNode }) {
-    const { isSettingsOpen, toggleSettingsModal, themeTogglerRef } = useKeyboardShortcuts();
+    const { isSettingsOpen, toggleSettingsModal } = useKeyboardShortcuts();
+    const themeTogglerRef = React.useRef<AnimatedThemeTogglerRef>(null);
 
     return (
         <TooltipProvider> {/* Wrap with TooltipProvider */}

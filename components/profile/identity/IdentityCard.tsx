@@ -16,10 +16,13 @@ export const IdentityCard: React.FC<IdentityCardProps> = ({identity, onClick}) =
         <div
             onClick={onClick}
             className={cn(
-                "group relative flex items-center justify-between gap-3 rounded-xl py-3 px-4 border transition-all cursor-pointer select-none",
+                "group relative flex items-center justify-between gap-3 rounded-xl py-3 pl-5 pr-4 border transition-all cursor-pointer select-none overflow-hidden",
                 "bg-card text-card-foreground border-border/60 shadow-sm hover:shadow-md hover:border-primary/30 active:scale-[0.98]"
             )}
         >
+            {/* Color Indicator */}
+            <div className={cn("absolute left-0 top-0 bottom-0 w-1.5", identity.color || "bg-primary/20")} />
+
             <div className="flex items-center gap-2 min-w-0">
                 <h3 className="font-semibold text-base truncate">{identity.title}</h3>
                 {!identity.is_public && (

@@ -1,4 +1,3 @@
-// components/profile/OwnerProfileView.tsx
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
@@ -91,16 +90,16 @@ export default function OwnerProfileView({
     }
   }, [authenticatedUser?.id]);
 
-  const refreshJournalEntries = useCallback(async () => {
+  const refreshJournalEntries = useCallback(async (silent = false) => {
     if (!authenticatedUser?.id) return;
-    setOwnerJournalEntriesLoading(true);
+    if (!silent) setOwnerJournalEntriesLoading(true);
     try {
       const entries = await fetchJournalEntries(authenticatedUser.id);
       setOwnerJournalEntries(entries);
     } catch (error) {
       console.error("Failed to fetch owner journal entries:", error);
     } finally {
-      setOwnerJournalEntriesLoading(false);
+      if (!silent) setOwnerJournalEntriesLoading(false);
     }
   }, [authenticatedUser?.id]);
 
@@ -252,10 +251,12 @@ export default function OwnerProfileView({
     />
 
     <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
-      <VibeSelector
-        currentViewMode={currentViewMode}
-        onViewModeChange={handleViewModeChange}
-      />
+      <div data-tour-step-id="vibe">
+        <VibeSelector
+          currentViewMode={currentViewMode}
+          onViewModeChange={handleViewModeChange}
+        />
+      </div>
       <ViewSelector />
     </div>
 
@@ -277,57 +278,66 @@ export default function OwnerProfileView({
       timezone={optimisticTimezone || profileToDisplay.timezone}
       onTimezoneChange={handleTimezoneChange}
     >
-      <MeSection
-        isCollapsible={isCollapsible}
-        isReadOnly={isReadOnly}
-        username={username}
-        profileToDisplay={profileToDisplay}
-        ownerHabits={ownerHabits}
-        onBioUpdate={handleBioUpdate}
-        onActivityLogged={handleActivityLogged}
-        timezone={optimisticTimezone || profileToDisplay.timezone || "UTC"}
-        isFolded={isMeFolded}
-        toggleFold={toggleMeFold}
-      />
+      <div data-tour-step-id="me">
+        <MeSection
+          isCollapsible={isCollapsible}
+          isReadOnly={isReadOnly}
+          username={username}
+          profileToDisplay={profileToDisplay}
+          ownerHabits={ownerHabits}
+          onBioUpdate={handleBioUpdate}
+          onActivityLogged={handleActivityLogged}
+          timezone={optimisticTimezone || profileToDisplay.timezone || "UTC"}
+          isFolded={isMeFolded}
+          toggleFold={toggleMeFold}
+        />
+      </div>
 
-      <ActionsSection
-        isOwner={true}
-        isReadOnly={isReadOnly}
-        actions={actions}
-        loading={actionsLoading}
-        onActionToggled={handleActionToggled}
-        onActionAdded={addAction}
-        onActionUpdated={updateActionText}
-        onActionDeleted={handleActionDeleted}
-        undoDeleteAction={undoDeleteAction}
-        onActionIndented={indentAction}
-        onActionOutdented={outdentAction}
-        onActionMovedUp={moveActionUp}
-        onActionMovedDown={moveActionDown}
-        onActionPrivacyToggled={toggleActionPrivacy}
-        onActionAddedAfter={addActionAfter}
-        isCollapsible={isCollapsible}
-        isFolded={isActionsFolded}
-        toggleFold={toggleActionsFold}
-      />
-      <HabitsSection
-        isOwner={true}
-        isReadOnly={isReadOnly}
-        habits={ownerHabits}
-        loading={ownerHabitsLoading}
-        onActivityLogged={handleActivityLogged}
-        setOwnerHabits={setOwnerHabits} // Pass setter for optimistic updates
-        todayISO={todayISO}
-      />
-      <JournalSection
-        isOwner={true}
-        isReadOnly={isReadOnly}
-        journalEntries={ownerJournalEntries}
-        loading={ownerJournalEntriesLoading}
-        isCollapsible={isCollapsible}
-        isFolded={isJournalFolded}
-        toggleFold={toggleJournalFold}
-      />
+      <div data-tour-step-id="actions">
+        <ActionsSection
+          isOwner={true}
+          isReadOnly={isReadOnly}
+          actions={actions}
+          loading={actionsLoading}
+          onActionToggled={handleActionToggled}
+          onActionAdded={addAction}
+          onActionUpdated={updateActionText}
+          onActionDeleted={handleActionDeleted}
+          undoDeleteAction={undoDeleteAction}
+          onActionIndented={indentAction}
+          onActionOutdented={outdentAction}
+          onActionMovedUp={moveActionUp}
+          onActionMovedDown={moveActionDown}
+          onActionPrivacyToggled={toggleActionPrivacy}
+          onActionAddedAfter={addActionAfter}
+          isCollapsible={isCollapsible}
+          isFolded={isActionsFolded}
+          toggleFold={toggleActionsFold}
+        />
+      </div>
+      <div data-tour-step-id="habits">
+        <HabitsSection
+          isOwner={true}
+          isReadOnly={isReadOnly}
+          habits={ownerHabits}
+          loading={ownerHabitsLoading}
+          onActivityLogged={handleActivityLogged}
+          setOwnerHabits={setOwnerHabits} // Pass setter for optimistic updates
+          todayISO={todayISO}
+        />
+      </div>
+      <div data-tour-step-id="journal">
+        <JournalSection
+          isOwner={true}
+          isReadOnly={isReadOnly}
+          journalEntries={ownerJournalEntries}
+          loading={ownerJournalEntriesLoading}
+          isCollapsible={isCollapsible}
+          isFolded={isJournalFolded}
+          toggleFold={toggleJournalFold}
+          onEntrySaved={() => refreshJournalEntries(true)}
+        />
+      </div>
       <MotivationsSection
         username={username}
         isOwner={true}

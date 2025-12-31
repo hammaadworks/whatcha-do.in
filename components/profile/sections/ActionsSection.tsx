@@ -8,8 +8,6 @@ import { ActionsList } from "@/components/shared/ActionsList";
 import { AddActionForm } from "@/components/shared/AddActionForm";
 import { DeletedNodeContext } from "@/lib/logic/actions/tree-utils";
 import { CollapsibleSectionWrapper } from "@/components/ui/collapsible-section-wrapper";
-import { Confetti, ConfettiRef } from "@/components/ui/confetti"; // Import Confetti
-import { useConfettiColors } from "@/hooks/useConfettiColors"; // Import useConfettiColors
 
 // Helper to recursively count total and completed actions
 const getOverallCompletionCounts = (nodes: ActionNode[]): { total: number; completed: number } => {
@@ -104,9 +102,6 @@ const ActionsSection: React.FC<ActionsSectionProps> = ({
     setNewlyAddedActionId(null);
   }, []);
 
-  const confettiRef = useRef<ConfettiRef>(null); // Confetti ref
-  const colors = useConfettiColors(); // Confetti colors hook
-
   // Handle delete action and show undo toast
   const handleDeleteAction = async (id: string) => {
     if (!onActionDeleted) return;
@@ -127,26 +122,6 @@ const ActionsSection: React.FC<ActionsSectionProps> = ({
           label: "Undo", onClick: () => undoDeleteAction()
         }, duration: 5000, // Show toast for 5 seconds
         icon: <Undo2 className="h-4 w-4" />
-      });
-    }
-  };
-
-  const handleConfettiTrigger = (rect: DOMRect, isParent: boolean) => {
-    if (confettiRef.current && isOwner && !isReadOnly) { // Disable confetti for guests
-      confettiRef.current.fire({
-        particleCount: isParent ? 80 : 40, // High density for parent, low for child
-        startVelocity: 25,
-        spread: 360,
-        ticks: 250, // Adjusted for 3s
-        origin: {
-          x: (rect.left + rect.width / 2) / window.innerWidth,
-          y: (rect.top + rect.height / 2) / window.innerHeight
-        },
-        colors: colors,
-        shapes: ["star"],
-        disableForReducedMotion: true,
-        scalar: isParent ? 1.2 : 0.8,
-        decay: 0.9 // Adjusted for 3s
       });
     }
   };
@@ -252,43 +227,6 @@ const ActionsSection: React.FC<ActionsSectionProps> = ({
 
   const isAllComplete = overallTotal > 0 && overallCompleted === overallTotal;
 
-  useEffect(() => {
-    if (isAllComplete && confettiRef.current && isOwner && !isReadOnly) { // Disable confetti for guests
-      // Left cannon
-      setTimeout(() => { // Add 2-second delay
-        if (confettiRef.current) { // Add null check
-          confettiRef.current.fire({
-            particleCount: 100,
-            spread: 70,
-            origin: { x: 0, y: 0.5 }, // From left middle
-            colors: colors,
-            shapes: ["square", "circle"],
-            disableForReducedMotion: true,
-            scalar: 1.2,
-            ticks: 350, // Adjusted for 6s
-            decay: 0.88 // Adjusted for 6s
-          });
-        }
-      }, 2000); // 2-second delay
-      // Right cannon
-      setTimeout(() => { // Add 2-second delay
-        if (confettiRef.current) { // Add null check
-          confettiRef.current.fire({
-            particleCount: 100,
-            spread: 70,
-            origin: { x: 1, y: 0.5 }, // From right middle
-            colors: colors,
-            shapes: ["square", "circle"],
-            disableForReducedMotion: true,
-            scalar: 1.2,
-            ticks: 350, // Adjusted for 6s
-            decay: 0.88 // Adjusted for 6s
-          });
-        }
-      }, 2000); // 2-second delay
-    }
-  }, [isAllComplete, colors.join(","), isOwner, isReadOnly]); // Trigger when completion status changes
-
   if (loading && isOwner && !isReadOnly) { // Use loading from prop
     return (<div className="p-4 space-y-3">
       <Skeleton className="h-10 w-full" />
@@ -323,11 +261,6 @@ const ActionsSection: React.FC<ActionsSectionProps> = ({
         </div>
       }
     >
-      <Confetti
-        ref={confettiRef}
-        className="pointer-events-none fixed inset-0 z-[100] w-full h-full"
-        manualstart={true}
-      />
       <ActionsList
         actions={itemsToRender}
         onActionToggled={isOwner && !isReadOnly ? onActionToggled : undefined}
@@ -344,13 +277,12 @@ const ActionsSection: React.FC<ActionsSectionProps> = ({
         focusedActionId={focusedActionId}
         setFocusedActionId={setFocusedActionId}
         flattenedActions={flattenActionTree(itemsToRender).filter(a => !a.completed)}
-        onConfettiTrigger={handleConfettiTrigger} // Pass handler
         newlyAddedActionId={newlyAddedActionId} // Pass new prop
         onNewlyAddedActionProcessed={handleNewlyAddedActionProcessed} // Pass new prop
       />
       {!isOwner && privateCount > 0 && (
         <div className="mt-6 text-center text-muted-foreground italic text-sm animate-pulse">
-          Pssst... he's working on {privateCount} more actions privately! 🤫
+          Pssst... I am working on {privateCount} more actions privately! 🤫
         </div>)}
 
       {isOwner && !isReadOnly && ( // Conditional rendering for AddActionForm

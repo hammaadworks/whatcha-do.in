@@ -55,11 +55,11 @@ export const MobileHabitsLayout: React.FC<HabitsLayoutProps> = ({
                 id={HabitBoxType.YESTERDAY}
                 habits={yesterdayHabits}
                 renderHabit={renderHabitChip}
-                className={`p-4 bg-background border border-card-border rounded-xl shadow relative overflow-hidden min-h-[100px] ${yesterdayHabits.length > 0 ? 'border-orange-500/50 bg-orange-500/5' : ''}`}
+                className={`p-4 bg-background border border-card-border rounded-xl shadow relative overflow-hidden min-h-[100px] ${yesterdayHabits.length > 0 ? 'border-chart-2/50 bg-chart-2/5' : ''}`}
                 disabled={isReadOnly}
                 emptyMessage={activeId ? "" : "No habits from yesterday."}
                 headerContent={yesterdayHabits.length > 0 ? <span
-                    className="text-xs text-orange-500 font-bold animate-pulse">Complete to save streak!</span> : null}
+                    className="text-xs text-chart-2 font-bold animate-pulse">Complete to save streak!</span> : null}
             />
 
             <HabitBox
@@ -118,11 +118,11 @@ export const DesktopHabitsLayout: React.FC<HabitsLayoutProps> = ({
                 id={HabitBoxType.YESTERDAY}
                 habits={yesterdayHabits}
                 renderHabit={renderHabitChip}
-                className={`p-4 bg-background border border-card-border rounded-xl shadow relative overflow-hidden min-h-[100px] ${yesterdayHabits.length > 0 ? 'border-orange-500/50 bg-orange-500/5' : ''}`}
+                className={`p-4 bg-background border border-card-border rounded-xl shadow relative overflow-hidden min-h-[100px] ${yesterdayHabits.length > 0 ? 'border-chart-2/50 bg-chart-2/5' : ''}`}
                 disabled={isReadOnly}
                 emptyMessage={activeId ? "" : "No habits from yesterday."}
                 headerContent={yesterdayHabits.length > 0 ? <span
-                    className="text-xs text-orange-500 font-bold animate-pulse">Complete to save streak!</span> : null}
+                    className="text-xs text-chart-2 font-bold animate-pulse">Complete to save streak!</span> : null}
             />
 
             <HabitBox
