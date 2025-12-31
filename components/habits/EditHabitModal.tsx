@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import BaseModal from '../shared/BaseModal'; // Import the new BaseModal
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -13,6 +13,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"; // Import Select components
+import { TimepickerUI } from 'timepicker-ui'; // Import TimepickerUI
+import { X } from 'lucide-react'; // Import X icon
 
 interface EditHabitModalProps {
   isOpen: boolean;
@@ -59,6 +61,8 @@ const EditHabitModal: React.FC<EditHabitModalProps> = ({ isOpen, onClose, habit,
   const [nameError, setNameError] = useState('');
   const [goalValueError, setGoalValueError] = useState('');
   const [goalUnitError, setGoalUnitError] = useState('');
+  
+  const timepickerInputRef = useRef<HTMLInputElement>(null); // Ref for time input
 
   useEffect(() => {
     if (isOpen) {
@@ -73,6 +77,31 @@ const EditHabitModal: React.FC<EditHabitModalProps> = ({ isOpen, onClose, habit,
       setGoalUnitError('');
     }
   }, [isOpen, habit]);
+
+  // Initialize TimepickerUI
+  useEffect(() => {
+    let timepicker: TimepickerUI | null = null;
+    if (isOpen && timepickerInputRef.current) {
+        timepicker = new TimepickerUI(timepickerInputRef.current, {
+            clock: { type: '12h' },
+            behavior: { focusTrap: true },
+            ui: { cssClass: 'my-custom-picker' }
+        });
+        timepicker.create();
+
+        timepicker.on('confirm', (data) => {
+            const hour = data.hour!.toString().padStart(2, '0');
+            const minute = data.minutes!.toString().padStart(2, '0');
+            setTargetTime(`${hour}:${minute}`);
+        });
+    }
+
+    return () => {
+        if (timepicker) {
+            timepicker.destroy();
+        }
+    };
+  }, [isOpen]);
 
   const handleSave = () => {
     let isValid = true;
@@ -117,6 +146,10 @@ const EditHabitModal: React.FC<EditHabitModalProps> = ({ isOpen, onClose, habit,
 
     onSave(habit.id, name, isPublic, finalGoalValue, finalGoalUnit, targetTime || null);
     onClose();
+  };
+  
+  const handleClearTime = () => {
+    setTargetTime("");
   };
 
   return (
@@ -205,13 +238,20 @@ const EditHabitModal: React.FC<EditHabitModalProps> = ({ isOpen, onClose, habit,
           {/* Target Time Field */}
           <div className="grid gap-2">
             <Label htmlFor="targetTime">Target Time</Label>
-            <Input
-              id="targetTime"
-              type="time"
-              value={targetTime}
-              onChange={(e) => setTargetTime(e.target.value)}
-              step="600"
-            />
+            <div className="flex items-center gap-2">
+                <Input
+                    ref={timepickerInputRef}
+                    id="targetTime"
+                    type="text"
+                    value={targetTime ? new Date(`1970-01-01T${targetTime}`).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : ""}
+                    onChange={(e) => setTargetTime(e.target.value)} // Keep manual input sync just in case
+                    placeholder="Set time"
+                    className="flex-1"
+                />
+                <Button variant="outline" size="icon" onClick={handleClearTime}>
+                   <X className="h-4 w-4" />
+                </Button>
+            </div>
           </div>
 
           {/* Goal Errors */}

@@ -206,3 +206,12 @@ html.w-md-editor-body-fullscreen { /* Target both body and html for safety */
     -ms-overflow-style: none;  /* IE and Edge */
     scrollbar-width: none;  /* Firefox */
 }
+
+/* Custom Timepicker UI Style */
+.tp-ui-wrapper.my-custom-picker {
+  --tp-bg: #fce4ec;
+  --tp-primary: #e91e63;
+  --tp-surface-hover: #f8bbd0;
+  --tp-input-bg: #f48fb1;
+  --tp-primary-container: #f8bbd0;
+}

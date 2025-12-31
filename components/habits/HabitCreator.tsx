@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -11,6 +11,8 @@ import { Label } from "@/components/ui/label"; // Import Label
 import { Habit } from "@/lib/supabase/types";
 import { formatISO, getReferenceDateUI } from "@/lib/date.ts";
 import { useSimulatedTime } from "@/components/layout/SimulatedTimeProvider.tsx";
+import { X } from "lucide-react"; // Import X icon for clear button
+import { TimepickerUI } from 'timepicker-ui'; // Import TimepickerUI
 
 interface HabitCreatorProps {
   onHabitCreated: (habit: Habit) => void; // Updated to pass back the created habit
@@ -30,13 +32,44 @@ export function HabitCreator({ onHabitCreated }: Readonly<HabitCreatorProps>) {
   const [goalValue, setGoalValue] = useState<number | undefined>(undefined);
   const [goalUnit, setGoalUnit] = useState<string>(predefinedUnits[0]);
   const [customUnit, setCustomUnit] = useState("");
-  const [targetTime, setTargetTime] = useState(""); // New state for target_time
+  const [targetTime, setTargetTime] = useState(""); // Stores HH:mm string
   const [isPublic, setIsPublic] = useState(true); // New state for public/private
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const timepickerInputRef = useRef<HTMLInputElement>(null); // Ref for time input
+
 // Canonical Time Logic
   const { simulatedDate } = useSimulatedTime();
   const refDate = getReferenceDateUI(simulatedDate);
+
+  // Initialize TimepickerUI
+  useEffect(() => {
+    if (timepickerInputRef.current) {
+      const timepicker = new TimepickerUI(timepickerInputRef.current, {
+        clock: { type: '12h' },
+        behavior: { focusTrap: true },
+        ui: { cssClass: 'my-custom-picker' }
+      });
+      timepicker.create();
+
+      timepicker.on('confirm', (data) => {
+        const hour = data.hour!.toString().padStart(2, '0');
+        const minute = data.minutes!.toString().padStart(2, '0');
+        setTargetTime(`${hour}:${minute}`);
+      });
+
+      // Cleanup on unmount
+      return () => {
+        timepicker.destroy();
+      };
+    }
+  }, []);
+
+  const handleClearTime = () => {
+    setTargetTime("");
+  };
+
   const handleCreate = async () => {
     if (!user?.id) {
       setError("User not authenticated.");
@@ -175,16 +208,20 @@ export function HabitCreator({ onHabitCreated }: Readonly<HabitCreatorProps>) {
       <div className="flex items-center gap-2">
           <Label htmlFor="target-time" className="shrink-0">Target Time:</Label>
           <Input
+            ref={timepickerInputRef}
             id="target-time"
-            type="time"
-            value={targetTime}
-            onChange={(e) => setTargetTime(e.target.value)}
+            type="text" // Change to text type
+            placeholder="HH:MM AM/PM"
+            value={targetTime ? new Date(`1970-01-01T${targetTime}`).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : ""}
+            onChange={(e) => setTargetTime(e.target.value)} // Keep for manual input
             className="w-full sm:w-auto"
             disabled={loading}
-            step="600"
           />
+             <Button variant="outline" size="icon" onClick={handleClearTime}>
+                <X className="h-4 w-4" />
+             </Button>
+          </div>
       </div>
-    </div>
     )}
     {error && <p className="text-destructive-foreground mt-2">{error}</p>}
   </div>);
