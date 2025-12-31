@@ -301,6 +301,11 @@ export const ActionItem: React.FC<ActionItemProps> = ({
         <Checkbox
           id={action.id}
           checked={action.completed}
+          onCheckedChange={async () => {
+            if (onActionToggled) {
+              await onActionToggled(action.id);
+            }
+          }}
           disabled={isDisabledForCompletion && !action.completed}
           className={cn(
             "h-5 w-5 rounded-full",

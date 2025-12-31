@@ -177,16 +177,18 @@ export const useTreeStructure = ({
     }
 
     const treeAfterToggle = toggleActionInTree(tree, id, refDate);
+
+    if (treeAfterToggle === tree) {
+      toast.error(`Complete all sub-${toastPrefix.toLowerCase()}s first!`);
+      return;
+    }
+
     const { newTree, uncompletedFromCompleted } = recalculateCompletionStatus(treeAfterToggle);
     const newNode = findNodeAndContext(newTree, id)?.node;
 
 
     if (!newNode) {
       toast.error(`${toastPrefix} not found after toggle processing.`);
-      return;
-    }
-    if (newTree === tree && !newNode.completed) { // If tree didn't change and it's still uncompleted, it means it was prevented
-      toast.error(`Complete all sub-${toastPrefix.toLowerCase()}s first!`);
       return;
     }
 
