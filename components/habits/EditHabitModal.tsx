@@ -78,25 +78,38 @@ const EditHabitModal: React.FC<EditHabitModalProps> = ({ isOpen, onClose, habit,
     }
   }, [isOpen, habit]);
 
+  // Helper to format 24h time to 12h AM/PM
+  const formatTimeDisplay = (time24: string) => {
+    if (!time24) return "";
+    const [h, m] = time24.split(':');
+    const date = new Date();
+    date.setHours(parseInt(h), parseInt(m));
+    return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+  };
+
   // Initialize TimepickerUI
   useEffect(() => {
     let timepicker: TimepickerUI | null = null;
-    if (isOpen && timepickerInputRef.current) {
-        timepicker = new TimepickerUI(timepickerInputRef.current, {
-            clock: { type: '12h' },
-            behavior: { focusTrap: true },
-            ui: { cssClass: 'my-custom-picker' }
-        });
-        timepicker.create();
+    
+    // Slight delay to ensure DOM is ready inside Modal
+    const timer = setTimeout(() => {
+        if (isOpen && timepickerInputRef.current) {
+            timepicker = new TimepickerUI(timepickerInputRef.current, {
+                clock: { type: '12h' },
+                ui: { theme: 'basic' } // Use basic theme as requested/fallback
+            });
+            timepicker.create();
 
-        timepicker.on('confirm', (data) => {
-            const hour = data.hour!.toString().padStart(2, '0');
-            const minute = data.minutes!.toString().padStart(2, '0');
-            setTargetTime(`${hour}:${minute}`);
-        });
-    }
+            timepicker.on('confirm', (data) => {
+                const hour = data.hour!.toString().padStart(2, '0');
+                const minute = data.minutes!.toString().padStart(2, '0');
+                setTargetTime(`${hour}:${minute}`);
+            });
+        }
+    }, 100);
 
     return () => {
+        clearTimeout(timer);
         if (timepicker) {
             timepicker.destroy();
         }
@@ -243,10 +256,11 @@ const EditHabitModal: React.FC<EditHabitModalProps> = ({ isOpen, onClose, habit,
                     ref={timepickerInputRef}
                     id="targetTime"
                     type="text"
-                    value={targetTime ? new Date(`1970-01-01T${targetTime}`).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : ""}
-                    onChange={(e) => setTargetTime(e.target.value)} // Keep manual input sync just in case
+                    value={formatTimeDisplay(targetTime)}
+                    readOnly // Prevent manual typing to avoid conflicts/invalid states
                     placeholder="Set time"
-                    className="flex-1"
+                    className="flex-1 cursor-pointer"
+                    autoComplete="off"
                 />
                 <Button variant="outline" size="icon" onClick={handleClearTime}>
                    <X className="h-4 w-4" />
