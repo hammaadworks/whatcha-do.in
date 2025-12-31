@@ -301,14 +301,14 @@ export const ActionItem: React.FC<ActionItemProps> = ({
         <Checkbox
           id={action.id}
           checked={action.completed}
-          onCheckedChange={async () => {
+          onCheckedChange={() => {
             if (onActionToggled) {
-              await onActionToggled(action.id);
+              onActionToggled(action.id);
             }
           }}
           disabled={isDisabledForCompletion && !action.completed}
           className={cn(
-            "h-5 w-5 rounded-full",
+            "h-5 w-5 rounded-full z-10",
             {
               "pointer-events-none opacity-50 cursor-not-allowed": isDisabledForCompletion && !action.completed,
               "pointer-events-none": !onActionToggled
@@ -339,7 +339,7 @@ export const ActionItem: React.FC<ActionItemProps> = ({
           <Label
             htmlFor={action.id}
             className={cn(
-              "text-base font-medium text-foreground cursor-pointer flex-1 flex items-center select-none",
+              "text-base font-medium text-foreground cursor-pointer flex-1 flex items-center select-none z-10",
               {
                 "line-through text-muted-foreground": action.completed
               }
