@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -11,6 +11,8 @@ import { Label } from "@/components/ui/label"; // Import Label
 import { Habit } from "@/lib/supabase/types";
 import { formatISO, getReferenceDateUI } from "@/lib/date.ts";
 import { useSimulatedTime } from "@/components/layout/SimulatedTimeProvider.tsx";
+import { X } from "lucide-react"; // Import X icon for clear button
+import TimeDropdown from '@/components/shared/TimeDropdown'; // Import the new TimeDropdown component
 
 interface HabitCreatorProps {
   onHabitCreated: (habit: Habit) => void; // Updated to pass back the created habit
@@ -30,20 +32,25 @@ export function HabitCreator({ onHabitCreated }: Readonly<HabitCreatorProps>) {
   const [goalValue, setGoalValue] = useState<number | undefined>(undefined);
   const [goalUnit, setGoalUnit] = useState<string>(predefinedUnits[0]);
   const [customUnit, setCustomUnit] = useState("");
+  const [targetTime, setTargetTime] = useState<string | null>(null); // Stores HH:mm string or null
   const [isPublic, setIsPublic] = useState(true); // New state for public/private
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
 // Canonical Time Logic
   const { simulatedDate } = useSimulatedTime();
   const refDate = getReferenceDateUI(simulatedDate);
+
+
+
   const handleCreate = async () => {
     if (!user?.id) {
       setError("User not authenticated.");
       return;
     }
     if (!habitName.trim()) {
-        setError("Habit name cannot be empty.");
-        return;
+      setError("Habit name cannot be empty.");
+      return;
     }
 
     setLoading(true);
@@ -53,23 +60,23 @@ export function HabitCreator({ onHabitCreated }: Readonly<HabitCreatorProps>) {
     if (goalUnit === "Custom...") {
       finalGoalUnit = customUnit.trim();
       if (!finalGoalUnit) {
-          setError("Please specify a custom unit.");
-          setLoading(false);
-          return;
+        setError("Please specify a custom unit.");
+        setLoading(false);
+        return;
       }
     }
-    
+
     if (showGoalInput) {
-        if (goalValue !== undefined && goalValue <= 0) {
-            setError("Goal value must be a positive number.");
-            setLoading(false);
-            return;
-        }
-        if (goalValue !== undefined && !finalGoalUnit) {
-             setError("Unit cannot be empty if value is set.");
-             setLoading(false);
-             return;
-        }
+      if (goalValue !== undefined && goalValue <= 0) {
+        setError("Goal value must be a positive number.");
+        setLoading(false);
+        return;
+      }
+      if (goalValue !== undefined && !finalGoalUnit) {
+        setError("Unit cannot be empty if value is set.");
+        setLoading(false);
+        return;
+      }
     }
 
 
@@ -79,7 +86,8 @@ export function HabitCreator({ onHabitCreated }: Readonly<HabitCreatorProps>) {
       is_public: isPublic,
       goal_value: showGoalInput && goalValue !== undefined ? goalValue : undefined,
       goal_unit: showGoalInput && finalGoalUnit ? finalGoalUnit : undefined,
-      processed_date: formatISO(refDate)
+      processed_date: formatISO(refDate),
+      target_time: targetTime || undefined // Add target_time
     };
     console.log("[HabitCreator] Submitting new habit:", newHabitPayload);
 
@@ -95,6 +103,7 @@ export function HabitCreator({ onHabitCreated }: Readonly<HabitCreatorProps>) {
       setGoalValue(undefined);
       setGoalUnit(predefinedUnits[0]);
       setCustomUnit("");
+      setTargetTime(null); // Reset targetTime to null
       setIsPublic(true); // Reset isPublic to default
     } catch (err: unknown) {
       setError((err instanceof Error) ? err.message : "Failed to create habit.");
@@ -122,7 +131,7 @@ export function HabitCreator({ onHabitCreated }: Readonly<HabitCreatorProps>) {
       />
       {habitName.trim() && !showGoalInput && (
         <Button variant="outline" onClick={() => setShowGoalInput(true)} disabled={loading}>
-          + Add Goal
+          + Add Goal/Time
         </Button>)}
       <Button onClick={handleCreate} disabled={loading || !habitName.trim()}>
         {loading ? "Adding..." : "Add Habit"}
@@ -139,34 +148,46 @@ export function HabitCreator({ onHabitCreated }: Readonly<HabitCreatorProps>) {
       />
     </div>
 
-    {showGoalInput && (<div className="flex items-center gap-2 flex-wrap">
-      <Input
-        type="number"
-        placeholder="Goal value"
-        value={goalValue ?? ""}
-        onChange={(e) => setGoalValue(Number.parseFloat(e.target.value) || undefined)}
-        className="w-full sm:w-32"
-        disabled={loading}
-      />
-      <Select value={goalUnit} onValueChange={setGoalUnit} disabled={loading}>
-        <SelectTrigger className="w-full sm:w-[176px]">
-          <SelectValue placeholder="Select a unit" />
-        </SelectTrigger>
-        <SelectContent>
-          {predefinedUnits.map((unit) => (<SelectItem key={unit} value={unit}>
-            {unit}
-          </SelectItem>))}
-        </SelectContent>
-      </Select>
-      {goalUnit === "Custom..." && (<Input
-        type="text"
-        placeholder="Enter custom unit"
-        value={customUnit}
-        onChange={(e) => setCustomUnit(e.target.value)}
-        className="w-full sm:flex-grow"
-        disabled={loading}
-      />)}
-    </div>)}
+    {showGoalInput && (
+      <div className="grid gap-4">
+        <div className="flex items-center gap-2 flex-wrap">
+          <Input
+            type="number"
+            placeholder="Goal value"
+            value={goalValue ?? ""}
+            onChange={(e) => setGoalValue(Number.parseFloat(e.target.value) || undefined)}
+            className="w-full sm:w-32"
+            disabled={loading}
+          />
+          <Select value={goalUnit} onValueChange={setGoalUnit} disabled={loading}>
+            <SelectTrigger className="w-full sm:w-[176px]">
+              <SelectValue placeholder="Select a unit" />
+            </SelectTrigger>
+            <SelectContent>
+              {predefinedUnits.map((unit) => (<SelectItem key={unit} value={unit}>
+                {unit}
+              </SelectItem>))}
+            </SelectContent>
+          </Select>
+          {goalUnit === "Custom..." && (<Input
+            type="text"
+            placeholder="Enter custom unit"
+            value={customUnit}
+            onChange={(e) => setCustomUnit(e.target.value)}
+            className="w-full sm:flex-grow"
+            disabled={loading}
+          />)}
+        </div>
+        <div className="flex items-center gap-2">
+          <Label htmlFor="target-time" className="shrink-0">Target Time:</Label>
+          <TimeDropdown
+            value={targetTime}
+            onChange={setTargetTime}
+            disabled={loading}
+          />
+        </div>
+      </div>
+    )}
     {error && <p className="text-destructive-foreground mt-2">{error}</p>}
   </div>);
 }

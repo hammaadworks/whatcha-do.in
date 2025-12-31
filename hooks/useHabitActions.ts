@@ -33,20 +33,20 @@ export const useHabitActions = ({
   /**
    * Updates an existing habit's details.
    */
-  const handleHabitUpdate = async (habitId: string, name: string, isPublic: boolean, goalValue?: number | null, goalUnit?: string | null) => {
-    console.log(`[useHabitActions] Updating habit ${habitId}`, { name, isPublic, goalValue, goalUnit });
+  const handleHabitUpdate = async (habitId: string, name: string, isPublic: boolean, goalValue?: number | null, goalUnit?: string | null, targetTime?: string | null) => {
+    console.log(`[useHabitActions] Updating habit ${habitId}`, { name, isPublic, goalValue, goalUnit, targetTime });
 
     // Optimistic Update
     if (setOptimisticHabits) {
       setOptimisticHabits((prev) => prev.map(h =>
         h.id === habitId
-          ? { ...h, name, is_public: isPublic, goal_value: goalValue ?? null, goal_unit: goalUnit ?? null }
+          ? { ...h, name, is_public: isPublic, goal_value: goalValue ?? null, goal_unit: goalUnit ?? null, target_time: targetTime ?? null }
           : h
       ));
     }
 
     try {
-      await updateHabit(habitId, { name, is_public: isPublic, goal_value: goalValue, goal_unit: goalUnit });
+      await updateHabit(habitId, { name, is_public: isPublic, goal_value: goalValue, goal_unit: goalUnit, target_time: targetTime });
       console.log(`[useHabitActions] Habit updated successfully: ${habitId}`);
       toast.success("Habit updated");
       onActivityLogged?.();

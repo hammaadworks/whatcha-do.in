@@ -48,7 +48,7 @@ export const NotFoundLayout: React.FC<NotFoundLayoutProps> = ({
         return () => clearInterval(interval); // Cleanup on unmount
     }, []);
 
-    return (<div className="relative bg-background px-4 py-2 font-mono flex flex-grow items-center justify-center">
+    return (<div className="relative px-4 py-2 font-mono flex flex-grow items-center justify-center">
         <div className="flex w-full max-w-md flex-col items-center">
             <div className="mb-2 flex items-baseline font-mono">
                 <span className="font-bold text-8xl text-primary md:text-9xl">4</span>
@@ -56,7 +56,6 @@ export const NotFoundLayout: React.FC<NotFoundLayoutProps> = ({
                     <span className="cycling-digit animate-pulse font-bold text-8xl text-primary md:text-9xl">
                         {animatedChar}
                     </span>
-                    <div className="absolute inset-0 -z-10 rounded-full bg-primary/10 blur-xl"></div>
                 </div>
                 <span className="font-bold text-8xl text-primary md:text-9xl">4</span>
             </div>

@@ -13,14 +13,31 @@ export async function fetchPublicHabitsServer(userId: string): Promise<Habit[]> 
   const supabase = await createServerSideClient();
   const { data, error } = await supabase
     .from("habits")
-    .select("*")
+    .select(`
+      *,
+      habit_identities (
+        identities (
+          id,
+          color
+        )
+      )
+    `)
     .eq("user_id", userId)
     .eq("is_public", true)
-    .neq("habit_state", HabitState.JUNKED); // Ensure only public habits are fetched
+    .neq("habit_state", HabitState.JUNKED) // Ensure only public habits are fetched
+    .order("target_time", { ascending: true, nullsFirst: false })
+    .order("streak", { ascending: false })
+    .order("updated_at", { ascending: false });
 
   if (error) {
     console.error("Supabase Fetch Error (Server Public Habits):", JSON.stringify(error, null, 2));
     throw error;
   }
-  return data || [];
+  
+  // Transform nested response to match Habit interface
+  return (data || []).map((habit: any) => ({
+    ...habit,
+    habit_identities: undefined, // Remove the raw relation
+    linked_identities: habit.habit_identities?.map((hi: any) => hi.identities) || []
+  }));
 }

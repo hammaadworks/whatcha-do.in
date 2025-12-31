@@ -4,18 +4,10 @@ import React, { createContext, useEffect, useState } from "react";
 import { User as SupabaseUser } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
 import { LOCAL_STORAGE_USER_PROFILE_CACHE_KEY } from "@/lib/constants";
+import { User } from "@/lib/supabase/types";
 
-/**
- * Extended User interface that includes Supabase auth data merged with application-specific profile data.
- */
-export interface User extends SupabaseUser {
-  /** The user's unique username. */
-  username?: string;
-  /** The user's preferred timezone (IANA format). */
-  timezone?: string;
-  /** The user's biography or tagline. */
-  bio?: string;
-}
+// Re-export User type for consumers
+export type { User };
 
 export interface AuthContextType {
   /** The current authenticated user, or null if not logged in. */
@@ -56,7 +48,7 @@ export function AuthProvider({ children, initialUser }: AuthProviderProps) {
   const [loading, setLoading] = useState<boolean>(
     initialUser === undefined ? true : !!initialUser
   );
-  
+
   const supabase = createClient();
 
   /**
@@ -73,11 +65,19 @@ export function AuthProvider({ children, initialUser }: AuthProviderProps) {
       authUser.id === "68be1abf-ecbe-47a7-bafb-46be273a2e"
     ) {
       return {
-        ...authUser,
+        // Spread Supabase user properties (id, email, etc.)
+        id: authUser.id,
+        email: authUser.email,
+        created_at: authUser.created_at,
+        updated_at: authUser.updated_at,
+        // App-specific properties
         username: process.env.NEXT_PUBLIC_DEV_USER,
-        timezone: "UTC",
+        timezone: "Asia/Calcutta",
         bio: "Dev Mode User",
-      };
+        purchased_themes: ["zenith", "monolith", "darky", "prototype"], // Dev user has all themes
+        is_pro: true,
+        active_theme: "darky"
+      } as User;
     }
 
     const CACHE_KEY = `${LOCAL_STORAGE_USER_PROFILE_CACHE_KEY}_${authUser.id}`;
@@ -89,27 +89,49 @@ export function AuthProvider({ children, initialUser }: AuthProviderProps) {
         const parsed = JSON.parse(cached);
         // Simple check to ensure it's the right shape/user
         if (parsed.id === authUser.id && parsed.username) {
-          return { ...authUser, ...parsed };
+          // Merge authUser to ensure we have the latest Supabase auth properties (like session/jwt if they were part of it, though User is mostly static)
+          // Ideally, we respect the cached profile fields.
+          // Note: If cached, purchased_themes might be missing if we stopped caching it.
+          return {
+            id: authUser.id,
+            email: authUser.email,
+            created_at: authUser.created_at,
+            updated_at: authUser.updated_at,
+            ...parsed
+          } as User;
         }
       }
 
       // 2. Fetch from DB if not in cache
       const { data, error } = await supabase
         .from("users")
-        .select("username, timezone, bio")
+        .select("username, timezone, bio, purchased_themes, is_pro, active_theme")
         .eq("id", authUser.id)
         .single();
 
       if (error) {
         console.error("Error fetching user profile:", error);
-        return authUser;
+        // Return a partial User if DB fails, though strictly it violates the type if fields are missing.
+        // We cast to User for now to prevent app crash, but components should handle missing profile data gracefully.
+        return {
+          id: authUser.id,
+          email: authUser.email,
+          created_at: authUser.created_at,
+          updated_at: authUser.updated_at
+        } as User;
       }
 
       const userWithProfile: User = {
-        ...authUser,
+        id: authUser.id,
+        email: authUser.email,
+        created_at: authUser.created_at,
+        updated_at: authUser.updated_at,
         username: data?.username,
         timezone: data?.timezone,
         bio: data?.bio,
+        purchased_themes: data?.purchased_themes ?? [],
+        is_pro: data?.is_pro ?? false,
+        active_theme: data?.active_theme ?? "zenith" // Default fallback
       };
 
       // 3. Save to cache
@@ -120,13 +142,20 @@ export function AuthProvider({ children, initialUser }: AuthProviderProps) {
           username: data?.username,
           timezone: data?.timezone,
           bio: data?.bio,
+          is_pro: data?.is_pro ?? false
+          // purchased_themes and active_theme intentionally excluded to force fresh fetch/sync logic
         })
       );
 
       return userWithProfile;
     } catch (error) {
       console.error("Unexpected error fetching user profile:", error);
-      return authUser;
+      return {
+        id: authUser.id,
+        email: authUser.email,
+        created_at: authUser.created_at,
+        updated_at: authUser.updated_at
+      } as User;
     }
   };
 
@@ -136,7 +165,7 @@ export function AuthProvider({ children, initialUser }: AuthProviderProps) {
    */
   const refreshUser = async () => {
     const {
-      data: { session },
+      data: { session }
     } = await supabase.auth.getSession();
     if (session?.user) {
       // Clear cache to force a fresh fetch
@@ -158,14 +187,14 @@ export function AuthProvider({ children, initialUser }: AuthProviderProps) {
       let currentUser: SupabaseUser | null | undefined = initialUser;
 
       if (currentUser === undefined) {
-          // Fallback: fetch session if no initialUser provided
-          try {
-            const { data: { session } } = await supabase.auth.getSession();
-            currentUser = session?.user ?? null;
-          } catch (error) {
-            console.error("Error checking session:", error);
-            currentUser = null;
-          }
+        // Fallback: fetch session if no initialUser provided
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          currentUser = session?.user ?? null;
+        } catch (error) {
+          console.error("Error checking session:", error);
+          currentUser = null;
+        }
       }
 
       if (currentUser) {
@@ -186,18 +215,18 @@ export function AuthProvider({ children, initialUser }: AuthProviderProps) {
 
     // Listen for auth state changes
     const {
-      data: { subscription },
+      data: { subscription }
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (_event === "SIGNED_OUT") {
         // Clear any cached user profiles on logout
         // Iterate backwards to safely remove items while looping if needed, 
         // though localStorage.length is dynamic.
         Object.keys(localStorage).forEach((key) => {
-             if (key.startsWith(LOCAL_STORAGE_USER_PROFILE_CACHE_KEY)) {
-                localStorage.removeItem(key);
-             }
+          if (key.startsWith(LOCAL_STORAGE_USER_PROFILE_CACHE_KEY)) {
+            localStorage.removeItem(key);
+          }
         });
-        
+
         if (mounted) {
           setUser(null);
           setLoading(false);
@@ -207,11 +236,11 @@ export function AuthProvider({ children, initialUser }: AuthProviderProps) {
         // We only update if the user ID has changed or we don't have a user yet
         // to avoid unnecessary re-fetches on token refreshes that fire onAuthStateChange
         if (!user || user.id !== session.user.id) {
-             const userWithProfile = await fetchUserProfile(session.user);
-             if (mounted) {
-               setUser(userWithProfile);
-               setLoading(false);
-             }
+          const userWithProfile = await fetchUserProfile(session.user);
+          if (mounted) {
+            setUser(userWithProfile);
+            setLoading(false);
+          }
         }
       } else {
         if (mounted) {

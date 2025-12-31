@@ -122,6 +122,48 @@ export async function updateUserTimezone(userId: string, timezone: string) {
     return data;
 }
 
+/**
+ * Updates the user's active theme.
+ * @param userId - ID of the user.
+ * @param themeId - The ID of the theme (e.g., 'zenith', 'darky').
+ * @returns Updated user data.
+ */
+export async function updateActiveTheme(userId: string, themeId: string) {
+    const supabase = createClient();
+    const {data, error} = await supabase
+        .from('users')
+        .update({active_theme: themeId})
+        .eq('id', userId)
+        .select();
+
+    if (error) {
+        console.error('Error updating active theme:', error);
+        throw error;
+    }
+    return data;
+}
+
+/**
+ * Fetches the user's purchased themes directly from the database.
+ * Skips local cache to ensure fresh data.
+ * @param userId - ID of the user.
+ * @returns Array of purchased theme IDs.
+ */
+export async function fetchUserPurchasedThemes(userId: string): Promise<string[]> {
+    const supabase = createClient();
+    const { data, error } = await supabase
+        .from('users')
+        .select('purchased_themes')
+        .eq('id', userId)
+        .single();
+
+    if (error) {
+        console.error('Error fetching purchased themes:', error);
+        return [];
+    }
+    return data?.purchased_themes || [];
+}
+
 async function _fetchUserMotivations(userId: string): Promise<QuoteItem[] | null> {
     const supabase = createClient();
     const {data, error} = await supabase

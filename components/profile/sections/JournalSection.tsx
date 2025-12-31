@@ -42,6 +42,7 @@ interface JournalSectionProps {
     isCollapsible?: boolean;
     isFolded?: boolean; // New prop, now optional
     toggleFold?: () => void; // New prop, now optional
+    onEntrySaved?: () => void;
 }
 
 const ActivityItem = ({ entry }: { entry: ActivityLogEntry }) => {
@@ -50,17 +51,17 @@ const ActivityItem = ({ entry }: { entry: ActivityLogEntry }) => {
     
     // Determine Icon and Color
     let Icon = CheckCircle2;
-    let iconColor = "text-blue-500";
-    let bgColor = "bg-blue-500/10";
+    let iconColor = "text-chart-4";
+    let bgColor = "bg-chart-4/10";
     
     if (entry.type === 'habit') {
         Icon = Zap;
-        iconColor = "text-amber-500";
-        bgColor = "bg-amber-500/10";
+        iconColor = "text-chart-5";
+        bgColor = "bg-chart-5/10";
     } else if (entry.type === 'target') {
         Icon = Target;
-        iconColor = "text-rose-500";
-        bgColor = "bg-rose-500/10";
+        iconColor = "text-destructive";
+        bgColor = "bg-destructive/10";
     }
 
     // Extract known details
@@ -127,7 +128,7 @@ const ActivityItem = ({ entry }: { entry: ActivityLogEntry }) => {
     )
 }
 
-const JournalSection: React.FC<JournalSectionProps> = ({isOwner, isReadOnly = false, journalEntries, loading, isCollapsible = false, isFolded, toggleFold}) => {
+const JournalSection: React.FC<JournalSectionProps> = ({isOwner, isReadOnly = false, journalEntries, loading, isCollapsible = false, isFolded, toggleFold, onEntrySaved}) => {
     const {user} = useAuth();
     const { simulatedDate } = useSimulatedTime();
     const [selectedDate, setSelectedDate] = useState<Date>(simulatedDate || new Date());
@@ -175,23 +176,37 @@ const JournalSection: React.FC<JournalSectionProps> = ({isOwner, isReadOnly = fa
     const saveEntry = useCallback(async (currentContent: string) => {
         if (!user || isReadOnly) return;
 
+        const trimmedContent = currentContent.trim();
+        if (!trimmedContent) {
+            // If trimmed content is empty, we don't save to DB.
+            // But we should consider it "saved" state-wise to avoid processing loops if the user just cleared the text.
+            lastSavedContentRef.current = currentContent; 
+            setAutosaveStatus('saved');
+            return;
+        }
+
         setAutosaveStatus('saving');
         try {
             const dateStr = format(selectedDate, 'yyyy-MM-dd');
             const isPublic = activeTab === 'public';
 
             await upsertJournalEntry({
-                user_id: user.id, entry_date: dateStr, is_public: isPublic, content: currentContent
+                user_id: user.id, entry_date: dateStr, is_public: isPublic, content: trimmedContent
             });
 
             lastSavedContentRef.current = currentContent;
             setAutosaveStatus('saved');
+            
+            // Notify parent to refresh data (which updates the calendar dots)
+            if (onEntrySaved) {
+                onEntrySaved();
+            }
         } catch (error) {
             console.error('Failed to save journal:', error);
             setAutosaveStatus('error');
             toast.error('Failed to autosave journal');
         }
-    }, [user, isReadOnly, selectedDate, activeTab]);
+    }, [user, isReadOnly, selectedDate, activeTab, onEntrySaved]);
 
     // Processing state effect (1s debounce)
     useEffect(() => {
@@ -256,7 +271,12 @@ const JournalSection: React.FC<JournalSectionProps> = ({isOwner, isReadOnly = fa
                             <Calendar
                                 mode="single"
                                 selected={selectedDate}
-                                onSelect={(date: Date | undefined) => date && setSelectedDate(date)}
+                                onSelect={(date: Date | undefined) => {
+                                    if (date) {
+                                        setSelectedDate(date);
+                                        setIsMainDatePickerOpen(false);
+                                    }
+                                }}
                                 initialFocus
                                 modifiers={{hasEntry: hasEntryMatcher}}
                                 modifiersClassNames={{
@@ -264,8 +284,6 @@ const JournalSection: React.FC<JournalSectionProps> = ({isOwner, isReadOnly = fa
                                 }}
                                 classNames={{
                                     day: "h-9 w-9 p-0 font-normal aria-selected:opacity-100 rounded-full text-muted-foreground opacity-50 hover:opacity-100 hover:text-foreground",
-                                    day_today: "bg-accent text-accent-foreground border-2 border-primary opacity-100",
-                                    day_selected: "bg-primary text-primary-foreground opacity-100 hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
                                 }}
                             />
                         </PopoverContent>
@@ -286,7 +304,7 @@ const JournalSection: React.FC<JournalSectionProps> = ({isOwner, isReadOnly = fa
                                         className={cn(
                                             "flex-1 px-4 py-2 text-sm font-medium rounded-full whitespace-nowrap flex items-center justify-center transition-all",
                                             activeTab === 'public'
-                                                ? "bg-blue-600 text-white shadow-sm" // Blue active state
+                                                ? "bg-primary text-primary-foreground shadow-sm" // Primary active state
                                                 : "hover:bg-accent/50 text-muted-foreground"
                                         )}
                                     >
@@ -364,7 +382,7 @@ const JournalSection: React.FC<JournalSectionProps> = ({isOwner, isReadOnly = fa
                         "rounded-xl p-6 relative mb-4 overflow-hidden transition-all duration-500",
                         activeTab === 'private' 
                             ? "bg-primary/[0.03] dark:bg-primary/[0.1] border-2 border-primary/20 dark:border-primary/30" // Private: Warm/Theme Tint (Dark mode boosted)
-                            : "bg-blue-500/[0.03] dark:bg-blue-900/[0.2] border-2 border-blue-500/20 dark:border-blue-400/30" // Public: Cool/Blue Tint (Dark mode boosted)
+                            : "bg-accent/[0.05] border-2 border-accent/20" // Public: Accent Tint
                     )}
                     style={{
                         backgroundImage: activeTab === 'private'
@@ -375,20 +393,20 @@ const JournalSection: React.FC<JournalSectionProps> = ({isOwner, isReadOnly = fa
                 >
                     {isOwner && !isReadOnly ? (
                         <div className={cn("h-full flex flex-col gap-4 relative z-10", 
-                            activeTab === 'private' ? "caret-primary" : "caret-blue-500 dark:caret-blue-400" // Caret Color Cue
+                            activeTab === 'private' ? "caret-primary" : "caret-accent" // Caret Color Cue
                         )}>
                             <CustomMarkdownEditor
                                 value={entryContent}
                                 onChange={setEntryContent}
                                 placeholder={activeTab === 'private' ? "Private thoughts..." : "Public thoughts..."}
                                 className="min-h-[200px] border-none shadow-none focus-visible:ring-0 p-0 text-base leading-relaxed bg-transparent"
-                                textareaClassName={activeTab === 'private' ? "caret-primary !text-foreground" : "caret-blue-500 dark:caret-blue-400 !text-foreground"}
+                                textareaClassName={activeTab === 'private' ? "caret-primary !text-foreground" : "caret-accent !text-foreground"}
                                 watermark={
                                     <div className="opacity-[0.05] dark:opacity-[0.08] flex items-center justify-center w-full h-full">
                                         {activeTab === 'private' ? (
                                             <Lock className="w-1/3 h-auto max-w-[12rem] min-w-[4rem] text-primary" />
                                         ) : (
-                                            <Globe className="w-1/3 h-auto max-w-[12rem] min-w-[4rem] text-blue-500 dark:text-blue-400" />
+                                            <Globe className="w-1/3 h-auto max-w-[12rem] min-w-[4rem] text-accent" />
                                         )}
                                     </div>
                                 }

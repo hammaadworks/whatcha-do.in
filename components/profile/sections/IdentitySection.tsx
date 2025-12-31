@@ -23,13 +23,15 @@ interface IdentitySectionProps {
     isReadOnly?: boolean; // Add isReadOnly prop
     ownerHabits: Habit[]; // Passed from parent to avoid refetch
     identities?: (Identity & { backingCount: number })[]; // Optional prop for public/prefetched data
+    onHabitUpdated?: () => void; // Callback to refresh parent habits
 }
 
 export default function IdentitySection({
                                             isOwner,
                                             isReadOnly = false,
                                             ownerHabits,
-                                            identities: propIdentities
+                                            identities: propIdentities,
+                                            onHabitUpdated
                                         }: IdentitySectionProps) {
     const {user} = useAuth();
     const [identities, setIdentities] = useState<(Identity & { backingCount: number })[]>(propIdentities || []);
@@ -60,10 +62,10 @@ export default function IdentitySection({
         }
     };
 
-    const handleCreate = async (title: string, isPublic: boolean) => {
+    const handleCreate = async (title: string, isPublic: boolean, color: string) => {
         if (!user) return;
         try {
-            await createIdentity(user.id, {title, is_public: isPublic});
+            await createIdentity(user.id, {title, is_public: isPublic, color});
             toast.success("Identity created!");
             loadIdentities();
         } catch (error) {
@@ -80,6 +82,8 @@ export default function IdentitySection({
             if (selectedIdentity && selectedIdentity.id === id) {
                 setSelectedIdentity({...selectedIdentity, ...updates});
             }
+            // Color might have changed, refresh habits to update dots
+            onHabitUpdated?.(); 
         } catch (error) {
             toast.error("Failed to update identity");
         }
@@ -91,6 +95,7 @@ export default function IdentitySection({
             toast.success("Identity deleted!");
             loadIdentities();
             setSelectedIdentity(null);
+            onHabitUpdated?.(); // Links removed, refresh habits
         } catch (error) {
             toast.error("Failed to delete identity");
         }
@@ -119,6 +124,7 @@ export default function IdentitySection({
                 setLinkedHabits(prev => [...prev, habit]);
             }
             loadIdentities(); // Refresh counts
+            onHabitUpdated?.(); // Refresh parent habits to show new dots
         } catch (error) {
             toast.error("Failed to link habit");
         }
@@ -131,6 +137,7 @@ export default function IdentitySection({
             toast.success("Habit unlinked!");
             setLinkedHabits(prev => prev.filter(h => h.id !== habitId));
             loadIdentities(); // Refresh counts
+            onHabitUpdated?.(); // Refresh parent habits to remove dots
         } catch (error) {
             toast.error("Failed to unlink habit");
         }

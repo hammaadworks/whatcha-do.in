@@ -1,13 +1,16 @@
 import {notFound} from 'next/navigation';
 import {getUserByUsernameServer} from '@/lib/supabase/user.server';
 import {PrivatePage} from '@/components/profile/PrivatePage'; // Import from the correct path
+import {PublicProfileThemeWrapper} from '@/components/profile/PublicProfileThemeWrapper'; // Import theme wrapper
 import {fetchPublicActionsServer} from '@/lib/supabase/actions.server'; // Use server-side actions
 import {fetchPublicHabitsServer} from '@/lib/supabase/habit.server'; // Use server-side habits
 import {fetchPublicJournalEntriesServer} from '@/lib/supabase/journal.server'; // Use server-side journal
 import {fetchPublicIdentitiesServer} from '@/lib/supabase/identities.server'; // Use server-side identities
 import {fetchPublicTargetsServer} from '@/lib/supabase/targets.server'; // Use server-side targets
-import { getCurrentMonthStartISO } from "@/lib/date";
+import { getCurrentMonthStartISO, getReferenceDateServer } from "@/lib/date";
 import {ActionNode, Habit, Identity, JournalEntry, PublicUserDisplay} from '@/lib/supabase/types';
+import { cookies } from "next/headers";
+import { SIMULATED_DATE_COOKIE } from "@/lib/constants";
 
 type ProfilePageProps = {
     params: Promise<{
@@ -37,6 +40,11 @@ export default async function ProfilePage({params}: ProfilePageProps) {
         notFound();
     }
 
+    // Determine reference date for Time Travel (if applicable)
+    const cookieStore = await cookies();
+    const simulatedDateCookie = cookieStore.get(SIMULATED_DATE_COOKIE)?.value;
+    const refDate = getReferenceDateServer(simulatedDateCookie);
+
     // Fetch public actions and habits for this user on the server
     let publicActions: ActionNode[] = [];
     let privateCount = 0;
@@ -54,7 +62,7 @@ export default async function ProfilePage({params}: ProfilePageProps) {
         publicIdentities = await fetchPublicIdentitiesServer(user.id);
 
         // Fetch current month targets
-        const currentMonthDate = getCurrentMonthStartISO(user.timezone || 'UTC');
+        const currentMonthDate = getCurrentMonthStartISO(user.timezone || 'UTC', refDate);
         const targetsResult = await fetchPublicTargetsServer(user.id, currentMonthDate);
         publicTargets = targetsResult.targets;
 
@@ -64,14 +72,18 @@ export default async function ProfilePage({params}: ProfilePageProps) {
     }
 
 
-    return (<PrivatePage
-            username={username}
-            initialProfileUser={user}
-            publicActions={publicActions}
-            publicHabits={publicHabits}
-            publicJournalEntries={publicJournalEntries}
-            publicIdentities={publicIdentities}
-            publicTargets={publicTargets}
-            privateCount={privateCount}
-        />);
+    return (
+        <PublicProfileThemeWrapper initialTheme={user.active_theme} username={username}>
+            <PrivatePage
+                username={username}
+                initialProfileUser={user}
+                publicActions={publicActions}
+                publicHabits={publicHabits}
+                publicJournalEntries={publicJournalEntries}
+                publicIdentities={publicIdentities}
+                publicTargets={publicTargets}
+                privateCount={privateCount}
+            />
+        </PublicProfileThemeWrapper>
+    );
 }

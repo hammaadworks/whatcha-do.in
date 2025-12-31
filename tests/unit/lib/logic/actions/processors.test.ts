@@ -4,25 +4,42 @@ import {
   filterTreeByPublicStatus
 } from '@/lib/logic/actions/processors';
 import { ActionNode } from '@/lib/supabase/types';
+import { getTodayISO } from '@/lib/date';
+
+jest.mock('@/lib/date', () => ({
+  getTodayISO: jest.fn()
+}));
 
 describe('Action Processors', () => {
-  const startOfToday = 1700000000000; // Arbitrary timestamp for "Start of Today"
-  const yesterday = new Date(startOfToday - 86400000).toISOString();
-  const today = new Date(startOfToday + 3600000).toISOString(); // 1 hour into today
+  const todayISO = "2023-11-15";
+  const timezone = "UTC";
+  
+  // Timestamps
+  const yesterdayTimestamp = "2023-11-14T12:00:00Z";
+  const todayTimestamp = "2023-11-15T12:00:00Z";
+
+  beforeEach(() => {
+      // Mock getTodayISO behavior
+      (getTodayISO as jest.Mock).mockImplementation((tz, date) => {
+          if (!date) return todayISO;
+          // Return YYYY-MM-DD from the date object
+          return date.toISOString().slice(0, 10);
+      });
+  });
 
   const mockNodes: ActionNode[] = [
     {
       id: '1',
       description: 'Completed Yesterday',
       completed: true,
-      completed_at: yesterday,
+      completed_at: yesterdayTimestamp,
       children: []
     },
     {
       id: '2',
       description: 'Completed Today',
       completed: true,
-      completed_at: today,
+      completed_at: todayTimestamp,
       children: []
     },
     {
@@ -35,7 +52,7 @@ describe('Action Processors', () => {
       id: '4',
       description: 'Parent Completed Yesterday with Active Child',
       completed: true,
-      completed_at: yesterday,
+      completed_at: yesterdayTimestamp,
       children: [
         {
           id: '4-1',
@@ -49,13 +66,13 @@ describe('Action Processors', () => {
       id: '5',
       description: 'Parent Completed Yesterday with Completed Yesterday Child',
       completed: true,
-      completed_at: yesterday,
+      completed_at: yesterdayTimestamp,
       children: [
         {
           id: '5-1',
           description: 'Child Completed Yesterday',
           completed: true,
-          completed_at: yesterday,
+          completed_at: yesterdayTimestamp,
           children: []
         }
       ]
@@ -63,8 +80,8 @@ describe('Action Processors', () => {
   ];
 
   describe('partitionActionsByClearingStatus', () => {
-    it('should clear items completed before startOfToday', () => {
-      const { kept, removed } = partitionActionsByClearingStatus(mockNodes, startOfToday);
+    it('should clear items completed before todayISO', () => {
+      const { kept, removed } = partitionActionsByClearingStatus(mockNodes, todayISO, timezone);
       
       const keptIds = kept.map(n => n.id);
       const removedIds = removed.map(n => n.id);
@@ -81,7 +98,7 @@ describe('Action Processors', () => {
     });
 
     it('should recursively clear children', () => {
-         const { removed } = partitionActionsByClearingStatus(mockNodes, startOfToday);
+         const { removed } = partitionActionsByClearingStatus(mockNodes, todayISO, timezone);
          const removedIds = removed.map(n => n.id);
          expect(removedIds).toContain('5-1');
     });
@@ -132,13 +149,6 @@ describe('Action Processors', () => {
 
     it('should count private uncompleted items', () => {
         const { privateCount } = filterTreeByPublicStatus(publicNodes);
-        // p2 is private (1)
-        // p3 is private but shown as container. Does it count?
-        // Logic says: if isPublic OR children.length > 0 -> Show.
-        // p3 has children, so it is SHOWN.
-        // p2 is hidden.
-        
-        // Let's check p2.
         expect(privateCount).toBe(1);
     });
   });

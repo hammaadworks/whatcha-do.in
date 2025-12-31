@@ -12,14 +12,24 @@ import BioSection from "@/components/profile/sections/BioSection";
 
 import { ViewSelector } from "@/components/profile/ViewSelector";
 import { getReferenceDateUI, getTodayISO } from "@/lib/date.ts";
-import { useSimulatedTime } from "@/components/layout/SimulatedTimeProvider.tsx"; // Import ViewSelector
+import { useBrandTheme } from "@/components/theme/BrandThemeProvider";
+import { THEMES } from "@/lib/themes";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Palette } from "lucide-react";
+import Link from "next/link";
+import { useAuth } from "@/hooks/useAuth"; // To check if viewer is logged in and owner
+import { useSimulatedTime } from "@/components/layout/SimulatedTimeProvider";
 
 type PublicProfileViewProps = {
-  user: PublicUserDisplay; publicActions: ActionNode[]; publicHabits: Habit[]; publicJournalEntries: JournalEntry[]; // Add publicJournalEntries
-  publicIdentities: (Identity & { backingCount: number })[]; // Add
-  publicTargets: ActionNode[]; // Add
-  privateCount?: number; // Add privateCount
-  showViewSelector?: boolean; // New prop
+  user: PublicUserDisplay;
+  publicActions: ActionNode[];
+  publicHabits: Habit[];
+  publicJournalEntries: JournalEntry[];
+  publicIdentities: (Identity & { backingCount: number })[];
+  publicTargets: ActionNode[];
+  privateCount?: number;
+  showViewSelector?: boolean;
 };
 
 export function PublicPage({
@@ -37,10 +47,34 @@ export function PublicPage({
   const { simulatedDate } = useSimulatedTime();
   const refDate = getReferenceDateUI(simulatedDate);
   const todayISO = getTodayISO(timezone, refDate);
+  
+  const { theme } = useBrandTheme();
+  const activeThemeObj = THEMES.find(t => t.id === theme);
+  const { user: viewer } = useAuth();
+
   return (
     <div className="relative pt-8 lg:pt-4 w-full max-w-6xl">
       {showViewSelector && (
-        <div className="flex justify-end mb-6">
+        <div className="flex justify-end mb-6 items-center gap-4">
+           {/* Theme Badge */}
+           {activeThemeObj && (
+             <div className="flex items-center gap-2 bg-muted/50 px-3 py-1.5 rounded-full border border-border/50 text-xs text-muted-foreground animate-in fade-in slide-in-from-top-2 duration-700">
+               <Palette className="w-3 h-3" />
+               <span>Theme: <span className="font-semibold text-foreground">{activeThemeObj.name}</span></span>
+               {viewer?.username !== user.username && (
+                   <Link 
+                        href={`?theme-preview=${activeThemeObj.id}`} 
+                        scroll={false} 
+                        replace
+                        passHref
+                    >
+                     <Button variant="link" size="sm" className="h-auto p-0 ml-1 text-xs text-primary">
+                       Use this
+                     </Button>
+                   </Link>
+               )}
+             </div>
+           )}
           <ViewSelector />
         </div>
       )}

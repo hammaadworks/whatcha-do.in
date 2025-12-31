@@ -28,7 +28,7 @@ import { useSimulatedTime } from '@/components/layout/SimulatedTimeProvider';
 interface TreeStructureProps {
   fetchData: (userId: string, timezone: string, dateContext?: string | null) => Promise<ActionNode[]>;
   saveData: (userId: string, dateContext: string | null, newTree: ActionNode[]) => Promise<void>;
-  processLifecycle?: (userId: string, timezone: string) => Promise<void>; // Optional lifecycle processor
+  processLifecycle?: (userId: string, timezone: string, referenceDate?: Date) => Promise<void>; // Optional lifecycle processor
   entityType: 'action' | 'target' | 'habit'; // Added 'habit' for future use
   isOwner: boolean;
   timezone: string;
@@ -85,7 +85,8 @@ export const useTreeStructure = ({
           setTree(data);
           // Run lifecycle process if provided (e.g., rollover for current bucket)
           if (processLifecycleRef.current) {
-             await processLifecycleRef.current(ownerId, timezone);
+             // Pass refDate to lifecycle process to handle time travel correctly
+             await processLifecycleRef.current(ownerId, timezone, refDate);
              // Re-fetch after lifecycle processing to get updated state
              const updatedData = await fetchDataRef.current(ownerId, timezone, dateContext);
              if (isMounted) setTree(updatedData);
@@ -106,7 +107,7 @@ export const useTreeStructure = ({
     }
 
     return () => { isMounted = false; };
-  }, [ownerId, timezone, dateContext, isOwner, initialData, entityType, toastPrefix]);
+  }, [ownerId, timezone, dateContext, isOwner, initialData, entityType, toastPrefix, simulatedDate]);
 
   const save = useCallback(async (newTree: ActionNode[]) => {
     setTree(newTree); // Optimistic update
@@ -176,16 +177,18 @@ export const useTreeStructure = ({
     }
 
     const treeAfterToggle = toggleActionInTree(tree, id, refDate);
+
+    if (treeAfterToggle === tree) {
+      toast.error(`Complete all sub-${toastPrefix.toLowerCase()}s first!`);
+      return;
+    }
+
     const { newTree, uncompletedFromCompleted } = recalculateCompletionStatus(treeAfterToggle);
     const newNode = findNodeAndContext(newTree, id)?.node;
 
 
     if (!newNode) {
       toast.error(`${toastPrefix} not found after toggle processing.`);
-      return;
-    }
-    if (newTree === tree && !newNode.completed) { // If tree didn't change and it's still uncompleted, it means it was prevented
-      toast.error(`Complete all sub-${toastPrefix.toLowerCase()}s first!`);
       return;
     }
 
