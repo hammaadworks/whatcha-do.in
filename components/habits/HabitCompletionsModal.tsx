@@ -95,7 +95,7 @@ export const HabitCompletionsModal: React.FC<HabitCompletionsModalProps> = ({isO
                     <div className="text-center min-w-[60px]">
                         <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold mb-1">Current</p>
                         <Badge variant="secondary"
-                               className="text-base sm:text-lg px-3 py-1 bg-background border shadow-sm">{habit.streak < 1 ? habit.streak + 1 : habit.streak}</Badge>
+                               className="text-base sm:text-lg px-3 py-1 bg-secondary text-secondary-foreground border shadow-sm">{habit.streak < 1 ? habit.streak + 1 : habit.streak}</Badge>
                     </div>
                     <div className="text-muted-foreground/40 font-bold text-xl">→</div>
                     <div className="text-center min-w-[60px]">
