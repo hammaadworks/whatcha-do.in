@@ -2,22 +2,19 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { format } from 'date-fns';
-import { Calendar as CalendarIcon, Lock, Globe, Loader2, Check, X } from 'lucide-react';
+import { Calendar as CalendarIcon, Lock, Globe } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { cn } from '@/lib/utils';
 import { fetchJournalEntryByDate, upsertJournalEntry } from '@/lib/supabase/journal';
-import { CustomMarkdownEditor as MarkdownEditor } from '@/components/shared/CustomMarkdownEditor';
+import { EditorWithControls } from '@/components/shared/EditorWithControls';
 import { Calendar } from '@/components/shared/Calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Button } from '@/components/ui/button';
 import { JournalEntry, ActivityLogEntry } from '@/lib/supabase/types';
 import { useSimulatedTime } from '@/components/layout/SimulatedTimeProvider';
 import { ToggleButtonGroup } from '@/components/shared/ToggleButtonGroup';
-import { uploadJournalMedia, getSignedUrlForPath } from '@/lib/supabase/storage';
 import { useAuth } from '@/packages/auth/hooks/useAuth';
-import { ProUpgradeModal } from '@/components/shared/ProUpgradeModal';
 
 
 interface JournalPageContentProps {
@@ -31,7 +28,6 @@ const formatActivityLogEntry = (entry: ActivityLogEntry): string => {
   const details = entry.details ? Object.entries(entry.details)
     .filter(([, value]) => value !== undefined && value !== null)
     .map(([key, value]) => {
-        // Custom formatting for mood_score and work_value/duration_value to make it more readable
         if (key === 'mood_score') return `Mood: ${value}/100`;
         if (key === 'work_value' && entry.details?.duration_unit) return `${value} ${entry.details.duration_unit}`;
         if (key === 'duration_value' && entry.details?.duration_unit) return `${value} ${entry.details.duration_unit}`;
@@ -50,12 +46,10 @@ export function JournalPageContent({ profileUserId, isOwner }: JournalPageConten
   
   const [date, setDate] = useState<Date>(simulatedDate || new Date());
   const [activeTab, setActiveTab] = useState<'public' | 'private'>('public'); // Default to public
-  const [content, setContent] = useState('');
-  const [activityLog, setActivityLog] = useState<ActivityLogEntry[]>([]); // New state for activity log
+  const [loadedContent, setLoadedContent] = useState('');
+  const [activityLog, setActivityLog] = useState<ActivityLogEntry[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [isProModalOpen, setIsProModalOpen] = useState(false);
-  const lastSavedContentRef = useRef('');
+  const [isDirty, setIsDirty] = useState(false);
   
   // Update date when simulatedDate changes (e.g. time travel)
   useEffect(() => {
@@ -67,17 +61,13 @@ export function JournalPageContent({ profileUserId, isOwner }: JournalPageConten
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
-  const [activitiesPerPage, setActivitiesPerPage] = useState(10); // Default for small screens
+  const [activitiesPerPage, setActivitiesPerPage] = useState(10); 
 
-  // Effect to determine activitiesPerPage based on screen size
   useEffect(() => {
     const handleResize = () => {
-      setActivitiesPerPage(window.innerWidth >= 1024 ? 20 : 10); // 20 for lg and up, 10 for smaller
+      setActivitiesPerPage(window.innerWidth >= 1024 ? 20 : 10);
     };
-
-    // Set initial value
     handleResize();
-
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
@@ -90,13 +80,12 @@ export function JournalPageContent({ profileUserId, isOwner }: JournalPageConten
       setIsLoading(true);
       try {
         const dateStr = format(date, 'yyyy-MM-dd');
-        const entry: JournalEntry | null = await fetchJournalEntryByDate(profileUserId, dateStr, isPublic); // Cast to JournalEntry
+        const entry: JournalEntry | null = await fetchJournalEntryByDate(profileUserId, dateStr, isPublic);
         
         const newContent = entry?.content || '';
-        setContent(newContent);
-        lastSavedContentRef.current = newContent;
-        setActivityLog(entry?.activity_log || []); // Set the activity log
-        setCurrentPage(1); // Reset to first page on new entry load
+        setLoadedContent(newContent);
+        setActivityLog(entry?.activity_log || []);
+        setCurrentPage(1); 
       } catch (error) {
         console.error(error);
         toast.error('Failed to load journal entry');
@@ -107,59 +96,30 @@ export function JournalPageContent({ profileUserId, isOwner }: JournalPageConten
     loadEntry();
   }, [date, activeTab, profileUserId, isPublic]);
 
-  const handleSave = async () => {
+  const handleSaveEntry = async (currentContent: string) => {
     if (!canEdit) return;
-    setIsSaving(true);
     try {
       const dateStr = format(date, 'yyyy-MM-dd');
       await upsertJournalEntry({
         user_id: profileUserId,
         entry_date: dateStr,
         is_public: isPublic,
-        content: content,
+        content: currentContent,
       });
-      lastSavedContentRef.current = content;
-      toast.success("Journal saved successfully");
+      // Optionally update loadedContent to reflect the save, ensuring internal state remains consistent if we were to re-initialize
+      setLoadedContent(currentContent);
     } catch (error) {
-      console.error(error);
-      toast.error('Failed to save journal');
-    } finally {
-      setIsSaving(false);
+        // Error handling is managed by EditorWithControls for UI, but we re-throw to let it know save failed if needed.
+        // Actually EditorWithControls handles the toast.
+        throw error;
     }
   };
-
-  const handleCancel = () => {
-      setContent(lastSavedContentRef.current);
-      toast.info("Changes discarded");
-  };
-
-  const handleUpload = useCallback(async (file: File): Promise<string> => {
-      if (!isOwner) throw new Error("Permission denied");
-      
-      if (!user?.is_pro) {
-        setIsProModalOpen(true);
-        throw new Error("Pro membership required");
-      }
-
-      const isPublic = activeTab === 'public';
-      const { path } = await uploadJournalMedia(file, profileUserId, isPublic);
-      return `![Image](${path})`;
-  }, [isOwner, activeTab, profileUserId, user?.is_pro]);
-
-  const resolveImage = useCallback(async (src: string): Promise<string | null> => {
-      if (src.startsWith('storage://')) {
-          return await getSignedUrlForPath(src);
-      }
-      return src;
-  }, []);
 
   const handleTabChange = async (newTab: string) => {
       const tab = newTab as 'public' | 'private';
       if (tab === activeTab) return;
 
-      // Warn if unsaved changes? For now, we just switch. 
-      // Ideally we should prompt save, but let's keep it simple as per request to match Bio Editor (which is a modal, so it doesn't have tabs inside usually)
-      if (content !== lastSavedContentRef.current) {
+      if (isDirty) {
          const confirmSwitch = window.confirm("You have unsaved changes. Switch tabs anyway?");
          if (!confirmSwitch) return;
       }
@@ -168,7 +128,7 @@ export function JournalPageContent({ profileUserId, isOwner }: JournalPageConten
 
   const handleDateSelect = async (newDate: Date | undefined) => {
       if (!newDate) return;
-      if (content !== lastSavedContentRef.current) {
+      if (isDirty) {
           const confirmSwitch = window.confirm("You have unsaved changes. Switch date anyway?");
           if (!confirmSwitch) return;
       }
@@ -187,14 +147,10 @@ export function JournalPageContent({ profileUserId, isOwner }: JournalPageConten
   const habits = paginatedActivityLog.filter(item => item.type === 'habit');
   const targets = paginatedActivityLog.filter(item => item.type === 'target');
   
-  const totalPages = Math.ceil(activityLog.length / activitiesPerPage);
-
   const JOURNAL_VIEW_OPTIONS = [
       { id: 'public', label: 'Public', icon: Globe },
       { id: 'private', label: 'Private', icon: Lock },
   ];
-
-  const isDirty = content !== lastSavedContentRef.current;
 
   return (
     <div className="flex flex-col h-[calc(100vh-10rem)] w-full max-w-5xl mx-auto space-y-4">
@@ -285,41 +241,18 @@ export function JournalPageContent({ profileUserId, isOwner }: JournalPageConten
         </div>
 
         {/* User Editable Journal Content */}
-        <div className="flex-1 flex flex-col bg-card rounded-lg border shadow-sm overflow-hidden">
-            <div className="flex-grow overflow-hidden">
-                {isLoading ? (
-                    <div className="flex h-full items-center justify-center text-muted-foreground">
-                        <Loader2 className="h-8 w-8 animate-spin mr-2" />
-                        Loading entry...
-                    </div>
-                ) : (
-                    <MarkdownEditor
-                        value={content}
-                        onChange={setContent}
-                        placeholder={canEdit ? "Write your daily reflections here..." : "No entry for this day."}
-                        readOnly={!canEdit}
-                        className="h-full border-0"
-                        onUpload={handleUpload}
-                        resolveImageUrl={resolveImage}
-                        fullHeight
-                    />
-                )}
-            </div>
-            {canEdit && (
-                <div className="flex justify-end gap-2 p-4 border-t bg-muted/20">
-                    <Button variant="outline" onClick={handleCancel} disabled={!isDirty || isSaving}>
-                        <X className="h-4 w-4 mr-1"/> Revert
-                    </Button>
-                    <Button onClick={handleSave} disabled={!isDirty || isSaving}>
-                        {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-1"/> :
-                            <Check className="h-4 w-4 mr-1"/>}
-                        Save Changes
-                    </Button>
-                </div>
-            )}
+        <div className="flex-1 bg-card rounded-lg border shadow-sm overflow-hidden">
+             <EditorWithControls 
+                initialContent={loadedContent}
+                onSave={handleSaveEntry}
+                userId={profileUserId}
+                isOwner={isOwner}
+                placeholder={canEdit ? "Write your daily reflections here..." : "No entry for this day."}
+                uploadIsPublic={isPublic}
+                isLoading={isLoading}
+                onDirtyChange={setIsDirty}
+             />
         </div>
-        
-        <ProUpgradeModal open={isProModalOpen} onOpenChange={setIsProModalOpen} />
     </div>
   );
 }
