@@ -52,6 +52,9 @@ export function DeviceConnect() {
                 level="L" // Lower error correction for denser URLs
                 includeMargin={true}
               />
+              <div className="absolute inset-0 bg-white/90 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                 <p className="text-xs text-black font-medium">Click to Refresh</p>
+              </div>
           </div>
         ) : (
           <div className="w-[200px] h-[200px] flex items-center justify-center text-red-500 text-sm">

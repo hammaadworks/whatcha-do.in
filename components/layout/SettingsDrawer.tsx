@@ -9,6 +9,7 @@ import {updateUserTimezone} from '@/lib/supabase/user.client';
 import {toast} from 'sonner'; // Switch to sonner for consistency
 import {TimeTravelSection} from "@/components/layout/TimeTravel";
 import { ThemeSelector } from "@/components/settings/ThemeSelector";
+import { UserSecurity } from "@/components/auth/UserSecurity";
 
 interface SettingsDrawerProps {
     children: React.ReactNode;
@@ -83,6 +84,12 @@ export function SettingsDrawer({children, isOpen, onOpenChange}: Readonly<Settin
                             Your timezone determines when your &#34;Day&#34; starts and ends.
                         </p>
                     </div>
+                </section>
+
+                {/* Security Section */}
+                <section className="space-y-4">
+                    <h3 className="text-lg font-medium border-b pb-2">Account Security</h3>
+                    <UserSecurity />
                 </section>
 
                 {process.env.NEXT_PUBLIC_DEV_USER === user?.username && (<TimeTravelSection/>)}
