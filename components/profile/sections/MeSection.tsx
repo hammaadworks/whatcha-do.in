@@ -48,9 +48,8 @@ const MeSection: React.FC<MeSectionProps> = ({
     toggleFold={toggleFold}
   >
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      {/* Bio Section with MagicCard */}
-      <MagicCard className="lg:col-span-1 h-full p-0" gradientColor={gradientColor} gradientFrom={primaryGradientFrom}
-                 gradientTo={accentGradientTo}>
+      {/* Bio Section */}
+      <div className="lg:col-span-1 h-full">
         <BioSection
           username={username}
           bio={profileToDisplay.bio ?? null}
@@ -58,7 +57,7 @@ const MeSection: React.FC<MeSectionProps> = ({
           isReadOnly={isReadOnly}
           onBioUpdate={onBioUpdate}
         />
-      </MagicCard>
+      </div>
 
       <div className="lg:col-span-1 flex flex-col gap-6">
         <IdentitySection isOwner={true} isReadOnly={isReadOnly} ownerHabits={ownerHabits} onHabitUpdated={onActivityLogged} />

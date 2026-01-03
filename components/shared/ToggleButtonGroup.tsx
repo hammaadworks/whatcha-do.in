@@ -29,7 +29,7 @@ export const ToggleButtonGroup: React.FC<ToggleButtonGroupProps> = ({
     return (
         <TooltipProvider>
             <div className={cn(
-                "flex items-center gap-1 p-1 rounded-full border-2 border-primary bg-card shadow-[4px_4px_0px_0px_var(--color-primary)] transition-all overflow-x-auto no-scrollbar max-w-full",
+                "flex items-center gap-1 p-1 rounded-full border-2 border-primary bg-card shadow-[4px_4px_0px_0px_var(--color-primary)] transition-all overflow-x-auto no-scrollbar max-w-[calc(100%-5px)]",
                 className
             )}>
                 {options.map((option) => {

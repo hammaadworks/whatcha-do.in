@@ -79,7 +79,7 @@ const AppHeader = ({ themeTogglerRef }: AppHeaderProps) => {
                 className="fixed top-0 z-50 w-full flex justify-center pointer-events-none"
             >
                 <div className={cn(
-                    "pointer-events-auto flex items-center rounded-full transition-all duration-500 ease-in-out backdrop-blur-md w-full mx-2 sm:mx-4 max-w-5xl mt-2 sm:mt-4 border border-border/50",
+                    "pointer-events-auto flex items-center rounded-full transition-all duration-500 ease-in-out backdrop-blur-md w-[calc(100%-1rem)] sm:w-[calc(100%-2rem)] mx-auto max-w-5xl mt-2 sm:mt-4 border border-border/50",
                     isScrolled
                                                 ? "px-4 py-1 sm:px-4 sm:py-2 bg-background/80 shadow-lg"
                                                 : "px-6 py-1.5 sm:px-6 sm:py-3 bg-background/60 shadow-md"

@@ -37,19 +37,22 @@ export default function BioSection({
     };
 
     return (
-        <div className="bio-container w-full relative h-full mb-10"> {/* Added mb-10 for section spacing */}
-            <div className="flex justify-between items-center border-b border-primary pb-4 mb-6 px-6">
-                <h2 className="text-2xl font-extrabold text-ring">Bio</h2>
-                {isOwner && onBioUpdate && !isReadOnly && ( // Repositioned edit button here
+        <div className="bio-container w-full h-full flex flex-col p-6"> {/* Added p-6 for internal padding */}
+            <div className="flex justify-between items-start mb-4"> {/* Removed border-b, adjusted spacing */}
+                <h2 className="text-xl font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+                    Bio
+                </h2>
+                {isOwner && onBioUpdate && !isReadOnly && (
                     <TooltipProvider>
                         <Tooltip>
                             <TooltipTrigger asChild>
-                                                                 <Button
-                                                                    variant="ghost"
-                                                                    size="icon"
-                                                                    className="relative inline-flex h-10 w-10 items-center justify-center rounded-full bg-background text-muted-foreground ring-offset-background transition-colors ring-2 ring-primary hover:bg-accent hover:text-accent-foreground dark:hover:bg-primary dark:hover:text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                                                                    onClick={() => setIsBioModalOpen(true)}
-                                                                    title="Edit Bio"                                >
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                                    onClick={() => setIsBioModalOpen(true)}
+                                    title="Edit Bio"
+                                >
                                     <Pencil className="h-4 w-4"/>
                                 </Button>
                             </TooltipTrigger>
@@ -58,21 +61,23 @@ export default function BioSection({
                     </TooltipProvider>
                 )}
             </div>
-            <div className="bg-card border border-border shadow-sm rounded-xl p-6 relative"> {/* Styled container matching ActionItem */}
-                <div className="prose prose-sm sm:prose-base dark:prose-invert max-w-none text-left leading-relaxed break-words">
+            
+            <div className="flex-grow">
+                <div className="prose prose-sm sm:prose-base dark:prose-invert max-w-none text-left leading-relaxed break-words text-foreground/90">
                     <ReactMarkdown
                         remarkPlugins={[remarkBreaks]}
                         rehypePlugins={[rehypeHighlight]}
                         components={{
                             a: ({node, ...props}) => <a {...props} className="text-primary hover:underline font-medium transition-colors" target="_blank" rel="noopener noreferrer"/>,
-                            p: ({node, ...props}) => <p {...props} className="mb-2 last:mb-0"/>,
-                            strong: ({node, ...props}) => <strong {...props} className="text-ring font-bold"/>,
-                            h1: ({node, ...props}) => <h1 {...props} className="text-ring text-3xl font-bold mt-6 mb-2"/>,
-                            h2: ({node, ...props}) => <h2 {...props} className="text-ring text-2xl font-bold mt-5 mb-2"/>,
-                            h3: ({node, ...props}) => <h3 {...props} className="text-ring text-xl font-bold mt-4 mb-2"/>,
-                            h4: ({node, ...props}) => <h4 {...props} className="text-ring text-lg font-bold mt-3 mb-1"/>,
-                            h5: ({node, ...props}) => <h5 {...props} className="text-ring text-base font-bold mt-2 mb-1"/>,
-                            h6: ({node, ...props}) => <h6 {...props} className="text-ring text-sm font-bold mt-1 mb-1"/>,
+                            p: ({node, ...props}) => <p {...props} className="mb-4 last:mb-0 leading-7"/>,
+                            strong: ({node, ...props}) => <strong {...props} className="text-foreground font-bold"/>,
+                            h1: ({node, ...props}) => <h1 {...props} className="text-foreground text-3xl font-bold mt-6 mb-4 border-b border-border/50 pb-2"/>,
+                            h2: ({node, ...props}) => <h2 {...props} className="text-foreground text-2xl font-bold mt-5 mb-3"/>,
+                            h3: ({node, ...props}) => <h3 {...props} className="text-foreground text-xl font-bold mt-4 mb-2"/>,
+                            h4: ({node, ...props}) => <h4 {...props} className="text-foreground text-lg font-bold mt-3 mb-1"/>,
+                            blockquote: ({node, ...props}) => <blockquote {...props} className="border-l-4 border-primary/50 pl-4 italic text-muted-foreground my-4"/>,
+                            ul: ({node, ...props}) => <ul {...props} className="list-disc pl-5 space-y-1 my-2"/>,
+                            ol: ({node, ...props}) => <ol {...props} className="list-decimal pl-5 space-y-1 my-2"/>,
                         }}
                     >
                         {bioContent}

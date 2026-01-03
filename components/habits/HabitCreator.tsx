@@ -29,19 +29,17 @@ export function HabitCreator({ onHabitCreated }: Readonly<HabitCreatorProps>) {
   const { user } = useAuth();
   const [habitName, setHabitName] = useState("");
   const [description, setDescription] = useState("");
-  const [showGoalInput, setShowGoalInput] = useState(false);
+  // Removed showGoalInput state - options are always visible
   const [goalValue, setGoalValue] = useState<number | undefined>(undefined);
   const [goalUnit, setGoalUnit] = useState<string>(predefinedUnits[0]);
   const [customUnit, setCustomUnit] = useState("");
-  const [targetTime, setTargetTime] = useState<string | null>(null); // Stores HH:mm string or null
-  const [isPublic, setIsPublic] = useState(true); // New state for public/private
+  const [targetTime, setTargetTime] = useState<string | null>(null);
+  const [isPublic, setIsPublic] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-// Canonical Time Logic
   const { simulatedDate } = useSimulatedTime();
   const refDate = getReferenceDateUI(simulatedDate);
-
 
   const handleCreate = async () => {
     if (!user?.id) {
@@ -57,7 +55,7 @@ export function HabitCreator({ onHabitCreated }: Readonly<HabitCreatorProps>) {
     setError(null);
 
     let finalGoalUnit = goalUnit;
-    if (goalUnit === "Custom unit...") {
+    if (goalUnit === "Custom...") { // Fixed string check to match "Custom..."
       finalGoalUnit = customUnit.trim();
       if (!finalGoalUnit) {
         setError("Please specify a custom unit.");
@@ -66,29 +64,27 @@ export function HabitCreator({ onHabitCreated }: Readonly<HabitCreatorProps>) {
       }
     }
 
-    if (showGoalInput) {
-      if (goalValue !== undefined && goalValue <= 0) {
-        setError("Goal value must be a positive number.");
-        setLoading(false);
-        return;
-      }
-      if (goalValue !== undefined && !finalGoalUnit) {
-        setError("Unit cannot be empty if value is set.");
-        setLoading(false);
-        return;
-      }
+    // Logic for goal validation remains
+    if (goalValue !== undefined && goalValue <= 0) {
+      setError("Goal value must be a positive number.");
+      setLoading(false);
+      return;
     }
-
+    if (goalValue !== undefined && !finalGoalUnit) {
+      setError("Unit cannot be empty if value is set.");
+      setLoading(false);
+      return;
+    }
 
     const newHabitPayload: Partial<Habit> = {
       user_id: user.id,
       name: habitName.trim(),
       descriptions: description.trim() || null,
       is_public: isPublic,
-      goal_value: showGoalInput && goalValue !== undefined ? goalValue : undefined,
-      goal_unit: showGoalInput && finalGoalUnit ? finalGoalUnit : undefined,
+      goal_value: goalValue !== undefined ? goalValue : undefined,
+      goal_unit: finalGoalUnit || undefined,
       processed_date: formatISO(refDate),
-      target_time: targetTime || undefined // Add target_time
+      target_time: targetTime || undefined
     };
     console.log("[HabitCreator] Submitting new habit:", newHabitPayload);
 
@@ -96,16 +92,14 @@ export function HabitCreator({ onHabitCreated }: Readonly<HabitCreatorProps>) {
       const { data, error } = await createHabit(newHabitPayload);
       if (error || !data) throw error || new Error("Failed to return habit data");
 
-      onHabitCreated(data); // Notify parent with the new habit object
+      onHabitCreated(data);
 
-      // Reset form
       setHabitName("");
-      setShowGoalInput(false);
       setGoalValue(undefined);
       setGoalUnit(predefinedUnits[0]);
       setCustomUnit("");
-      setTargetTime(null); // Reset targetTime to null
-      setIsPublic(true); // Reset isPublic to default
+      setTargetTime(null);
+      setIsPublic(true);
       setDescription("");
     } catch (err: unknown) {
       setError((err instanceof Error) ? err.message : "Failed to create habit.");
@@ -116,95 +110,109 @@ export function HabitCreator({ onHabitCreated }: Readonly<HabitCreatorProps>) {
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     if (event.key === "Enter" && !event.shiftKey && !loading) {
-      event.preventDefault(); // Prevent new line in textarea if that's undesired, or keep default
+      event.preventDefault();
       handleCreate();
     }
   };
 
-  return (<div className="flex flex-col space-y-2 p-4 border rounded-lg shadow-sm">
-    <div className="flex flex-col space-y-2">
-      <div className="flex items-center space-x-2">
+  return (
+    <div className="flex flex-col gap-4 p-1"> {/* Clean container */}
+      
+      {/* Name Input */}
+      <div>
         <Input
           type="text"
-          placeholder="Add a new habit..."
+          placeholder="Habit Name (e.g., Drink Water)"
           value={habitName}
           onChange={(e) => setHabitName(e.target.value)}
           onKeyDown={handleKeyDown}
-          className="flex-grow"
+          className="w-full text-lg font-medium"
           disabled={loading}
+          autoFocus
         />
-        {habitName.trim() && !showGoalInput && (
-          <Button variant="outline" onClick={() => setShowGoalInput(true)} disabled={loading}>
-            + Add Goal/Time
-          </Button>)}
-        <Button onClick={handleCreate} disabled={loading || !habitName.trim()}>
-          {loading ? "Adding..." : "Add Habit"}
-        </Button>
       </div>
 
-      {habitName.trim() && (
-        <Textarea
-          placeholder="Description (optional)"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          onKeyDown={handleKeyDown}
-          className="resize-none"
-          rows={2}
-          disabled={loading}
-        />
-      )}
-    </div>
-
-    <div className="flex items-center space-x-2 justify-end">
-      <Label htmlFor="is-public-switch">Public</Label>
-      <Switch
-        id="is-public-switch"
-        checked={isPublic}
-        onCheckedChange={setIsPublic}
-        disabled={loading}
-      />
-    </div>
-
-    {showGoalInput && (
-      <div className="grid gap-4">
-        <div className="flex items-center gap-2 flex-wrap">
+      {/* Goal Inputs */}
+      <div className="flex flex-col sm:flex-row gap-2">
+        <div className="flex items-center gap-2 flex-1">
           <Input
             type="number"
-            placeholder="Goal value"
+            placeholder="Goal"
             value={goalValue ?? ""}
             onChange={(e) => setGoalValue(Number.parseFloat(e.target.value) || undefined)}
-            className="w-full sm:w-32"
+            className="w-20 shrink-0" // Fixed width for number
             disabled={loading}
           />
           <Select value={goalUnit} onValueChange={setGoalUnit} disabled={loading}>
-            <SelectTrigger className="w-full sm:w-[176px]">
-              <SelectValue placeholder="Select a unit" />
+            <SelectTrigger className="flex-1 min-w-[100px]">
+              <SelectValue placeholder="Unit" />
             </SelectTrigger>
             <SelectContent>
-              {predefinedUnits.map((unit) => (<SelectItem key={unit} value={unit}>
-                {unit}
-              </SelectItem>))}
+              {predefinedUnits.map((unit) => (
+                <SelectItem key={unit} value={unit}>
+                  {unit}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
-          {goalUnit === "Custom..." && (<Input
+        </div>
+        
+        {goalUnit === "Custom..." && (
+          <Input
             type="text"
-            placeholder="Enter custom unit"
+            placeholder="Custom unit name"
             value={customUnit}
             onChange={(e) => setCustomUnit(e.target.value)}
-            className="w-full sm:flex-grow"
-            disabled={loading}
-          />)}
-        </div>
-        <div className="flex items-center gap-2">
-          <Label htmlFor="target-time" className="shrink-0">Target Time:</Label>
-          <TimeDropdown
-            value={targetTime}
-            onChange={setTargetTime}
+            className="flex-1"
             disabled={loading}
           />
-        </div>
+        )}
       </div>
-    )}
-    {error && <p className="text-destructive-foreground mt-2">{error}</p>}
-  </div>);
+
+      {/* Target Time */}
+      <div className="flex items-center gap-2">
+        <Label htmlFor="target-time" className="shrink-0 text-muted-foreground w-20">Target Time</Label>
+        <TimeDropdown
+          value={targetTime}
+          onChange={setTargetTime}
+          disabled={loading}
+        />
+      </div>
+
+      {/* Description */}
+      <div>
+        <Textarea
+          placeholder="Description or motivation (optional)..."
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          onKeyDown={handleKeyDown}
+          className="resize-none min-h-[80px]"
+          disabled={loading}
+        />
+      </div>
+
+      {/* Footer Actions */}
+      <div className="flex flex-col-reverse sm:flex-row sm:justify-between sm:items-center gap-4 mt-2">
+        <div className="flex items-center space-x-2">
+          <Switch
+            id="is-public-switch"
+            checked={isPublic}
+            onCheckedChange={setIsPublic}
+            disabled={loading}
+          />
+          <Label htmlFor="is-public-switch" className="cursor-pointer">Public Visibility</Label>
+        </div>
+
+        <Button 
+          onClick={handleCreate} 
+          disabled={loading || !habitName.trim()}
+          className="w-full sm:w-auto"
+        >
+          {loading ? "Creating..." : "Create Habit"}
+        </Button>
+      </div>
+
+      {error && <p className="text-destructive text-sm text-center">{error}</p>}
+    </div>
+  );
 }
