@@ -325,7 +325,24 @@ export function CustomMarkdownEditor({
                         <ToolbarButton icon={List} label="Bullet List" onClick={() => insertBlock('- ')} />
                         <ToolbarButton icon={ListOrdered} label="Numbered List" onClick={() => insertBlock('1. ')} />
                         <ToolbarButton icon={LinkIcon} label="Link" onClick={() => insertText('[', '](url)')} />
-                        <ToolbarButton icon={ImageIcon} label="Image/Asset" onClick={handleImageClick} />
+                        
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-8 gap-2 ml-1 text-primary hover:text-primary-foreground hover:bg-primary border-primary/20 bg-primary/5 transition-all shadow-sm group"
+                                    onClick={handleImageClick}
+                                    type="button"
+                                >
+                                    <ImageIcon className="h-4 w-4 transition-transform group-hover:scale-110" />
+                                    <span className="hidden sm:inline font-medium text-xs">Add Media</span>
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent side="bottom">
+                                <p>Upload Images or Video</p>
+                            </TooltipContent>
+                        </Tooltip>
                     </div>
                 </div>
 
