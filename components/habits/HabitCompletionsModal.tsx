@@ -15,6 +15,8 @@ import { Calendar as CalendarIcon, Clock, Dumbbell, Flame, StickyNote } from "lu
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/shared/Calendar";
 import { format } from "date-fns";
+import { useSimulatedTime } from "@/components/layout/SimulatedTimeProvider";
+import { getReferenceDateUI } from "@/lib/date";
 
 interface HabitCompletionsModalProps {
   isOpen: boolean;
@@ -28,13 +30,17 @@ interface HabitCompletionsModalProps {
  * Collects metadata like mood, duration, and notes.
  */
 export const HabitCompletionsModal: React.FC<HabitCompletionsModalProps> = ({ isOpen, onClose, habit, onConfirm }) => {
+  const { simulatedDate } = useSimulatedTime();
+  const refDate = getReferenceDateUI(simulatedDate);
+  
   const [mood, setMood] = useState(3); // 1-5
   const [workValue, setWorkValue] = useState<string>("");
   const [timeTaken, setTimeTaken] = useState<string>("");
   const [timeTakenUnit, setTimeTakenUnit] = useState("minutes");
   const [notes, setNotes] = useState("");
-  const [dedicatedDate, setDedicatedDate] = useState<Date | undefined>(undefined);
+  const [dedicatedDate, setDedicatedDate] = useState<Date | undefined>(refDate);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
 
   // Reset form on open
   useEffect(() => {
@@ -44,8 +50,9 @@ export const HabitCompletionsModal: React.FC<HabitCompletionsModalProps> = ({ is
       setTimeTaken("");
       setTimeTakenUnit("minutes");
       setNotes("");
-      setDedicatedDate(undefined);
+      setDedicatedDate(refDate);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
   const handleSubmit = async () => {
@@ -75,27 +82,27 @@ export const HabitCompletionsModal: React.FC<HabitCompletionsModalProps> = ({ is
   const isTodayCompleted = habit.habit_state === HabitState.TODAY;
 
   return (<Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-    <DialogContent className="sm:max-w-[425px]">
-      <DialogHeader>
-        <DialogTitle className="flex items-center gap-2">
-          Complete: <span className="text-primary">{habit.name}</span>
+    <DialogContent className="sm:max-w-[425px] max-h-[85vh] flex flex-col w-[95vw] p-0 gap-0 overflow-hidden rounded-xl">
+      <DialogHeader className="px-4 py-3 sm:px-6 sm:py-4 border-b shrink-0 bg-background/95 backdrop-blur z-10">
+        <DialogTitle className="flex items-center gap-2 text-xl leading-tight text-left">
+          Complete: <span className="text-primary truncate">{habit.name}</span>
         </DialogTitle>
       </DialogHeader>
 
-      <div className="grid gap-6 py-4">
+      <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5">
         {/* Streak Preview */}
-        <div className="flex justify-center items-center gap-4 p-4 bg-muted/30 rounded-lg">
-          <div className="text-center">
-            <p className="text-xs text-muted-foreground uppercase tracking-wide">Current</p>
+        <div className="flex justify-center items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-muted/30 rounded-xl border border-border/50 shrink-0">
+          <div className="text-center min-w-[60px]">
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold mb-1">Current</p>
             <Badge variant="secondary"
-                   className="text-lg px-3 py-1 mt-1">{habit.streak < 1 ? habit.streak + 1 : habit.streak}</Badge>
+                   className="text-base sm:text-lg px-3 py-1 bg-background border shadow-sm">{habit.streak < 1 ? habit.streak + 1 : habit.streak}</Badge>
           </div>
-          <div className="text-primary font-bold text-xl">→</div>
-          <div className="text-center">
-            <p className="text-xs text-muted-foreground uppercase tracking-wide">
-                {isTodayCompleted ? "Extra Streak 🔥" : "New Streak"}
+          <div className="text-muted-foreground/40 font-bold text-xl">→</div>
+          <div className="text-center min-w-[60px]">
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold mb-1">
+                {isTodayCompleted ? "Extra 🔥" : "New Streak"}
             </p>
-            <Badge variant="default" className="text-lg px-3 py-1 mt-1 bg-green-500 hover:bg-green-600">
+            <Badge variant="default" className="text-base sm:text-lg px-3 py-1 bg-primary text-primary-foreground shadow-md shadow-primary/20">
               <Flame className="w-4 h-4 mr-1 fill-current" />
               {habit.streak + 1}
             </Badge>
@@ -103,9 +110,9 @@ export const HabitCompletionsModal: React.FC<HabitCompletionsModalProps> = ({ is
         </div>
 
         {/* Mood Emoji Picker */}
-        <div className="space-y-3">
-          <Label>How ya feeling!</Label>
-          <div className="flex justify-between gap-1">
+        <div className="space-y-3 shrink-0">
+          <Label className="text-xs font-semibold uppercase text-muted-foreground tracking-wide">How ya feeling!</Label>
+          <div className="flex flex-wrap justify-between gap-2">
             {[
               { value: 1, emoji: "😫", label: "Drained" },
               { value: 2, emoji: "😕", label: "Meh" },
@@ -117,26 +124,26 @@ export const HabitCompletionsModal: React.FC<HabitCompletionsModalProps> = ({ is
                 key={item.value}
                 onClick={() => setMood(item.value)}
                 className={cn(
-                  "flex flex-col items-center justify-center p-2 flex-1 rounded-lg transition-all",
+                  "flex flex-col items-center justify-center p-2 rounded-xl transition-all min-w-[56px] flex-1",
                   mood === item.value
-                    ? "bg-primary/10 ring-2 ring-primary scale-105"
-                    : "hover:bg-muted opacity-70 hover:opacity-100"
+                    ? "bg-primary/10 ring-2 ring-primary scale-105 shadow-sm"
+                    : "hover:bg-muted/60 opacity-60 hover:opacity-100"
                 )}
                 type="button"
               >
-                <span className="text-2xl mb-1">{item.emoji}</span>
+                <span className="text-2xl sm:text-3xl mb-1 filter drop-shadow-sm">{item.emoji}</span>
                 <span
-                  className="text-[10px] text-muted-foreground font-medium text-center leading-tight">{item.label}</span>
+                  className="text-[10px] font-medium text-center leading-tight whitespace-nowrap">{item.label}</span>
               </button>
             ))}
           </div>
         </div>
 
         {/* Work / Goal Input */}
-        {habit.goal_value && (<div className="space-y-2">
-          <Label className="flex items-center gap-2">
-            <Dumbbell size={16} />
-            Work Done (Goal: {habit.goal_value} {habit.goal_unit})
+        {habit.goal_value && (<div className="space-y-2 shrink-0">
+          <Label className="flex items-center gap-2 text-xs font-semibold uppercase text-muted-foreground tracking-wide">
+            <Dumbbell size={14} />
+            Work Done <span className="font-normal normal-case opacity-70">(Goal: {habit.goal_value} {habit.goal_unit})</span>
           </Label>
           <div className="flex gap-2 items-center">
             <Input
@@ -144,17 +151,18 @@ export const HabitCompletionsModal: React.FC<HabitCompletionsModalProps> = ({ is
               placeholder={`${habit.goal_value}`}
               value={workValue}
               onChange={(e) => setWorkValue(e.target.value)}
+              className="h-11 text-lg"
             />
-            <span className="text-sm font-medium text-muted-foreground">
-                                    {habit.goal_unit}
-                                </span>
+            <span className="text-sm font-medium text-muted-foreground whitespace-nowrap min-w-[3ch]">
+                {habit.goal_unit}
+            </span>
           </div>
         </div>)}
 
         {/* Duration */}
-        <div className="space-y-2">
-          <Label className="flex items-center gap-2">
-            <Clock size={16} /> Duration
+        <div className="space-y-2 shrink-0">
+          <Label className="flex items-center gap-2 text-xs font-semibold uppercase text-muted-foreground tracking-wide">
+            <Clock size={14} /> Duration
           </Label>
           <div className="flex gap-2">
             <Input
@@ -162,10 +170,10 @@ export const HabitCompletionsModal: React.FC<HabitCompletionsModalProps> = ({ is
               placeholder="0"
               value={timeTaken}
               onChange={(e) => setTimeTaken(e.target.value)}
-              className="flex-1"
+              className="flex-1 h-11 text-lg"
             />
             <Select value={timeTakenUnit} onValueChange={setTimeTakenUnit}>
-              <SelectTrigger className="w-[110px]">
+              <SelectTrigger className="w-[110px] h-11">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -178,16 +186,16 @@ export const HabitCompletionsModal: React.FC<HabitCompletionsModalProps> = ({ is
         
         {/* Dedicate Date (Super Streak) - Only visible if already completed today */}
         {isTodayCompleted && (
-            <div className="space-y-2">
-                <Label className="flex items-center gap-2">
-                    <CalendarIcon size={16} /> Dedicate to Date (Optional)
+            <div className="space-y-2 bg-secondary/20 p-3 rounded-lg border border-secondary/20 shrink-0">
+                <Label className="flex items-center gap-2 text-xs font-semibold uppercase text-muted-foreground tracking-wide mb-2">
+                    <CalendarIcon size={14} /> Redeem a missed day?
                 </Label>
-                <Popover>
+                <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
                     <PopoverTrigger asChild>
                         <Button
                             variant={"outline"}
                             className={cn(
-                                "w-full justify-start text-left font-normal",
+                                "w-full justify-start text-left font-normal h-11",
                                 !dedicatedDate && "text-muted-foreground"
                             )}
                         >
@@ -195,40 +203,43 @@ export const HabitCompletionsModal: React.FC<HabitCompletionsModalProps> = ({ is
                             {dedicatedDate ? format(dedicatedDate, "PPP") : <span>Pick a date (Default: Today)</span>}
                         </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
+                    <PopoverContent className="w-auto p-0" align="center" sideOffset={4}>
                         <Calendar
                             mode="single"
                             selected={dedicatedDate}
-                            onSelect={setDedicatedDate}
+                            onSelect={(date) => {
+                                setDedicatedDate(date);
+                                setIsPopoverOpen(false);
+                            }}
                             initialFocus
                         />
                     </PopoverContent>
                 </Popover>
-                <p className="text-[10px] text-muted-foreground">
-                    Use this to fill a past gap or add an extra completion to a specific day.
+                <p className="text-[11px] text-muted-foreground leading-snug mt-1">
+                    Select a past date to fill a gap in your streak history.
                 </p>
             </div>
         )}
 
         {/* Notes */}
-        <div className="space-y-2">
-          <Label className="flex items-center gap-2">
-            <StickyNote size={16} /> Reflections
+        <div className="space-y-2 shrink-0">
+          <Label className="flex items-center gap-2 text-xs font-semibold uppercase text-muted-foreground tracking-wide">
+            <StickyNote size={14} /> Reflections
           </Label>
           <Textarea
-            placeholder="How did it go?"
+            placeholder="How did it go? Any blockers?"
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            className="resize-none h-20"
+            className="resize-none min-h-[100px] text-sm leading-relaxed"
           />
         </div>
       </div>
 
-      <DialogFooter className="gap-2 sm:gap-0">
-        <Button variant="outline" onClick={onClose} disabled={isSubmitting}>
+      <DialogFooter className="px-4 py-3 sm:px-6 sm:py-4 border-t gap-3 sm:gap-2 flex-col-reverse sm:flex-row bg-background/95 backdrop-blur z-10 shrink-0">
+        <Button variant="outline" onClick={onClose} disabled={isSubmitting} className="h-11 w-full sm:w-auto">
           Cancel
         </Button>
-        <Button onClick={handleSubmit} disabled={isSubmitting} className="w-full sm:w-auto">
+        <Button onClick={handleSubmit} disabled={isSubmitting} className="h-11 w-full sm:w-auto bg-primary text-primary-foreground font-semibold shadow-md hover:shadow-lg transition-all">
           {isSubmitting ? "Logging..." : "Complete Habit"}
         </Button>
       </DialogFooter>

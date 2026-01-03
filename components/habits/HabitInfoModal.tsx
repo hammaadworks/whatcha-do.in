@@ -2,12 +2,11 @@ import BaseModal from '../shared/BaseModal'; // Import the new BaseModal
 import { Habit } from "@/lib/supabase/types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Pencil, Trash2, LogIn } from "lucide-react";
+import { Pencil, Trash2, LogIn, ArrowRight, Flame } from "lucide-react";
 import EditHabitModal from "./EditHabitModal";
 import { useState } from "react";
 
 import { HabitBoxType, HabitState } from "@/lib/enums";
-import { ArrowRight } from "lucide-react";
 
 interface HabitInfoModalProps {
   habit: Habit;
@@ -24,7 +23,7 @@ interface HabitInfoModalProps {
   ) => void;
   onHabitDeleted?: (habitId: string) => void;
   onHabitMove?: (habitId: string, targetBox: HabitBoxType) => Promise<void>; // New prop
-  onLogExtra?: () => void; // Trigger for extra completion
+  onRedeemComplete?: () => void; // Trigger for extra completion
   isPrivateHabit?: boolean;
   canBeDeleted?: boolean;
 }
@@ -40,7 +39,7 @@ const HabitInfoModal: React.FC<HabitInfoModalProps> = ({
   onHabitUpdated,
   onHabitDeleted,
   onHabitMove,
-  onLogExtra, // New prop
+  onRedeemComplete, // New prop
   isPrivateHabit,
   canBeDeleted,
 }) => {
@@ -78,24 +77,24 @@ const HabitInfoModal: React.FC<HabitInfoModalProps> = ({
     <BaseModal
       isOpen={isOpen}
       onClose={onClose}
-      title={habit.name}
+      title="" // Custom title handling
       footerContent={isPrivateHabit && (
-        <div className="flex flex-col w-full gap-4 pt-4">
+        <div className="flex flex-col w-full gap-3 pt-2">
              {/* Move Actions Section */}
              {onHabitMove && (
-                 <div className="flex flex-wrap gap-2 justify-center pb-4 border-b">
+                 <div className="flex flex-wrap gap-2 justify-center pb-4 border-b border-border/40 mb-2">
                      {habit.habit_state !== HabitState.TODAY ? (
-                         <Button variant="outline" size="sm" onClick={() => handleMove(HabitBoxType.TODAY)}>
+                         <Button variant="outline" size="sm" onClick={() => handleMove(HabitBoxType.TODAY)} className="w-full sm:w-auto">
                              Mark Done <ArrowRight className="ml-1 h-3 w-3" />
                          </Button>
                      ) : (
-                         <div className="flex gap-2">
-                             <Button variant="outline" size="sm" onClick={() => handleMove(HabitBoxType.PILE)}>
+                         <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                             <Button variant="outline" size="sm" onClick={() => handleMove(HabitBoxType.PILE)} className="w-full sm:w-auto">
                                  Unmark <ArrowRight className="ml-1 h-3 w-3" />
                              </Button>
-                             {onLogExtra && (
-                                <Button variant="secondary" size="sm" onClick={() => { onClose(); onLogExtra(); }}>
-                                    <LogIn className="mr-1 h-3 w-3" /> Super Complete
+                             {onRedeemComplete && (
+                                <Button variant="secondary" size="sm" onClick={() => { onClose(); onRedeemComplete(); }} className="w-full sm:w-auto">
+                                    <LogIn className="mr-1 h-3 w-3" /> Redeem a missed day?
                                 </Button>
                              )}
                          </div>
@@ -103,14 +102,13 @@ const HabitInfoModal: React.FC<HabitInfoModalProps> = ({
                  </div>
              )}
              
-            <div className="flex flex-row gap-2 justify-end">
+            <div className="flex flex-col sm:flex-row gap-2 sm:justify-end">
               <Button
-                variant="outline" // Reverted from secondary to outline
+                variant="outline"
                 onClick={() => {
                   setIsEditModalOpen(true);
                 }}
-                size="lg"
-                className="text-sm"
+                className="w-full sm:w-auto text-sm h-10"
               >
                 <Pencil className="mr-2 h-4 w-4" /> Edit
               </Button>
@@ -118,8 +116,7 @@ const HabitInfoModal: React.FC<HabitInfoModalProps> = ({
                 <Button
                   variant="destructive"
                   onClick={handleDeleteClick}
-                  size="lg" // Changed from lg to xl
-                  className="text-sm" // Removed custom hover class
+                  className="w-full sm:w-auto text-sm h-10"
                 >
                   <Trash2 className="mr-2 h-4 w-4" /> Delete
                 </Button>
@@ -128,58 +125,75 @@ const HabitInfoModal: React.FC<HabitInfoModalProps> = ({
         </div>
       )}
     >
-        <div className="grid gap-4 py-4">
-          <div className="flex justify-between items-center">
-            <span className="text-muted-foreground">Current Streak</span>
-            <Badge variant="default" className="text-lg">
-              🔥 {habit.streak}
-            </Badge>
+        <div className="flex flex-col gap-6 pb-2 max-h-[75vh] overflow-y-auto px-1">
+          {/* Header Section */}
+          <div className="text-center space-y-1">
+             <h2 className="text-2xl font-bold tracking-tight">{habit.name}</h2>
+             <div className="flex justify-center items-center gap-2 text-muted-foreground text-sm">
+                 <span className="capitalize flex items-center gap-1">
+                     {habit.is_public ? "Public 🌐" : "Private 🔒"}
+                 </span>
+                 <span>•</span>
+                 <span className="capitalize">{habit.habit_state}</span>
+             </div>
           </div>
+
+          {/* Featured Streak Card */}
+          <div className="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent rounded-2xl p-6 flex flex-col items-center justify-center border border-primary/10 shadow-sm relative overflow-hidden shrink-0">
+             <div className="absolute top-0 right-0 p-3 opacity-10">
+                 <Flame size={64} />
+             </div>
+             <span className="text-muted-foreground text-xs uppercase tracking-widest font-semibold mb-1">Current Streak</span>
+             <div className="flex items-baseline gap-1">
+                 <span className="text-5xl font-black text-primary tracking-tighter">{habit.streak}</span>
+                 <span className="text-lg font-medium text-muted-foreground">days</span>
+             </div>
+          </div>
+
+          {/* Description */}
           {habit.descriptions && (
-            <div className="flex flex-col gap-1">
-              <span className="text-muted-foreground text-sm">Description</span>
-              <p className="text-sm text-foreground/90 bg-muted/30 p-2 rounded-md">
+            <div className="bg-muted/40 p-4 rounded-xl border border-border/50 shrink-0">
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">Why this matters</span>
+              <p className="text-sm text-foreground/90 leading-relaxed">
                 {habit.descriptions}
               </p>
             </div>
           )}
-          <div className="flex justify-between items-center">
-            <span className="text-muted-foreground">Longest Streak</span>
-            <span className="font-semibold">{habit.longest_streak} days</span>
-          </div>
-          {habit.target_time && (
-            <div className="flex justify-between items-center">
-              <span className="text-muted-foreground">Target Time</span>
-              <span className="font-semibold">
-                {new Date(`1970-01-01T${habit.target_time}`).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
-              </span>
-            </div>
-          )}
-          {habit.goal_value && habit.goal_unit && (
-            <div className="flex justify-between items-center">
-              <span className="text-muted-foreground">Goal</span>
-              <span className="font-semibold">
-                {habit.goal_value} {habit.goal_unit}
-              </span>
-            </div>
-          )}
-          <div className="flex justify-between items-center">
-            <span className="text-muted-foreground">Status</span>
-            <span className="font-semibold capitalize">
-              {habit.is_public ? "Public 🌐" : "Private 🔒"}
-            </span>
-          </div>
-           <div className="flex justify-between items-center">
-            <span className="text-muted-foreground">State</span>
-            <span className="font-semibold capitalize">{habit.habit_state}</span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-muted-foreground">Created</span>
-            <span className="font-semibold">
-              {habit.created_at ? new Date(habit.created_at).toLocaleDateString() : 'N/A'}
-            </span>
+
+          {/* Stats Grid */}
+          <div className="grid grid-cols-2 gap-3 shrink-0">
+             <div className="bg-card border p-3 rounded-xl flex flex-col gap-1 shadow-sm">
+                 <span className="text-[10px] text-muted-foreground uppercase font-bold">Longest Streak</span>
+                 <span className="text-lg font-semibold">{habit.longest_streak} days</span>
+             </div>
+             
+             <div className="bg-card border p-3 rounded-xl flex flex-col gap-1 shadow-sm">
+                 <span className="text-[10px] text-muted-foreground uppercase font-bold">Since</span>
+                 <span className="text-lg font-semibold">
+                     {habit.created_at ? new Date(habit.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: '2-digit' }) : 'N/A'}
+                 </span>
+             </div>
+
+             {habit.target_time && (
+                 <div className="bg-card border p-3 rounded-xl flex flex-col gap-1 shadow-sm">
+                     <span className="text-[10px] text-muted-foreground uppercase font-bold">Target Time</span>
+                     <span className="text-lg font-semibold">
+                        {new Date(`1970-01-01T${habit.target_time}`).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+                     </span>
+                 </div>
+             )}
+
+             {(habit.goal_value && habit.goal_unit) && (
+                 <div className="bg-card border p-3 rounded-xl flex flex-col gap-1 shadow-sm">
+                     <span className="text-[10px] text-muted-foreground uppercase font-bold">Daily Goal</span>
+                     <span className="text-lg font-semibold">
+                        {habit.goal_value} <span className="text-sm font-normal text-muted-foreground">{habit.goal_unit}</span>
+                     </span>
+                 </div>
+             )}
           </div>
         </div>
+
       {isPrivateHabit && (
         <EditHabitModal
           isOpen={isEditModalOpen}
