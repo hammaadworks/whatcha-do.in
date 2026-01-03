@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from '@/components/ui/button';
-import { User, Smartphone } from 'lucide-react';
+import { User, Smartphone, BarChart3 } from 'lucide-react';
 import LogoutButton from '@/packages/auth/components/LogoutButton';
 import InsightsTrigger from '@/components/shared/InsightsTrigger';
 import { User as AuthUser } from '@/packages/auth/hooks/useAuth';
@@ -56,8 +56,17 @@ const UserMenuPopover: React.FC<UserMenuPopoverProps> = ({ user }) => {
               <Smartphone className="h-4 w-4" />
             </div>
 
-            {user?.username && ( // Conditionally render InsightsTrigger if user is logged in
-              <InsightsTrigger username={user.username} open={isInsightsOpen} onOpenChange={toggleInsightsModal} />
+            {user?.username && (
+              <InsightsTrigger username={user.username} open={isInsightsOpen} onOpenChange={toggleInsightsModal} >
+                <Button
+                  className="w-full flex items-center justify-center px-4 py-2 text-sm text-foreground hover:bg-muted rounded-md cursor-pointer
+                             bg-card border border-primary shadow-[4px_4px_0px_0px_var(--color-primary)] transition-all"
+                  variant="ghost" // Use ghost to remove default button styles, allowing custom styling
+                >
+                  <BarChart3 className="mr-2 h-4 w-4" />
+                  View Insights
+                </Button>
+              </InsightsTrigger>
             )}
 
             <div className="my-2 border-t border-border" />

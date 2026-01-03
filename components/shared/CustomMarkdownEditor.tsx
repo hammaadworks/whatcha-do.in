@@ -381,7 +381,7 @@ export function CustomMarkdownEditor({
                     textareaProps={{
                         placeholder: placeholder || "Start writing...",
                         className: cn(
-                            "focus:outline-none !font-sans !text-lg !leading-relaxed p-6 h-full bg-transparent z-10 relative",
+                            "focus:outline-none !font-sans !text-lg !leading-relaxed p-6 h-full !bg-card !text-foreground z-10 relative",
                             textareaClassName
                         )
                     }}

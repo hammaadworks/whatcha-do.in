@@ -26,19 +26,19 @@ export function calculateHabitUpdates(habit: Habit, event: HabitLifecycleEvent, 
       return handleGraceComplete(habit, todayDate);
     case HabitLifecycleEvent.GRACE_INCOMPLETE:
       return handleGraceIncomplete(habit, todayDate);
-    case HabitLifecycleEvent.LOG_EXTRA:
-      return handleLogExtra(habit);
+    case HabitLifecycleEvent.REDEEM_COMPLETE:
+      return handleRedeemComplete(habit);
     default:
       throw new Error(`Unhandled event: ${event}`);
   }
 }
 
 /**
- * Handles the LOG_EXTRA event.
+ * Handles the REDEEM_COMPLETE event.
  * Increments streak statistics without changing state or dates.
  * Used for "Super Streak" (multiple completions per day) or retroactive logging.
  */
-function handleLogExtra(habit: Habit): Partial<Habit> {
+function handleRedeemComplete(habit: Habit): Partial<Habit> {
   const newStreak = habit.streak + 1;
   const update: Partial<Habit> = {
     streak: newStreak,

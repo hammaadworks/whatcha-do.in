@@ -51,6 +51,7 @@ const MeSection: React.FC<MeSectionProps> = ({
       {/* Bio Section */}
       <div className="lg:col-span-1 h-full">
         <BioSection
+          userId={profileToDisplay.id}
           username={username}
           bio={profileToDisplay.bio ?? null}
           isOwner={true}

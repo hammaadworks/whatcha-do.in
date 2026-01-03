@@ -181,12 +181,12 @@ export function UserSecurity() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* --- Username Card --- */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <User className="h-5 w-5" />
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <User className="h-4 w-4" />
             Profile Identity
           </CardTitle>
           <CardDescription>
@@ -240,9 +240,9 @@ export function UserSecurity() {
 
       {/* --- Password Card --- */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Lock className="h-5 w-5" />
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Lock className="h-4 w-4" />
             Password Management
           </CardTitle>
           <CardDescription>
@@ -272,9 +272,9 @@ export function UserSecurity() {
 
       {/* --- Delete Account Card --- */}
       <Card className="border-destructive/50">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-destructive">
-            <Trash2 className="h-5 w-5" />
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2 text-destructive">
+            <Trash2 className="h-4 w-4" />
             Danger Zone
           </CardTitle>
           <CardDescription>

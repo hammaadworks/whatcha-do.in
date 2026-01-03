@@ -90,6 +90,7 @@ export function PublicPage({
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div>
               <BioSection
+                userId={user.id}
                 username={user.username || ""}
                 bio={user.bio ?? null}
                 isOwner={false}

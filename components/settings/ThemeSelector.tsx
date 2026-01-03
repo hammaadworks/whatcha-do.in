@@ -321,10 +321,10 @@ export function ThemeSelector(props: ThemeSelectorProps) {
         </DialogTrigger>
       )}
 
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
+      <DialogContent className="max-w-xl px-6 py-6 overflow-hidden">
+        <DialogHeader className="pb-6 text-center">
           <DialogTitle>Customize Appearance</DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="max-w-prose mx-auto">
             {verificationStep === "awaiting_proof"
               ? "Vibe check! Verify your action to unlock."
               : "Choose a theme to personalize your experience."}
@@ -360,7 +360,7 @@ export function ThemeSelector(props: ThemeSelectorProps) {
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-2 gap-4 py-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 py-4">
             {THEMES.map((t) => {
               const isActive = theme === t.id;
               const isItemLocked = t.isPro && !user?.is_pro && !localPurchasedThemes.includes(t.id);
@@ -447,7 +447,7 @@ export function ThemeSelector(props: ThemeSelectorProps) {
           </div>
         )}
 
-        <DialogFooter className="gap-2 sm:gap-0">
+        <DialogFooter className="pt-4 flex-col sm:flex-row sm:justify-end gap-2">
           {verificationStep === "awaiting_proof" ? (
             <>
               <Button variant="ghost" onClick={() => setVerificationStep("idle")} disabled={isUnlocking}>

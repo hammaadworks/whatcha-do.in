@@ -1,19 +1,21 @@
 'use client';
 
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useCallback} from 'react';
 import {Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle} from '@/components/ui/dialog';
 import {Button} from '@/components/ui/button';
 import {CustomMarkdownEditor} from '@/components/shared/CustomMarkdownEditor';
 import {Check, Loader2, X} from 'lucide-react';
+import { uploadJournalMedia, getSignedUrlForPath } from '@/lib/supabase/storage';
 
 interface BioEditorModalProps {
     isOpen: boolean;
     onClose: () => void;
     onSave: (newBio: string) => Promise<void>;
     initialBio: string | null;
+    userId: string;
 }
 
-export const BioEditorModal: React.FC<BioEditorModalProps> = ({isOpen, onClose, onSave, initialBio}) => {
+export const BioEditorModal: React.FC<BioEditorModalProps> = ({isOpen, onClose, onSave, initialBio, userId}) => {
     const [bio, setBio] = useState(initialBio || '');
     const [isSaving, setIsSaving] = useState(false);
 
@@ -35,6 +37,20 @@ export const BioEditorModal: React.FC<BioEditorModalProps> = ({isOpen, onClose, 
         }
     };
 
+    const handleUpload = useCallback(async (file: File): Promise<string> => {
+        // Upload to public journal bucket (reusing existing storage logic)
+        // Bio images should be public so everyone can see them
+        const { path } = await uploadJournalMedia(file, userId, true);
+        return `![Image](${path})`;
+    }, [userId]);
+
+    const resolveImage = useCallback(async (src: string): Promise<string | null> => {
+        if (src.startsWith('storage://')) {
+            return await getSignedUrlForPath(src);
+        }
+        return src;
+    }, []);
+
     return (<Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
             <DialogContent className="w-[95vw] h-[95vh] max-w-none sm:max-w-none flex flex-col p-4 sm:p-6 overflow-hidden rounded-xl border shadow-2xl">
                 <DialogHeader className="px-6 pt-6 sm:px-0 sm:pt-0">
@@ -47,6 +63,8 @@ export const BioEditorModal: React.FC<BioEditorModalProps> = ({isOpen, onClose, 
                         onChange={setBio}
                         className="h-full border rounded-md overflow-y-auto resize-none"
                         fullHeight
+                        onUpload={handleUpload}
+                        resolveImageUrl={resolveImage}
                     />
                 </div>
 

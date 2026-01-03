@@ -168,7 +168,7 @@ export const HabitChip: React.FC<HabitChipProps> = ({
       onHabitUpdated={isOwner ? onHabitUpdated : undefined}
       onHabitDeleted={isOwner ? onHabitDeleted : undefined}
       onHabitMove={isOwner ? onHabitMove : undefined} // Pass to modal
-      onLogExtra={isOwner ? () => setIsCompletionModalOpen(true) : undefined}
+      onRedeemComplete={isOwner ? () => setIsCompletionModalOpen(true) : undefined}
       isPrivateHabit={isOwner}
       canBeDeleted={canBeDeleted}
     />

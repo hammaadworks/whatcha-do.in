@@ -132,8 +132,8 @@ export const useHabitActions = ({
 
     if (data.attributed_date) {
       // Super Streak / Dedication Flow:
-      // Use LOG_EXTRA to calculate stats update
-      updates = calculateHabitUpdates(habitToComplete, HabitLifecycleEvent.LOG_EXTRA, todayISO);
+      // Use REDEEM_COMPLETE to calculate stats update
+      updates = calculateHabitUpdates(habitToComplete, HabitLifecycleEvent.REDEEM_COMPLETE, todayISO);
 
       // Optimistic Update
       if (setOptimisticHabits) {

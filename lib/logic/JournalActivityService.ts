@@ -96,9 +96,13 @@ export class JournalActivityService {
     const journalEntry = await this._getOrCreateJournalEntry(userId, date, entry.is_public);
     const activityLog = journalEntry.activity_log || [];
 
-    const existingIndex = activityLog.findIndex(
-      (item) => item.id === entry.id && item.type === entry.type
-    );
+    // For habits, we always want to append new entries (to support multiple completions/super streaks).
+    // For other types (actions, targets), we update the existing entry if found (idempotency).
+    const existingIndex = (entry.type === 'habit')
+      ? -1
+      : activityLog.findIndex(
+          (item) => item.id === entry.id && item.type === entry.type
+        );
 
     const newLogEntry: ActivityLogEntry = {
       ...entry,

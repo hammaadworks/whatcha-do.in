@@ -310,6 +310,7 @@ export function JournalPageContent({ profileUserId, isOwner }: JournalPageConten
                     className="h-full border-0"
                     onUpload={handleUpload}
                     resolveImageUrl={resolveImage}
+                    fullHeight
                 />
             )}
         </div>

@@ -45,7 +45,7 @@ export function SettingsDrawer({children, isOpen, onOpenChange}: Readonly<Settin
 
     return (<Sheet open={isOpen} onOpenChange={onOpenChange}>
         {children && <SheetTrigger asChild>{children}</SheetTrigger>}
-        <SheetContent side="right" className="w-full sm:w-[540px] overflow-y-auto pointer-events-auto bg-muted/30">
+        <SheetContent side="right" className="w-full max-w-[100vw] sm:w-[540px] overflow-y-auto pointer-events-auto bg-background/80 backdrop-blur-xl border-l shadow-2xl">
             <SheetHeader className="pb-4">
                 <SheetTitle className="text-2xl">Settings</SheetTitle>
                 <SheetDescription>
@@ -58,7 +58,7 @@ export function SettingsDrawer({children, isOpen, onOpenChange}: Readonly<Settin
                 <section className="space-y-4">
                     <h3 className="text-lg font-medium px-1">Preferences</h3>
                     
-                    <div className="grid gap-4">
+                    <div className="flex flex-col gap-4">
                         <Card>
                             <CardHeader className="pb-3">
                                 <CardTitle className="text-base flex items-center gap-2">

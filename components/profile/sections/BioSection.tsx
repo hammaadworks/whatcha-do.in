@@ -12,6 +12,7 @@ import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,} from "@/compo
 import {ShineBorder} from '@/components/ui/shine-border';
 
 interface BioSectionProps {
+    userId: string;
     username: string;
     bio: string | null;
     isOwner: boolean;
@@ -20,6 +21,7 @@ interface BioSectionProps {
 }
 
 export default function BioSection({
+    userId,
     username,
     bio,
     isOwner,
@@ -92,6 +94,7 @@ export default function BioSection({
                     onClose={() => setIsBioModalOpen(false)}
                     onSave={handleBioSave}
                     initialBio={bio}
+                    userId={userId}
                 />
             )}
         </div>
