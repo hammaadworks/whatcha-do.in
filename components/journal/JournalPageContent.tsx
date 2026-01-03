@@ -1,9 +1,8 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useDebounce } from '@/hooks/useDebounce';
 import { format } from 'date-fns';
-import { Calendar as CalendarIcon, Lock, Globe, Loader2 } from 'lucide-react';
+import { Calendar as CalendarIcon, Lock, Globe, Loader2, Check, X } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { cn } from '@/lib/utils';
@@ -54,12 +53,10 @@ export function JournalPageContent({ profileUserId, isOwner }: JournalPageConten
   const [content, setContent] = useState('');
   const [activityLog, setActivityLog] = useState<ActivityLogEntry[]>([]); // New state for activity log
   const [isLoading, setIsLoading] = useState(false);
-  const [autosaveStatus, setAutosaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [isSaving, setIsSaving] = useState(false);
   const [isProModalOpen, setIsProModalOpen] = useState(false);
   const lastSavedContentRef = useRef('');
   
-  const debouncedContent = useDebounce(content, 1000); // Debounce content for 1 second
-
   // Update date when simulatedDate changes (e.g. time travel)
   useEffect(() => {
     if (simulatedDate) {
@@ -110,27 +107,31 @@ export function JournalPageContent({ profileUserId, isOwner }: JournalPageConten
     loadEntry();
   }, [date, activeTab, profileUserId, isPublic]);
 
-  const saveEntry = useCallback(async (currentContent: string, dateToSave: Date, isPublicToSave: boolean) => {
+  const handleSave = async () => {
     if (!canEdit) return;
-    setAutosaveStatus('saving');
+    setIsSaving(true);
     try {
-      const dateStr = format(dateToSave, 'yyyy-MM-dd');
+      const dateStr = format(date, 'yyyy-MM-dd');
       await upsertJournalEntry({
         user_id: profileUserId,
         entry_date: dateStr,
-        is_public: isPublicToSave,
-        content: currentContent,
+        is_public: isPublic,
+        content: content,
       });
-      lastSavedContentRef.current = currentContent;
-      setAutosaveStatus('saved');
-      // Briefly show "Saved!" then revert to idle
-      setTimeout(() => setAutosaveStatus('idle'), 2000);
+      lastSavedContentRef.current = content;
+      toast.success("Journal saved successfully");
     } catch (error) {
       console.error(error);
-      toast.error('Failed to autosave');
-      setAutosaveStatus('error');
+      toast.error('Failed to save journal');
+    } finally {
+      setIsSaving(false);
     }
-  }, [profileUserId, canEdit]);
+  };
+
+  const handleCancel = () => {
+      setContent(lastSavedContentRef.current);
+      toast.info("Changes discarded");
+  };
 
   const handleUpload = useCallback(async (file: File): Promise<string> => {
       if (!isOwner) throw new Error("Permission denied");
@@ -152,21 +153,15 @@ export function JournalPageContent({ profileUserId, isOwner }: JournalPageConten
       return src;
   }, []);
 
-  useEffect(() => {
-    // Only trigger autosave if content has changed due to user input
-    // and matches the current state (preventing stale overwrites)
-    if (canEdit && debouncedContent !== lastSavedContentRef.current && debouncedContent === content) {
-      saveEntry(debouncedContent, date, isPublic);
-    }
-  }, [debouncedContent, canEdit, saveEntry, content, date, isPublic]);
-
   const handleTabChange = async (newTab: string) => {
       const tab = newTab as 'public' | 'private';
       if (tab === activeTab) return;
 
-      // Force save current content if changed
+      // Warn if unsaved changes? For now, we just switch. 
+      // Ideally we should prompt save, but let's keep it simple as per request to match Bio Editor (which is a modal, so it doesn't have tabs inside usually)
       if (content !== lastSavedContentRef.current) {
-          await saveEntry(content, date, isPublic);
+         const confirmSwitch = window.confirm("You have unsaved changes. Switch tabs anyway?");
+         if (!confirmSwitch) return;
       }
       setActiveTab(tab);
   };
@@ -174,7 +169,8 @@ export function JournalPageContent({ profileUserId, isOwner }: JournalPageConten
   const handleDateSelect = async (newDate: Date | undefined) => {
       if (!newDate) return;
       if (content !== lastSavedContentRef.current) {
-          await saveEntry(content, date, isPublic);
+          const confirmSwitch = window.confirm("You have unsaved changes. Switch date anyway?");
+          if (!confirmSwitch) return;
       }
       setDate(newDate);
   };
@@ -197,6 +193,8 @@ export function JournalPageContent({ profileUserId, isOwner }: JournalPageConten
       { id: 'public', label: 'Public', icon: Globe },
       { id: 'private', label: 'Private', icon: Lock },
   ];
+
+  const isDirty = content !== lastSavedContentRef.current;
 
   return (
     <div className="flex flex-col h-[calc(100vh-10rem)] w-full max-w-5xl mx-auto space-y-4">
@@ -234,24 +232,6 @@ export function JournalPageContent({ profileUserId, isOwner }: JournalPageConten
                             selectedValue={activeTab}
                             onValueChange={handleTabChange}
                         />
-
-                            {/* Autosave Status Feedback */}
-                            {canEdit && (
-                                <div className="flex items-center gap-2 text-sm text-muted-foreground ml-4">
-                                    {autosaveStatus === 'saving' && (
-                                        <>
-                                            <Loader2 className="h-4 w-4 animate-spin" />
-                                            <span>Saving...</span>
-                                        </>
-                                    )}
-                                    {autosaveStatus === 'saved' && (
-                                        <span>Saved!</span>
-                                    )}
-                                    {autosaveStatus === 'error' && (
-                                        <span className="text-destructive">Autosave Error</span>
-                                    )}
-                                </div>
-                            )}
                     </div>
                 )}
             </div>
@@ -305,23 +285,37 @@ export function JournalPageContent({ profileUserId, isOwner }: JournalPageConten
         </div>
 
         {/* User Editable Journal Content */}
-        <div className="flex-1 bg-card rounded-lg border shadow-sm overflow-hidden">
-            {isLoading ? (
-                <div className="flex h-full items-center justify-center text-muted-foreground">
-                    <Loader2 className="h-8 w-8 animate-spin mr-2" />
-                    Loading entry...
+        <div className="flex-1 flex flex-col bg-card rounded-lg border shadow-sm overflow-hidden">
+            <div className="flex-grow overflow-hidden">
+                {isLoading ? (
+                    <div className="flex h-full items-center justify-center text-muted-foreground">
+                        <Loader2 className="h-8 w-8 animate-spin mr-2" />
+                        Loading entry...
+                    </div>
+                ) : (
+                    <MarkdownEditor
+                        value={content}
+                        onChange={setContent}
+                        placeholder={canEdit ? "Write your daily reflections here..." : "No entry for this day."}
+                        readOnly={!canEdit}
+                        className="h-full border-0"
+                        onUpload={handleUpload}
+                        resolveImageUrl={resolveImage}
+                        fullHeight
+                    />
+                )}
+            </div>
+            {canEdit && (
+                <div className="flex justify-end gap-2 p-4 border-t bg-muted/20">
+                    <Button variant="outline" onClick={handleCancel} disabled={!isDirty || isSaving}>
+                        <X className="h-4 w-4 mr-1"/> Revert
+                    </Button>
+                    <Button onClick={handleSave} disabled={!isDirty || isSaving}>
+                        {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-1"/> :
+                            <Check className="h-4 w-4 mr-1"/>}
+                        Save Changes
+                    </Button>
                 </div>
-            ) : (
-                <MarkdownEditor
-                    value={content}
-                    onChange={setContent}
-                    placeholder={canEdit ? "Write your daily reflections here..." : "No entry for this day."}
-                    readOnly={!canEdit}
-                    className="h-full border-0"
-                    onUpload={handleUpload}
-                    resolveImageUrl={resolveImage}
-                    fullHeight
-                />
             )}
         </div>
         
