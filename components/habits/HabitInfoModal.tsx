@@ -82,7 +82,7 @@ const HabitInfoModal: React.FC<HabitInfoModalProps> = ({
         <div className="flex flex-col w-full gap-3 pt-2">
              {/* Move Actions Section */}
              {onHabitMove && (
-                 <div className="flex flex-wrap gap-2 justify-center pb-4 border-b border-border/40 mb-2">
+                 <div className="flex flex-wrap gap-3 justify-center pb-4 border-b border-border/40 mb-2">
                      {habit.habit_state !== HabitState.TODAY ? (
                          <Button variant="outline" size="sm" onClick={() => handleMove(HabitBoxType.TODAY)} className="w-full sm:w-auto">
                              Mark Done <ArrowRight className="ml-1 h-3 w-3" />
@@ -102,7 +102,7 @@ const HabitInfoModal: React.FC<HabitInfoModalProps> = ({
                  </div>
              )}
              
-            <div className="flex flex-col sm:flex-row gap-2 sm:justify-end">
+            <div className="flex flex-col sm:flex-row gap-3 sm:justify-end">
               <Button
                 variant="outline"
                 onClick={() => {

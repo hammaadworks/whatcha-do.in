@@ -114,7 +114,7 @@ export const HabitCompletionsModal: React.FC<HabitCompletionsModalProps> = ({isO
                 <div className="space-y-3 shrink-0">
                     <Label className="text-xs font-semibold uppercase text-muted-foreground tracking-wide">How ya
                         feeling!</Label>
-                    <div className="flex flex-wrap justify-between gap-2">
+                    <div className="flex flex-wrap justify-between gap-3">
                         {[{value: 1, emoji: "😫", label: "Drained"}, {value: 2, emoji: "😕", label: "Meh"}, {
                             value: 3,
                             emoji: "😐",
@@ -235,7 +235,7 @@ export const HabitCompletionsModal: React.FC<HabitCompletionsModalProps> = ({isO
             </div>
 
             <DialogFooter
-                className="px-4 py-3 sm:px-6 sm:py-4 border-t gap-3 sm:gap-2 flex-col-reverse sm:flex-row bg-background/95 backdrop-blur z-10 shrink-0">
+                className="px-4 py-3 sm:px-6 sm:py-4 border-t gap-4 sm:gap-3 flex-col-reverse sm:flex-row bg-background/95 backdrop-blur z-10 shrink-0">
                 <Button variant="outline" onClick={onClose} disabled={isSubmitting} className="h-11 w-full sm:w-auto">
                     Cancel
                 </Button>

@@ -39,7 +39,7 @@ const EditHabitModal: React.FC<EditHabitModalProps> = ({ isOpen, onClose, habit,
   const [goalValue, setGoalValue] = useState<number | undefined | null>(habit.goal_value);
   const [goalUnit, setGoalUnit] = useState<string>(habit.goal_unit && predefinedUnits.includes(habit.goal_unit) ? habit.goal_unit : "Custom...");
   const [customUnit, setCustomUnit] = useState<string>(habit.goal_unit && !predefinedUnits.includes(habit.goal_unit) ? habit.goal_unit : "");
-  const [targetTime, setTargetTime] = useState<string | null>(habit.target_time || null); // targetTime state can be null
+  const [targetTime, setTargetTime] = useState<string | null>(habit.target_time || "23:45"); // targetTime state defaults to 23:45 if null
   const [nameError, setNameError] = useState("");
   const [goalValueError, setGoalValueError] = useState("");
   const [goalUnitError, setGoalUnitError] = useState("");
@@ -52,7 +52,7 @@ const EditHabitModal: React.FC<EditHabitModalProps> = ({ isOpen, onClose, habit,
       setGoalValue(habit.goal_value);
       setGoalUnit(habit.goal_unit && predefinedUnits.includes(habit.goal_unit) ? habit.goal_unit : "Custom...");
       setCustomUnit(habit.goal_unit && !predefinedUnits.includes(habit.goal_unit) ? habit.goal_unit : "");
-      setTargetTime(habit.target_time || "");
+      setTargetTime(habit.target_time || "23:45");
       setNameError("");
       setGoalValueError("");
       setGoalUnitError("");
