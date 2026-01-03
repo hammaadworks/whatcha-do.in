@@ -124,23 +124,19 @@ export const HabitCompletionsModal: React.FC<HabitCompletionsModalProps> = ({isO
                         feeling!</Label>
                     <div className="flex flex-wrap justify-between gap-3">
                         {[{value: 1, emoji: "😫", label: "Drained"}, {value: 2, emoji: "😕", label: "Meh"}, {
-                            value: 3,
-                            emoji: "😐",
-                            label: "Okay"
+                            value: 3, emoji: "😐", label: "Okay"
                         }, {value: 4, emoji: "🙂", label: "Good"}, {
-                            value: 5,
-                            emoji: "🤩",
-                            label: "Pumped!"
+                            value: 5, emoji: "🤩", label: "Pumped!"
                         }].map((item) => (<button
-                                key={item.value}
-                                onClick={() => setMood(item.value)}
-                                className={cn("flex flex-col items-center justify-center p-2 rounded-xl transition-all min-w-[56px] flex-1", mood === item.value ? "bg-primary/10 ring-2 ring-primary scale-105 shadow-sm" : "hover:bg-muted/60 opacity-60 hover:opacity-100")}
-                                type="button"
-                            >
-                                <span className="text-2xl sm:text-3xl mb-1 filter drop-shadow-sm">{item.emoji}</span>
-                                <span
-                                    className="text-[10px] font-medium text-center leading-tight whitespace-nowrap">{item.label}</span>
-                            </button>))}
+                            key={item.value}
+                            onClick={() => setMood(item.value)}
+                            className={cn("flex flex-col items-center justify-center p-2 rounded-xl transition-all min-w-[56px] flex-1", mood === item.value ? "bg-primary/10 ring-2 ring-primary scale-105 shadow-sm" : "hover:bg-muted/60 opacity-60 hover:opacity-100")}
+                            type="button"
+                        >
+                            <span className="text-2xl sm:text-3xl mb-1 filter drop-shadow-sm">{item.emoji}</span>
+                            <span
+                                className="text-[10px] font-medium text-center leading-tight whitespace-nowrap">{item.label}</span>
+                        </button>))}
                     </div>
                 </div>
 
@@ -156,10 +152,32 @@ export const HabitCompletionsModal: React.FC<HabitCompletionsModalProps> = ({isO
                         <Input
                             type="number"
                             placeholder={`${habit.goal_value}`}
+                            min="1"                     // 1. Prevents browser arrows from dipping below 1
+                            inputMode="numeric"        // 2. Mobile UX: Forces number-only keypad
+                            onKeyDown={(e) => {
+                                // 3. Blocks keys for "-", "+", and scientific notation "e"
+                                if (["-", "+", "e", "E"].includes(e.key)) {
+                                    e.preventDefault();
+                                }
+                            }}
+                            onPaste={(e) => {
+                                // 4. Sanitizes pasted content to block negative values
+                                const pasteData = e.clipboardData.getData("text");
+                                if (Number(pasteData) < 0) {
+                                    e.preventDefault();
+                                }
+                            }}
                             value={workValue}
-                            onChange={(e) => setWorkValue(e.target.value)}
+                            onChange={(e) => {
+                                const val = Number.parseFloat(e.target.value);
+                                // 5. Only updates state if it's a positive number or cleared empty
+                                if (val > 0 || e.target.value === "") {
+                                    setWorkValue(e.target.value);
+                                }
+                            }}
                             className="h-11 text-lg"
                         />
+
                         <span className="text-sm font-medium text-muted-foreground whitespace-nowrap min-w-[3ch]">
                 {habit.goal_unit}
             </span>
@@ -167,8 +185,7 @@ export const HabitCompletionsModal: React.FC<HabitCompletionsModalProps> = ({isO
                 </div>)}
 
                 {/* Duration */}
-                {!isGoalUnitTimeBased && (
-                    <div className="space-y-2 shrink-0">
+                {!isGoalUnitTimeBased && (<div className="space-y-2 shrink-0">
                         <Label
                             className="flex items-center gap-2 text-xs font-semibold uppercase text-muted-foreground tracking-wide">
                             <Clock size={14}/> Duration
@@ -177,10 +194,32 @@ export const HabitCompletionsModal: React.FC<HabitCompletionsModalProps> = ({isO
                             <Input
                                 type="number"
                                 placeholder="0"
+                                min="1"                     // 1. Prevents browser arrows from dipping below 1
+                                inputMode="numeric"        // 2. Mobile UX: Forces the pure number keypad
+                                onKeyDown={(e) => {
+                                    // 3. Prevent typing symbols like "-", "+", and "e"
+                                    if (["-", "+", "e", "E"].includes(e.key)) {
+                                        e.preventDefault();
+                                    }
+                                }}
+                                onPaste={(e) => {
+                                    // 4. Sanitizes pasted content to block negative values
+                                    const pasteData = e.clipboardData.getData("text");
+                                    if (Number(pasteData) < 0) {
+                                        e.preventDefault();
+                                    }
+                                }}
                                 value={timeTaken}
-                                onChange={(e) => setTimeTaken(e.target.value)}
+                                onChange={(e) => {
+                                    const val = Number.parseFloat(e.target.value);
+                                    // 5. Final state check: only allow positive values or empty input
+                                    if (val > 0 || e.target.value === "") {
+                                        setTimeTaken(e.target.value);
+                                    }
+                                }}
                                 className="flex-1 h-11 text-lg"
                             />
+
                             <Select value={timeTakenUnit} onValueChange={setTimeTakenUnit}>
                                 <SelectTrigger className="w-[110px] h-11">
                                     <SelectValue/>
@@ -191,8 +230,7 @@ export const HabitCompletionsModal: React.FC<HabitCompletionsModalProps> = ({isO
                                 </SelectContent>
                             </Select>
                         </div>
-                    </div>
-                )}
+                    </div>)}
 
                 {/* Dedicate Date (Super Streak) - Only visible if already completed today */}
                 {isTodayCompleted && (
