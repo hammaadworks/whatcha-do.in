@@ -2,7 +2,7 @@
 
 import { ReactNode } from "react";
 import Logins from "./Logins";
-import { useAuth } from "@/hooks/useAuth"; // Import the useAuth hook from our new location
+import { useAuth } from "@/packages/auth/hooks/useAuth"; // Import the useAuth hook from our new location
 
 interface AuthProps {
   children?: ReactNode;

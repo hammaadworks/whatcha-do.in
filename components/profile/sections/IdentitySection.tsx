@@ -15,7 +15,7 @@ import {
     updateIdentity
 } from '@/lib/supabase/identities';
 import {Habit, Identity} from '@/lib/supabase/types';
-import {useAuth} from '@/hooks/useAuth';
+import {useAuth} from '@/packages/auth/hooks/useAuth';
 import {toast} from 'sonner';
 
 interface IdentitySectionProps {

@@ -3,7 +3,7 @@
 
 import {notFound} from 'next/navigation';
 import {ActionNode, Habit, Identity, JournalEntry, PublicUserDisplay} from '@/lib/supabase/types'; // Import JournalEntry, Identity
-import {useAuth} from "@/hooks/useAuth";
+import {useAuth} from "@/packages/auth/hooks/useAuth";
 import React from 'react';
 
 import {PublicPage} from '@/components/profile/PublicPage';

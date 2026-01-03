@@ -18,7 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Palette } from "lucide-react";
 import Link from "next/link";
-import { useAuth } from "@/hooks/useAuth"; // To check if viewer is logged in and owner
+import { useAuth } from "@/packages/auth/hooks/useAuth"; // To check if viewer is logged in and owner
 import { useSimulatedTime } from "@/components/layout/SimulatedTimeProvider";
 
 type PublicProfileViewProps = {

@@ -2,19 +2,18 @@
 
 import React, { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { AlertCircle, CheckCircle2, ExternalLink, Loader2, Mail, MailOpen, QrCode, Lock, KeyRound, LogOut } from "lucide-react";
+import { createClient } from "@/packages/auth/lib/supabase/client";
+import { AlertCircle, CheckCircle2, Mail, MailOpen, QrCode, LogOut } from "lucide-react";
 import { DEFAULT_POST_LOGIN_REDIRECT } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { MagicCard } from "@/components/ui/magic-card";
 import { PrimaryCtaButton } from "@/components/ui/primary-cta-button";
 import { BlurFade } from "@/components/ui/blur-fade";
-import { DeviceScanner } from "@/components/auth/DeviceScanner";
-import { DeviceConnect } from "@/components/auth/DeviceConnect";
+import { DeviceScanner } from "@/packages/auth/components/DeviceScanner";
+import { DeviceConnect } from "@/packages/auth/components/DeviceConnect";
+import { LoginForm } from "@/packages/auth/components/LoginForm";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/packages/auth/hooks/useAuth";
 
 const isValidEmail = (email: string) => {
   return /\S+@\S+\.\S+/.test(email);
@@ -62,13 +61,12 @@ const openMailClient = (client: "gmail" | "outlook" | "yahoo" | "generic", userE
 };
 
 export default function Logins() {
-  const { user } = useAuth(); // Access global auth state
+  const { user } = useAuth();
   const supabase = createClient();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [successEmail, setSuccessEmail] = useState("");
   const [clientTimezone, setClientTimezone] = useState<string | null>(null);
   const [loginMethod, setLoginMethod] = useState<"email" | "password" | "qr">("email");
 
@@ -88,7 +86,6 @@ export default function Logins() {
     }
   }, [searchParams]);
 
-  // If user is already logged in, show the Connect Device (QR) screen only
   if (user) {
     return (
       <div className="flex w-full flex-col items-center p-2 pb-0">
@@ -109,8 +106,6 @@ export default function Logins() {
                   Scan this code to log in on another device.
                 </p>
               </div>
-              {/* Pass a prop or style to DeviceConnect if needed to blend in. 
-                  Currently rendering it directly. */}
               <DeviceConnect />
               
               <div className="mt-6 flex justify-center">
@@ -120,7 +115,6 @@ export default function Logins() {
                   className="text-muted-foreground hover:text-foreground"
                   onClick={async () => {
                     await supabase.auth.signOut();
-                    // State update via useAuth will trigger re-render to unauthenticated view
                   }}
                 >
                   <LogOut className="mr-2 h-4 w-4" />
@@ -134,67 +128,51 @@ export default function Logins() {
     );
   }
 
-  // --- Unauthenticated View ---
-
-  const handleMagicLinkLogin = async (event: React.FormEvent) => {
-    event.preventDefault();
+  const handleLoginSubmit = async (e: React.FormEvent, type: 'magic' | 'password', data: any) => {
     setLoading(true);
     setError(null);
     setIsSuccess(false);
-
-    if (!isValidEmail(email)) {
-      setError("Please enter a valid email address.");
-      setLoading(false);
-      return;
-    }
-
-    const emailRedirectTo = `${window.location.origin}/auth/callback?timezone=${encodeURIComponent(clientTimezone || "UTC")}&next=${encodeURIComponent(DEFAULT_POST_LOGIN_REDIRECT)}`;
     
-    const { error } = await supabase.auth.signInWithOtp({
-      email, options: { emailRedirectTo }
-    });
+    if (!isValidEmail(data.email)) {
+        setError("Please enter a valid email address.");
+        setLoading(false);
+        return;
+    }
 
-    if (error) {
-      if (error.message.includes("For security purposes")) {
-        setError("Please wait a moment before trying again.");
-      } else {
-        setError(error.message);
-      }
+    if (type === 'magic') {
+        const emailRedirectTo = `${window.location.origin}/auth/callback?timezone=${encodeURIComponent(clientTimezone || "UTC")}&next=${encodeURIComponent(DEFAULT_POST_LOGIN_REDIRECT)}`;
+        
+        const { error } = await supabase.auth.signInWithOtp({
+            email: data.email, options: { emailRedirectTo }
+        });
+
+        if (error) {
+            if (error.message.includes("For security purposes")) {
+                setError("Please wait a moment before trying again.");
+            } else {
+                setError(error.message);
+            }
+        } else {
+            setSuccessEmail(data.email);
+            setIsSuccess(true);
+        }
     } else {
-      setIsSuccess(true);
-    }
-    setLoading(false);
-  };
+        if (!data.password) {
+            setError("Please enter your password.");
+            setLoading(false);
+            return;
+        }
 
-  const handlePasswordLogin = async (event: React.FormEvent) => {
-    event.preventDefault();
-    setLoading(true);
-    setError(null);
+        const { error } = await supabase.auth.signInWithPassword({
+            email: data.email,
+            password: data.password,
+        });
 
-    if (!isValidEmail(email)) {
-      setError("Please enter a valid email address.");
-      setLoading(false);
-      return;
-    }
-    if (!password) {
-      setError("Please enter your password.");
-      setLoading(false);
-      return;
-    }
-
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (error) {
-      setError(error.message);
-    } else {
-      // Successful login will trigger useAuth state change automatically
-      // We can also redirect manually if needed, but the AuthWrapper usually handles it.
-      // For now, we'll let the state update handle the UI switch.
-      // Or we can refresh the page to be safe.
-      window.location.href = DEFAULT_POST_LOGIN_REDIRECT;
+        if (error) {
+            setError(error.message);
+        } else {
+            window.location.href = DEFAULT_POST_LOGIN_REDIRECT;
+        }
     }
     setLoading(false);
   };
@@ -220,7 +198,7 @@ export default function Logins() {
                 {isSuccess ? (
                   <>
                     We&apos;ve sent a secure magic link to{" "}
-                    <span className="font-medium text-foreground">{email}</span>
+                    <span className="font-medium text-foreground">{successEmail}</span>
                   </>
                 ) : ("Your journey to disciplined consistency starts here!")}
               </p>
@@ -236,72 +214,11 @@ export default function Logins() {
                   </TabsList>
                   
                   <TabsContent value="email">
-                    <form onSubmit={handleMagicLinkLogin} className="space-y-4 mt-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="email-magic" className="sr-only">Email</Label>
-                        <div className="relative">
-                          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                          <Input
-                            type="email"
-                            id="email-magic"
-                            placeholder="name@example.com"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            required
-                            className="pl-10 h-11"
-                            disabled={loading}
-                          />
-                        </div>
-                      </div>
-                      <PrimaryCtaButton type="submit" disabled={loading} className="w-full h-12">
-                        {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Send Magic Link"}
-                      </PrimaryCtaButton>
-                    </form>
+                    <LoginForm onSubmit={handleLoginSubmit} loading={loading} loginMethod="email" setLoginMethod={setLoginMethod} />
                   </TabsContent>
 
                   <TabsContent value="password">
-                    <form onSubmit={handlePasswordLogin} className="space-y-4 mt-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="email-pass" className="sr-only">Email</Label>
-                        <div className="relative">
-                          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                          <Input
-                            type="email"
-                            id="email-pass"
-                            placeholder="name@example.com"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            required
-                            className="pl-10 h-11"
-                            disabled={loading}
-                          />
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="password" className="sr-only">Password</Label>
-                        <div className="relative">
-                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                          <Input
-                            type="password"
-                            id="password"
-                            placeholder="••••••••"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            required
-                            className="pl-10 h-11"
-                            disabled={loading}
-                          />
-                        </div>
-                      </div>
-                      <PrimaryCtaButton type="submit" disabled={loading} className="w-full h-12">
-                         {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Log In"}
-                      </PrimaryCtaButton>
-                      <div className="text-center">
-                         <Button variant="link" size="sm" onClick={() => setLoginMethod('email')}>
-                            Forgot Password? Use Magic Link
-                         </Button>
-                      </div>
-                    </form>
+                    <LoginForm onSubmit={handleLoginSubmit} loading={loading} loginMethod="password" setLoginMethod={setLoginMethod} />
                   </TabsContent>
 
                   <TabsContent value="qr" className="mt-4">
@@ -313,7 +230,7 @@ export default function Logins() {
 
             {isSuccess && (
               <div className="flex flex-col items-center space-y-4 animate-in fade-in zoom-in duration-500">
-                <PrimaryCtaButton onClick={() => openMailClient("gmail", email)} className="w-full h-12">
+                <PrimaryCtaButton onClick={() => openMailClient("gmail", successEmail)} className="w-full h-12">
                   <MailOpen className="h-5 w-5 mr-2" /> Open Gmail
                 </PrimaryCtaButton>
                 <Button onClick={() => setIsSuccess(false)} variant="link" className="mt-6 w-full h-10 text-sm">

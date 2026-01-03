@@ -1,7 +1,7 @@
 'use client'
 
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { DeviceConnect } from '@/components/auth/DeviceConnect'
+import { DeviceConnect } from '@/packages/auth/components/DeviceConnect'
 
 interface DeviceConnectionModalProps {
   open: boolean

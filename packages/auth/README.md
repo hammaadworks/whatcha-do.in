@@ -8,6 +8,7 @@ A modular, drop-in authentication system for Next.js applications using Supabase
 - **Cross-Device Login:** QR code login for instant mobile access.
 - **Account Security:** Password updates and account deletion.
 - **Ready-to-use UI:** Polished components built with Tailwind & Lucide React.
+- **Optimized:** Includes efficient Supabase clients for both Client and Server environments.
 
 ## Installation
 
@@ -64,7 +65,21 @@ A modular, drop-in authentication system for Next.js applications using Supabase
    }
    ```
 
+## Included Supabase Clients
+
+This package includes efficient Supabase client factories in `packages/auth/lib/supabase/`. You can import and use them in your own application code to avoid duplication:
+
+```tsx
+// Client Components
+import { createClient } from "@/packages/auth/lib/supabase/client";
+
+// Server Components / Actions
+import { createServerSideClient } from "@/packages/auth/lib/supabase/server";
+
+// Admin / Service Role
+import { createAdminClient } from "@/packages/auth/lib/supabase/admin";
+```
+
 ## Customization
 
-- **Supabase Client:** The package currently expects standard `createClient` functions. Update imports in `packages/auth/lib` if your setup differs.
 - **UI Components:** The UI relies on `components/ui` (shadcn/ui). If you use a different library, update the imports in `packages/auth/components`.

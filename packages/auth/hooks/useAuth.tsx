@@ -1,10 +1,10 @@
 "use client";
 
 import { useContext } from "react";
-import { AuthContext, AuthContextType } from "@/components/auth/AuthProvider";
+import { AuthContext, AuthContextType } from "@/packages/auth/components/AuthProvider";
 
 // Re-export specific types for convenience in consuming components
-export type { User, AuthContextType } from "@/components/auth/AuthProvider";
+export type { User, AuthContextType } from "@/packages/auth/components/AuthProvider";
 
 /**
  * Custom hook to access the authentication context.

@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { updateActiveTheme } from "@/lib/supabase/user.client";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/packages/auth/hooks/useAuth";
 import { BrandTheme, THEMES } from "@/lib/themes";
 
 export type { BrandTheme };

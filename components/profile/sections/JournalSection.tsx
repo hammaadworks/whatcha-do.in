@@ -28,7 +28,7 @@ import {format} from 'date-fns';
 import {upsertJournalEntry} from '@/lib/supabase/journal';
 import {toast} from 'sonner';
 import {cn} from '@/lib/utils';
-import {useAuth} from '@/hooks/useAuth';
+import {useAuth} from '@/packages/auth/hooks/useAuth';
 import {ShineBorder} from "@/components/ui/shine-border";
 import {useDebounce} from '@/hooks/useDebounce';
 import {CollapsibleSectionWrapper} from '@/components/ui/collapsible-section-wrapper';

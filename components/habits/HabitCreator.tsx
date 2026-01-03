@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { createHabit } from "@/lib/supabase/habit"; // Import createHabit
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/packages/auth/hooks/useAuth";
 import { Switch } from "@/components/ui/switch"; // Import Switch
 import { Label } from "@/components/ui/label"; // Import Label
 import { Habit } from "@/lib/supabase/types";

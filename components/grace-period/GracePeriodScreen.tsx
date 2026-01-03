@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Check, Plus, X } from "lucide-react";
 import { HabitCompletionsModal } from "@/components/habits/HabitCompletionsModal";
 import { markHabit } from "@/lib/supabase/habit";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/packages/auth/hooks/useAuth";
 import { useSimulatedTime } from "@/components/layout/SimulatedTimeProvider";
 import { getReferenceDateUI, getTodayISO } from "@/lib/date";
 import { toast } from "sonner";

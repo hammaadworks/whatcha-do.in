@@ -2,7 +2,7 @@
 
 import React, { createContext, useEffect, useState } from "react";
 import { User as SupabaseUser } from "@supabase/supabase-js";
-import { createClient } from "@/lib/supabase/client";
+import { createClient } from "@/packages/auth/lib/supabase/client";
 import { LOCAL_STORAGE_USER_PROFILE_CACHE_KEY } from "@/lib/constants";
 import { User } from "@/lib/supabase/types";
 import { THEMES } from "@/lib/themes.ts";

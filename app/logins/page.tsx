@@ -1,4 +1,4 @@
-import Logins from "@/components/auth/Logins";
+import Logins from "@/packages/auth/components/Logins";
 import { Suspense } from "react";
 
 /**

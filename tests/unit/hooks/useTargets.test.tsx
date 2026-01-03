@@ -10,7 +10,7 @@ jest.mock('@/lib/supabase/targets', () => ({
   updateTargets: jest.fn(),
 }));
 
-jest.mock('@/hooks/useAuth', () => ({
+jest.mock('@/packages/auth/hooks/useAuth', () => ({
   useAuth: () => ({ user: { id: 'test-user' }, loading: false }),
 }));
 

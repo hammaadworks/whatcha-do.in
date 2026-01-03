@@ -2,7 +2,7 @@ import React from "react";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { AuthProvider } from "@/components/auth/AuthProvider";
+import { AuthProvider } from "@/packages/auth/components/AuthProvider";
 import { Pointer } from "@/components/ui/pointer";
 import { AUTHOR_NAME, AUTHOR_TWITTER_HANDLE, DOMAIN_URL, WEBSITE_URL } from "@/lib/constants";
 import { ThemeProvider } from "next-themes";

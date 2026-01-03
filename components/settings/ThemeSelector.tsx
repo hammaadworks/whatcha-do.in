@@ -21,7 +21,7 @@ import { cn } from "@/lib/utils";
 import { MagicCard } from "@/components/ui/magic-card";
 import { useTheme } from "next-themes";
 import { ThemeOption, THEMES } from "@/lib/themes";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/packages/auth/hooks/useAuth";
 import { toast } from "sonner";
 import { purchaseTheme, verifySocialUnlock } from "@/lib/actions/theme";
 import { fetchUserPurchasedThemes } from "@/lib/supabase/user.client";

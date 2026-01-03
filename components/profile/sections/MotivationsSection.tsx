@@ -7,7 +7,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Shuffle, Pencil, RotateCcw } from 'lucide-react'; // Added RotateCcw for Reset
 import { Button } from '@/components/ui/button';
 import CustomQuotesModal from '@/components/profile/CustomQuotesModal';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/packages/auth/hooks/useAuth';
 import { QuoteItem } from '@/lib/supabase/types';
 import {
     fetchUserMotivations,

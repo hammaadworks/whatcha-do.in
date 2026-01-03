@@ -5,7 +5,7 @@ import BioSection from "@/components/profile/sections/BioSection";
 import IdentitySection from "@/components/profile/sections/IdentitySection";
 import TargetsSection from "@/components/profile/sections/TargetsSection";
 import { Habit, PublicUserDisplay } from "@/lib/supabase/types";
-import { User } from "@/hooks/useAuth";
+import { User } from "@/packages/auth/hooks/useAuth";
 import { CollapsibleSectionWrapper } from "@/components/ui/collapsible-section-wrapper";
 import { MagicCard } from "@/components/ui/magic-card"; // Import MagicCard
 import { useTheme } from "next-themes"; // Import useTheme

@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useCallback } from "react";
 import { useMediaQuery } from "@/hooks/useMediaQuery"; // Import useMediaQuery
 import { MovingBorder } from "@/components/ui/moving-border";
 import { UserClock } from "./UserClock";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/packages/auth/hooks/useAuth";
 import { useUiStore } from "@/lib/store/uiStore"; // Import the Zustand store
 import { toast } from "sonner"; // Import toast for user feedback
 import { SectionViewLayout } from "./SectionViewLayout";

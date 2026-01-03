@@ -8,7 +8,7 @@ import { GripVertical, Lock, Flame, Ghost, Zap, Sparkles, History } from "lucide
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { HabitBoxType, HabitState } from "@/lib/enums";
 import { cn } from "@/lib/utils";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/packages/auth/hooks/useAuth";
 import { useSimulatedTime } from "@/components/layout/SimulatedTimeProvider";
 import { getReferenceDateUI, getTodayISO } from "@/lib/date";
 import { SyntheticListenerMap } from "@dnd-kit/core/dist/hooks/utilities";

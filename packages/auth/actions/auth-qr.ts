@@ -1,7 +1,7 @@
 'use server'
 
-import { createServerSideClient } from '@/lib/supabase/server'
-import { createAdminClient } from '@/lib/supabase/admin'
+import { createServerSideClient } from '@/packages/auth/lib/supabase/server'
+import { createAdminClient } from '@/packages/auth/lib/supabase/admin'
 import { headers } from 'next/headers'
 
 /**

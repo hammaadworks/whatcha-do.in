@@ -3,13 +3,13 @@ import Link from 'next/link';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from '@/components/ui/button';
 import { User, Smartphone } from 'lucide-react';
-import LogoutButton from '@/components/auth/LogoutButton';
+import LogoutButton from '@/packages/auth/components/LogoutButton';
 import InsightsTrigger from '@/components/shared/InsightsTrigger';
-import { User as AuthUser } from '@/hooks/useAuth';
+import { User as AuthUser } from '@/packages/auth/hooks/useAuth';
 import { cn } from "@/lib/utils"; // Import cn utility
 import { useKeyboardShortcuts } from '@/components/shared/KeyboardShortcutsProvider'; // Import the new hook
 import KeyboardShortcut from '@/components/shared/KeyboardShortcut'; // Import the new shared KeyboardShortcut component
-import { DeviceConnectionModal } from '@/components/auth/DeviceConnectionModal';
+import { DeviceConnectionModal } from '@/packages/auth/components/DeviceConnectionModal';
 
 interface UserMenuPopoverProps {
   user: AuthUser | null;
