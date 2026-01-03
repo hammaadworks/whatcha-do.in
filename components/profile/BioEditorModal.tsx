@@ -6,6 +6,8 @@ import {Button} from '@/components/ui/button';
 import {CustomMarkdownEditor} from '@/components/shared/CustomMarkdownEditor';
 import {Check, Loader2, X} from 'lucide-react';
 import { uploadJournalMedia, getSignedUrlForPath } from '@/lib/supabase/storage';
+import { useAuth } from '@/packages/auth/hooks/useAuth';
+import { ProUpgradeModal } from '@/components/shared/ProUpgradeModal';
 
 interface BioEditorModalProps {
     isOpen: boolean;
@@ -18,6 +20,8 @@ interface BioEditorModalProps {
 export const BioEditorModal: React.FC<BioEditorModalProps> = ({isOpen, onClose, onSave, initialBio, userId}) => {
     const [bio, setBio] = useState(initialBio || '');
     const [isSaving, setIsSaving] = useState(false);
+    const [isProModalOpen, setIsProModalOpen] = useState(false);
+    const { user } = useAuth();
 
     useEffect(() => {
         if (isOpen) {
@@ -38,11 +42,16 @@ export const BioEditorModal: React.FC<BioEditorModalProps> = ({isOpen, onClose, 
     };
 
     const handleUpload = useCallback(async (file: File): Promise<string> => {
+        if (!user?.is_pro) {
+            setIsProModalOpen(true);
+            throw new Error("Pro membership required");
+        }
+
         // Upload to public journal bucket (reusing existing storage logic)
         // Bio images should be public so everyone can see them
         const { path } = await uploadJournalMedia(file, userId, true);
         return `![Image](${path})`;
-    }, [userId]);
+    }, [userId, user?.is_pro]);
 
     const resolveImage = useCallback(async (src: string): Promise<string | null> => {
         if (src.startsWith('storage://')) {
@@ -79,5 +88,6 @@ export const BioEditorModal: React.FC<BioEditorModalProps> = ({isOpen, onClose, 
                     </Button>
                 </DialogFooter>
             </DialogContent>
+            <ProUpgradeModal open={isProModalOpen} onOpenChange={setIsProModalOpen} />
         </Dialog>);
 };

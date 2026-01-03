@@ -17,6 +17,8 @@ import { JournalEntry, ActivityLogEntry } from '@/lib/supabase/types';
 import { useSimulatedTime } from '@/components/layout/SimulatedTimeProvider';
 import { ToggleButtonGroup } from '@/components/shared/ToggleButtonGroup';
 import { uploadJournalMedia, getSignedUrlForPath } from '@/lib/supabase/storage';
+import { useAuth } from '@/packages/auth/hooks/useAuth';
+import { ProUpgradeModal } from '@/components/shared/ProUpgradeModal';
 
 
 interface JournalPageContentProps {
@@ -45,6 +47,7 @@ const formatActivityLogEntry = (entry: ActivityLogEntry): string => {
 
 export function JournalPageContent({ profileUserId, isOwner }: JournalPageContentProps) {
   const { simulatedDate } = useSimulatedTime();
+  const { user } = useAuth();
   
   const [date, setDate] = useState<Date>(simulatedDate || new Date());
   const [activeTab, setActiveTab] = useState<'public' | 'private'>('public'); // Default to public
@@ -52,6 +55,7 @@ export function JournalPageContent({ profileUserId, isOwner }: JournalPageConten
   const [activityLog, setActivityLog] = useState<ActivityLogEntry[]>([]); // New state for activity log
   const [isLoading, setIsLoading] = useState(false);
   const [autosaveStatus, setAutosaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [isProModalOpen, setIsProModalOpen] = useState(false);
   const lastSavedContentRef = useRef('');
   
   const debouncedContent = useDebounce(content, 1000); // Debounce content for 1 second
@@ -130,10 +134,16 @@ export function JournalPageContent({ profileUserId, isOwner }: JournalPageConten
 
   const handleUpload = useCallback(async (file: File): Promise<string> => {
       if (!isOwner) throw new Error("Permission denied");
+      
+      if (!user?.is_pro) {
+        setIsProModalOpen(true);
+        throw new Error("Pro membership required");
+      }
+
       const isPublic = activeTab === 'public';
       const { path } = await uploadJournalMedia(file, profileUserId, isPublic);
       return `![Image](${path})`;
-  }, [isOwner, activeTab, profileUserId]);
+  }, [isOwner, activeTab, profileUserId, user?.is_pro]);
 
   const resolveImage = useCallback(async (src: string): Promise<string | null> => {
       if (src.startsWith('storage://')) {
@@ -314,6 +324,8 @@ export function JournalPageContent({ profileUserId, isOwner }: JournalPageConten
                 />
             )}
         </div>
+        
+        <ProUpgradeModal open={isProModalOpen} onOpenChange={setIsProModalOpen} />
     </div>
   );
 }
