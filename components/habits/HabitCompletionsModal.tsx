@@ -43,6 +43,7 @@ export const HabitCompletionsModal: React.FC<HabitCompletionsModalProps> = ({isO
     const [isPopoverOpen, setIsPopoverOpen] = useState(false);
 
     const isTodayCompleted = habit.habit_state === HabitState.TODAY;
+    const isGoalUnitTimeBased = habit.goal_unit === "minutes" || habit.goal_unit === "hours";
 
     // Reset form on open
     useEffect(() => {
@@ -63,8 +64,15 @@ export const HabitCompletionsModal: React.FC<HabitCompletionsModalProps> = ({isO
             mood: mood, notes: notes.trim() || undefined, attributed_date: dedicatedDate || undefined
         };
 
-        if (workValue) data.work_value = Number.parseFloat(workValue);
-        if (timeTaken) {
+        if (workValue) {
+            data.work_value = Number.parseFloat(workValue);
+            if (isGoalUnitTimeBased) {
+                data.time_taken = Number.parseFloat(workValue);
+                data.time_taken_unit = habit.goal_unit as "minutes" | "hours";
+            }
+        }
+
+        if (!isGoalUnitTimeBased && timeTaken) {
             data.time_taken = Number.parseFloat(timeTaken);
             data.time_taken_unit = timeTakenUnit;
         }
@@ -159,30 +167,32 @@ export const HabitCompletionsModal: React.FC<HabitCompletionsModalProps> = ({isO
                 </div>)}
 
                 {/* Duration */}
-                <div className="space-y-2 shrink-0">
-                    <Label
-                        className="flex items-center gap-2 text-xs font-semibold uppercase text-muted-foreground tracking-wide">
-                        <Clock size={14}/> Duration
-                    </Label>
-                    <div className="flex gap-2">
-                        <Input
-                            type="number"
-                            placeholder="0"
-                            value={timeTaken}
-                            onChange={(e) => setTimeTaken(e.target.value)}
-                            className="flex-1 h-11 text-lg"
-                        />
-                        <Select value={timeTakenUnit} onValueChange={setTimeTakenUnit}>
-                            <SelectTrigger className="w-[110px] h-11">
-                                <SelectValue/>
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="minutes">mins</SelectItem>
-                                <SelectItem value="hours">hours</SelectItem>
-                            </SelectContent>
-                        </Select>
+                {!isGoalUnitTimeBased && (
+                    <div className="space-y-2 shrink-0">
+                        <Label
+                            className="flex items-center gap-2 text-xs font-semibold uppercase text-muted-foreground tracking-wide">
+                            <Clock size={14}/> Duration
+                        </Label>
+                        <div className="flex gap-2">
+                            <Input
+                                type="number"
+                                placeholder="0"
+                                value={timeTaken}
+                                onChange={(e) => setTimeTaken(e.target.value)}
+                                className="flex-1 h-11 text-lg"
+                            />
+                            <Select value={timeTakenUnit} onValueChange={setTimeTakenUnit}>
+                                <SelectTrigger className="w-[110px] h-11">
+                                    <SelectValue/>
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="minutes">mins</SelectItem>
+                                    <SelectItem value="hours">hours</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
                     </div>
-                </div>
+                )}
 
                 {/* Dedicate Date (Super Streak) - Only visible if already completed today */}
                 {isTodayCompleted && (
