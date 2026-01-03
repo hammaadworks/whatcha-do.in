@@ -33,6 +33,8 @@ import {ShineBorder} from "@/components/ui/shine-border";
 import {useDebounce} from '@/hooks/useDebounce';
 import {CollapsibleSectionWrapper} from '@/components/ui/collapsible-section-wrapper';
 import { useSimulatedTime } from '@/components/layout/SimulatedTimeProvider';
+import { ToggleButtonGroup } from '@/components/shared/ToggleButtonGroup';
+import { uploadJournalMedia, getSignedUrlForPath } from '@/lib/supabase/storage';
 
 interface JournalSectionProps {
     isOwner: boolean;
@@ -142,6 +144,9 @@ const JournalSection: React.FC<JournalSectionProps> = ({isOwner, isReadOnly = fa
     const mainDatePickerButtonRef = useRef<HTMLButtonElement>(null);
     const [isMainDatePickerOpen, setIsMainDatePickerOpen] = useState(false);
 
+    // Track if content is user-edited or loaded
+    const isUserTyping = useRef(false);
+
     // Update selectedDate when simulatedDate changes
     useEffect(() => {
         if (simulatedDate) {
@@ -171,27 +176,21 @@ const JournalSection: React.FC<JournalSectionProps> = ({isOwner, isReadOnly = fa
         setActivityLog(entry?.activity_log || []);
         lastSavedContentRef.current = newContent;
         setAutosaveStatus('saved'); // When a new entry is loaded, it is "saved"
+        isUserTyping.current = false;
     }, [selectedDate, activeTab, journalEntries, getCurrentEntry]);
 
-    const saveEntry = useCallback(async (currentContent: string) => {
+    const saveEntry = useCallback(async (currentContent: string, dateToSave: Date, isPublicToSave: boolean) => {
         if (!user || isReadOnly) return;
 
         const trimmedContent = currentContent.trim();
-        if (!trimmedContent) {
-            // If trimmed content is empty, we don't save to DB.
-            // But we should consider it "saved" state-wise to avoid processing loops if the user just cleared the text.
-            lastSavedContentRef.current = currentContent; 
-            setAutosaveStatus('saved');
-            return;
-        }
-
+        // If empty and not in DB, skip? No, user might delete content.
+        
         setAutosaveStatus('saving');
         try {
-            const dateStr = format(selectedDate, 'yyyy-MM-dd');
-            const isPublic = activeTab === 'public';
+            const dateStr = format(dateToSave, 'yyyy-MM-dd');
 
             await upsertJournalEntry({
-                user_id: user.id, entry_date: dateStr, is_public: isPublic, content: trimmedContent
+                user_id: user.id, entry_date: dateStr, is_public: isPublicToSave, content: trimmedContent
             });
 
             lastSavedContentRef.current = currentContent;
@@ -206,7 +205,21 @@ const JournalSection: React.FC<JournalSectionProps> = ({isOwner, isReadOnly = fa
             setAutosaveStatus('error');
             toast.error('Failed to autosave journal');
         }
-    }, [user, isReadOnly, selectedDate, activeTab, onEntrySaved]);
+    }, [user, isReadOnly, onEntrySaved]);
+
+    const handleUpload = useCallback(async (file: File): Promise<string> => {
+        if (!user) throw new Error("You must be logged in to upload media.");
+        const isPublic = activeTab === 'public';
+        const { path } = await uploadJournalMedia(file, user.id, isPublic);
+        return `![Image](${path})`;
+    }, [user, activeTab]);
+
+    const resolveImage = useCallback(async (src: string): Promise<string | null> => {
+        if (src.startsWith('storage://')) {
+            return await getSignedUrlForPath(src);
+        }
+        return src;
+    }, []);
 
     // Processing state effect (1s debounce)
     useEffect(() => {
@@ -215,19 +228,54 @@ const JournalSection: React.FC<JournalSectionProps> = ({isOwner, isReadOnly = fa
                  setAutosaveStatus('processing');
              }
         }
-    }, [debouncedProcessing, isOwner, isReadOnly, lastSavedContentRef]); // removed autosaveStatus from deps to avoid loops
+    }, [debouncedProcessing, isOwner, isReadOnly, lastSavedContentRef]);
 
     // Saving effect (5s debounce)
     useEffect(() => {
-        // Only save if content changed from what's in DB (lastSavedContentRef)
-        // and user is owner/not read-only
-        if (isOwner && !isReadOnly && debouncedSaving !== lastSavedContentRef.current) {
-            saveEntry(debouncedSaving);
+        // Prevent overwrite: Only save if debounced value matches current content
+        // This handles the race condition where tab switches but debounce fires with old content
+        if (debouncedSaving !== entryContent) {
+            return; 
         }
-    }, [debouncedSaving, isOwner, isReadOnly, saveEntry]);
+
+        if (isOwner && !isReadOnly && debouncedSaving !== lastSavedContentRef.current) {
+            // Safe to save using current state vars because we verified content matches
+            saveEntry(debouncedSaving, selectedDate, activeTab === 'public');
+        }
+    }, [debouncedSaving, isOwner, isReadOnly, saveEntry, selectedDate, activeTab, entryContent]);
+
+    // Explicit handle for tab change to force save
+    const handleTabChange = async (newTab: string) => {
+        const tab = newTab as 'public' | 'private';
+        if (tab === activeTab) return;
+
+        // Force save current content before switching if it changed
+        if (entryContent !== lastSavedContentRef.current) {
+            await saveEntry(entryContent, selectedDate, activeTab === 'public');
+        }
+        
+        setActiveTab(tab);
+    };
+
+    // Explicit handle for date change to force save
+    const handleDateSelect = async (date: Date | undefined) => {
+        if (!date) return;
+        
+        if (entryContent !== lastSavedContentRef.current) {
+            await saveEntry(entryContent, selectedDate, activeTab === 'public');
+        }
+        
+        setSelectedDate(date);
+        setIsMainDatePickerOpen(false);
+    };
 
     // Sort logs by timestamp descending (newest first)
     const sortedLogs = [...activityLog].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
+    const JOURNAL_VIEW_OPTIONS = [
+        { id: 'public', label: 'Public Journal', icon: Globe },
+        { id: 'private', label: 'Private Journal', icon: Lock },
+    ];
 
     if (loading) {
         return (
@@ -244,39 +292,37 @@ const JournalSection: React.FC<JournalSectionProps> = ({isOwner, isReadOnly = fa
             isFolded={isFolded} // Pass new prop
             toggleFold={toggleFold} // Pass new prop
             rightElement={
-                <div className="flex items-center gap-2"> {/* Wrapper for date picker and new add button */}
+                <div className="flex items-center gap-2">
                     {/* Date Picker */}
                     <Popover open={isMainDatePickerOpen} onOpenChange={setIsMainDatePickerOpen}>
                         <PopoverTrigger asChild>
-                                                                                                                                                                                                                                                    <Button
-                                                                                                                                                                                                                       ref={mainDatePickerButtonRef}
-                                                                                                                                                                                                                       variant="ghost"
-                                                                                                                                                                                                                       className={cn("relative inline-flex items-center gap-2 px-4 py-2 rounded-full bg-background text-muted-foreground ring-offset-background transition-colors ring-2 ring-primary hover:bg-accent hover:text-accent-foreground dark:hover:bg-primary dark:hover:text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring h-12 w-fit", !selectedDate && "text-muted-foreground")}
-                                                                                                                                                                                                                   >
-                                                                                                                                                                                                                       <ShineBorder
-                                                                                                                                                                                                                           borderWidth={1}
-                                                                                                                                                                                                                           duration={8}
-                                                                                                                                                                                                                           shineColor={["hsl(var(--primary))", "hsl(var(--primary-foreground))"]}
-                                                                                                                                                                                                                           className="rounded-full"
-                                                                                                                                                                                                                       />                                                                                                                                                          <span className="relative z-10 inline-flex items-center gap-2">
-                                                                                                                                                              <span className="relative flex h-2 w-2">
-                                                                                                                                                                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75 duration-[3000ms]"></span>
-                                                                                                                                                                  <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
-                                                                                                                                                              </span>
-                                                                                                                                                              <span className="font-mono tracking-tight">                                                                        {selectedDate ? new Intl.DateTimeFormat('en-US', { day: '2-digit', month: 'short', year: 'numeric' }).format(selectedDate) : <span>Pick a date</span>}
-                                                                    </span>                                </span>
+                            <Button
+                                ref={mainDatePickerButtonRef}
+                                variant="ghost"
+                                className={cn("relative inline-flex items-center gap-2 px-4 py-2 rounded-full bg-background text-muted-foreground ring-offset-background transition-colors ring-2 ring-primary hover:bg-accent hover:text-accent-foreground dark:hover:bg-primary dark:hover:text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring h-12 w-fit", !selectedDate && "text-muted-foreground")}
+                            >
+                                <ShineBorder
+                                    borderWidth={1}
+                                    duration={8}
+                                    shineColor={["hsl(var(--primary))", "hsl(var(--primary-foreground))"]}
+                                    className="rounded-full"
+                                />
+                                <span className="relative z-10 inline-flex items-center gap-2">
+                                    <span className="relative flex h-2 w-2">
+                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75 duration-[3000ms]"></span>
+                                        <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+                                    </span>
+                                    <span className="font-mono tracking-tight">
+                                        {selectedDate ? new Intl.DateTimeFormat('en-US', { day: '2-digit', month: 'short', year: 'numeric' }).format(selectedDate) : <span>Pick a date</span>}
+                                    </span>
+                                </span>
                             </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0" align="end">
                             <Calendar
                                 mode="single"
                                 selected={selectedDate}
-                                onSelect={(date: Date | undefined) => {
-                                    if (date) {
-                                        setSelectedDate(date);
-                                        setIsMainDatePickerOpen(false);
-                                    }
-                                }}
+                                onSelect={handleDateSelect}
                                 initialFocus
                                 modifiers={{hasEntry: hasEntryMatcher}}
                                 modifiersClassNames={{
@@ -293,52 +339,14 @@ const JournalSection: React.FC<JournalSectionProps> = ({isOwner, isReadOnly = fa
         >
             <div className="w-full">
                 {isOwner && (
-                <TooltipProvider>
-                    <div className="flex items-center justify-between gap-4 mb-4 w-full">
-                        <div className="flex-1 flex items-center bg-card rounded-full p-1 shadow-md border border-primary gap-1">
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <button
-                                        type="button"
-                                        onClick={() => setActiveTab('public')}
-                                        className={cn(
-                                            "flex-1 px-4 py-2 text-sm font-medium rounded-full whitespace-nowrap flex items-center justify-center transition-all",
-                                            activeTab === 'public'
-                                                ? "bg-primary text-primary-foreground shadow-sm" // Primary active state
-                                                : "hover:bg-accent/50 text-muted-foreground"
-                                        )}
-                                    >
-                                        <Globe className="h-4 w-4 mr-2"/>
-                                        <span>Public Journal</span>
-                                    </button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    <p>Public Journal</p>
-                                </TooltipContent>
-                            </Tooltip>
-
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <button
-                                        type="button"
-                                        onClick={() => setActiveTab('private')}
-                                        disabled={!isOwner}
-                                        className={cn(
-                                            "flex-1 px-4 py-2 text-sm font-medium rounded-full whitespace-nowrap flex items-center justify-center transition-all",
-                                            activeTab === 'private'
-                                                ? "bg-card text-foreground border border-border/50 shadow-sm" // Match editor scheme
-                                                : "hover:bg-accent/50 text-muted-foreground"
-                                        )}
-                                    >
-                                        <Lock className="h-4 w-4 mr-2"/>
-                                        <span>Private Journal</span>
-                                    </button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    <p>Private Journal</p>
-                                </TooltipContent>
-                            </Tooltip>
-                        </div>
+                <div className="flex items-center justify-between gap-4 mb-4 w-full">
+                    <ToggleButtonGroup
+                        options={JOURNAL_VIEW_OPTIONS}
+                        selectedValue={activeTab}
+                        onValueChange={handleTabChange}
+                        className="flex-1"
+                        itemClassName="flex-1 justify-center"
+                    />
 
                         {/* Autosave Status Feedback */}
                         {isOwner && !isReadOnly && (
@@ -374,7 +382,6 @@ const JournalSection: React.FC<JournalSectionProps> = ({isOwner, isReadOnly = fa
                             </div>
                         )}
                     </div>
-                </TooltipProvider>
                 )}
 
                 <div 
@@ -401,6 +408,8 @@ const JournalSection: React.FC<JournalSectionProps> = ({isOwner, isReadOnly = fa
                                 placeholder={activeTab === 'private' ? "Private thoughts..." : "Public thoughts..."}
                                 className="min-h-[200px] border-none shadow-none focus-visible:ring-0 p-0 text-base leading-relaxed bg-transparent"
                                 textareaClassName={activeTab === 'private' ? "caret-primary !text-foreground" : "caret-accent !text-foreground"}
+                                onUpload={handleUpload}
+                                resolveImageUrl={resolveImage}
                                 watermark={
                                     <div className="opacity-[0.05] dark:opacity-[0.08] flex items-center justify-center w-full h-full">
                                         {activeTab === 'private' ? (

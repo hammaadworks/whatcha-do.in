@@ -3,15 +3,14 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { updateActiveTheme } from "@/lib/supabase/user.client";
 import { useAuth } from "@/hooks/useAuth";
-import { BrandTheme, THEME_IDS } from "@/lib/themes";
-import { useUiStore } from "@/lib/store/uiStore";
+import { BrandTheme, THEMES } from "@/lib/themes";
 
 export type { BrandTheme };
 
 interface BrandThemeContextType {
   theme: BrandTheme;
-  savedTheme: BrandTheme;
-  setTheme: (theme: BrandTheme) => void;
+  savedTheme: BrandTheme; // The confirmed theme (from DB or local)
+  setTheme: (theme: BrandTheme) => Promise<void>;
   setPreviewTheme: (theme: BrandTheme | null) => void;
   setForcedTheme: (theme: BrandTheme | null) => void;
   isPreviewing: boolean;
@@ -20,124 +19,90 @@ interface BrandThemeContextType {
 
 const BrandThemeContext = createContext<BrandThemeContextType | undefined>(undefined);
 
-export const DEFAULT_THEME: BrandTheme = "zenith";
+export function BrandThemeProvider({
+                                     children, activeTheme: initialActiveTheme, disableAuthSync = false
+                                   }: Readonly<{
+  children: React.ReactNode; activeTheme?: BrandTheme; disableAuthSync?: boolean;
+}>) {
+  const { user } = useAuth();
 
-export function BrandThemeProvider({ 
-    children, 
-    initialTheme,
-    defaultTheme, // From Server Cookie
-    scoped = false
-}: { 
-    children: React.ReactNode; 
-    initialTheme?: BrandTheme;
-    defaultTheme?: BrandTheme;
-    scoped?: boolean;
-}) {
-  const { activeTheme: storeTheme, setActiveTheme: setStoreTheme } = useUiStore();
-  
-  // Initialize state. 
-  // If scoped, prioritize initialTheme.
-  // If global (not scoped), prioritize defaultTheme (Server Cookie) -> storeTheme (Client Cookie/Store) -> Default.
-  const [savedTheme, setSavedTheme] = useState<BrandTheme>(
-      scoped 
-        ? (initialTheme || DEFAULT_THEME) 
-        : (defaultTheme || (storeTheme as BrandTheme) || DEFAULT_THEME)
-  );
-  
+  // 1. State Initialization
+  // We use the server-provided activeTheme as the initial state.
+  // If not provided, we default to 0th index of THEMES.
+  const [savedTheme, setSavedTheme] = useState<BrandTheme>(initialActiveTheme || THEMES[0].id);
   const [previewTheme, setPreviewTheme] = useState<BrandTheme | null>(null);
   const [forcedTheme, setForcedTheme] = useState<BrandTheme | null>(null);
   const [mounted, setMounted] = useState(false);
-  const { user } = useAuth();
 
-  // The effective theme hierarchy: Forced > Preview > Saved
-  const activeTheme = forcedTheme || previewTheme || savedTheme;
+  // 2. Sync with Server Prop (if it changes for some reason, e.g. re-validation)
+  useEffect(() => {
+    if (initialActiveTheme && initialActiveTheme !== savedTheme) {
+      setSavedTheme(initialActiveTheme);
+    }
+  }, [initialActiveTheme, savedTheme]);
 
+  // 3. Sync with User Object (from useAuth)
+  // This handles the case where the user logs in client-side and their theme loads.
+  useEffect(() => {
+    if (!disableAuthSync && user?.active_theme && user.active_theme !== savedTheme) {
+      setSavedTheme(user.active_theme as BrandTheme);
+    }
+  }, [user?.active_theme, savedTheme, disableAuthSync]);
+
+  // 4. Calculate Effective Theme
+  // Priority: Forced > Preview > Saved
+  const effectiveTheme = forcedTheme || previewTheme || savedTheme;
+
+  // 5. Handle Mounting (Hydration)
   useEffect(() => {
     setMounted(true);
-    // React to prop change
-    if (initialTheme) {
-        setSavedTheme(initialTheme);
-    }
-    
-    // Sync from store if global
-    if (!scoped && !initialTheme && storeTheme) {
-        if (THEME_IDS.includes(storeTheme)) {
-            setSavedTheme(storeTheme as BrandTheme);
-        }
-    }
-  }, [initialTheme, scoped, storeTheme]);
+  }, []);
 
+  // 6. Apply Theme to Body
   useEffect(() => {
-    // Only update body if NOT scoped
-    if (!scoped) {
-        if (mounted) {
-          document.body.setAttribute("data-theme", activeTheme);
-        } else if (initialTheme) {
-             document.body.setAttribute("data-theme", activeTheme);
-        }
-    }
-  }, [activeTheme, mounted, initialTheme, scoped]);
+    document.body.setAttribute("data-theme", effectiveTheme);
+  }, [effectiveTheme]);
 
-  // Sync from DB if Cookie was missing (New Device / Cleared Cache)
-  useEffect(() => {
-      if (!scoped && !defaultTheme && user?.active_theme) {
-          if (THEME_IDS.includes(user.active_theme as any)) {
-              const dbTheme = user.active_theme as BrandTheme;
-              setSavedTheme(dbTheme);
-              setStoreTheme(dbTheme); // Sync to cookie now that we found it in DB
-          }
-      }
-  }, [scoped, defaultTheme, user, setStoreTheme]);
-
+  // 6. Theme Setter (DB Sync)
   const setTheme = async (newTheme: BrandTheme) => {
-      if (forcedTheme) return; // Cannot change theme when forced
-      
-      // 1. Optimistic UI Update
-      setSavedTheme(newTheme);
-      setPreviewTheme(null); // Clear preview when saving
-      
-      // 2. DB Update (First)
-      if (!scoped && user) {
-          try {
-              await updateActiveTheme(user.id, newTheme);
-          } catch (e) {
-              console.error("Failed to sync theme to DB", e);
-              // We could revert state here if strict consistency is required, 
-              // but for themes, optimistic is usually better.
-          }
-      }
+    if (forcedTheme) return;
 
-      // 3. Cookie Update (Second)
-      if (!scoped) {
-           setStoreTheme(newTheme);
+    // Optimistic Update
+    setSavedTheme(newTheme);
+    setPreviewTheme(null); // Clear preview since we committed it
+
+    if (user) {
+      try {
+        await updateActiveTheme(user.id, newTheme);
+      } catch (e) {
+        console.error("Failed to sync theme to DB", e);
+        // Optional: Revert on failure?
+        // For themes, it's usually fine to keep the optimistic value
+        // until next reload, but we could toast an error.
       }
+    }
   };
 
-  const contextValue = { 
-        theme: activeTheme, 
-        savedTheme,
-        setTheme, 
-        setPreviewTheme,
-        setForcedTheme,
-        isPreviewing: !!previewTheme,
-        isForced: !!forcedTheme
-    };
+  const contextValue = {
+    theme: effectiveTheme,
+    savedTheme,
+    setTheme,
+    setPreviewTheme,
+    setForcedTheme,
+    isPreviewing: !!previewTheme,
+    isForced: !!forcedTheme
+  };
 
-  if (scoped) {
-      return (
-        <BrandThemeContext.Provider value={contextValue}>
-          <div data-theme={activeTheme} className="w-full bg-background text-foreground transition-colors duration-300 flex flex-col items-center">
-            {children}
-          </div>
-        </BrandThemeContext.Provider>
-      );
-  }
+  // Prevent hydration mismatch by rendering same output initially?
+  // Actually, for themes, we often want to render immediately to avoid FOUC.
+  // The attribute is set in useEffect, so there might be a split second flash if SSR didn't set it.
+  // Ideally, the server should render the body with the correct data-theme attribute.
+  // But since we are in a Provider inside Layout, the Body is parent.
+  // We rely on the initial useEffect to set the attribute quickly.
 
-  return (
-    <BrandThemeContext.Provider value={contextValue}>
-      {children}
-    </BrandThemeContext.Provider>
-  );
+  return (<BrandThemeContext.Provider value={contextValue}>
+    {children}
+  </BrandThemeContext.Provider>);
 }
 
 export function useBrandTheme() {

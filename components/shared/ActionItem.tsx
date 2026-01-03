@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
-import { Check, ChevronDown, Edit2, Globe, Lock, Plus, Trash2, X } from "lucide-react";
+import { Check, ChevronDown, Edit2, Globe, Lock, Plus, Trash2, X, GripVertical } from "lucide-react";
 import { ActionsList } from "./ActionsList";
 import { CircularProgress } from "@/components/ui/circular-progress";
 import { AddActionForm } from "./AddActionForm";
@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { ActionNode } from "@/lib/supabase/types";
 import { areAllChildrenCompleted } from "@/lib/logic/actions/tree-utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { motion, PanInfo } from "framer-motion";
 
 /**
  * Props for the ActionItem component.
@@ -314,12 +315,25 @@ export const ActionItem: React.FC<ActionItemProps> = ({
     }
   };
 
+  const handleDragEnd = (event: any, info: PanInfo) => {
+    if (info.offset.x > 50) { // Swipe Right -> Indent
+       onActionIndented?.(action.id);
+    } else if (info.offset.x < -50) { // Swipe Left -> Outdent
+       onActionOutdented?.(action.id);
+    }
+  };
+
   return (
-    <div
+    <motion.div
       key={action.id}
-      className="mb-2"
+      className="mb-2 touch-pan-y" // Allow vertical scroll
       role="listitem"
       aria-expanded={hasChildren ? isExpanded : undefined}
+      drag="x"
+      dragConstraints={{ left: 0, right: 0 }}
+      dragElastic={0.1}
+      onDragEnd={handleDragEnd}
+      whileDrag={{ scale: 1.02, zIndex: 10 }} // Visual feedback
     >
       <div
         ref={divRef}
@@ -339,6 +353,7 @@ export const ActionItem: React.FC<ActionItemProps> = ({
           }
         )}
       >
+        <GripVertical className="h-4 w-4 text-muted-foreground/50 mr-2 shrink-0 cursor-grab active:cursor-grabbing" />
         <Checkbox
           id={action.id}
           checked={action.completed || isCompleting}
@@ -400,7 +415,7 @@ export const ActionItem: React.FC<ActionItemProps> = ({
         )}
 
         {/* Action Buttons (Visible on Hover) */}
-        <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity" role="group"
+        <div className="flex items-center space-x-1 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity" role="group"
              aria-label="Action controls">
           {onActionPrivacyToggled && (
             <button
@@ -524,6 +539,6 @@ export const ActionItem: React.FC<ActionItemProps> = ({
           />
         </div>
       )}
-    </div>
+    </motion.div>
   );
 };

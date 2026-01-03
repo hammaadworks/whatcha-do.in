@@ -13,9 +13,10 @@ import { Calendar } from '@/components/shared/Calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Button } from '@/components/ui/button';
-import { JournalEntry, ActivityLogEntry } from '@/lib/supabase/types'; // Import JournalEntry and ActivityLogEntry
+import { JournalEntry, ActivityLogEntry } from '@/lib/supabase/types';
 import { useSimulatedTime } from '@/components/layout/SimulatedTimeProvider';
-
+import { ToggleButtonGroup } from '@/components/shared/ToggleButtonGroup';
+import { uploadJournalMedia, getSignedUrlForPath } from '@/lib/supabase/storage';
 
 
 interface JournalPageContentProps {
@@ -43,7 +44,7 @@ const formatActivityLogEntry = (entry: ActivityLogEntry): string => {
 
 
 export function JournalPageContent({ profileUserId, isOwner }: JournalPageContentProps) {
-      const { simulatedDate } = useSimulatedTime();
+  const { simulatedDate } = useSimulatedTime();
   
   const [date, setDate] = useState<Date>(simulatedDate || new Date());
   const [activeTab, setActiveTab] = useState<'public' | 'private'>('public'); // Default to public
@@ -105,15 +106,15 @@ export function JournalPageContent({ profileUserId, isOwner }: JournalPageConten
     loadEntry();
   }, [date, activeTab, profileUserId, isPublic]);
 
-  const saveEntry = useCallback(async (currentContent: string) => {
+  const saveEntry = useCallback(async (currentContent: string, dateToSave: Date, isPublicToSave: boolean) => {
     if (!canEdit) return;
     setAutosaveStatus('saving');
     try {
-      const dateStr = format(date, 'yyyy-MM-dd');
+      const dateStr = format(dateToSave, 'yyyy-MM-dd');
       await upsertJournalEntry({
         user_id: profileUserId,
         entry_date: dateStr,
-        is_public: isPublic,
+        is_public: isPublicToSave,
         content: currentContent,
       });
       lastSavedContentRef.current = currentContent;
@@ -125,16 +126,48 @@ export function JournalPageContent({ profileUserId, isOwner }: JournalPageConten
       toast.error('Failed to autosave');
       setAutosaveStatus('error');
     }
-  }, [date, isPublic, profileUserId, canEdit]);
+  }, [profileUserId, canEdit]);
+
+  const handleUpload = useCallback(async (file: File): Promise<string> => {
+      if (!isOwner) throw new Error("Permission denied");
+      const isPublic = activeTab === 'public';
+      const { path } = await uploadJournalMedia(file, profileUserId, isPublic);
+      return `![Image](${path})`;
+  }, [isOwner, activeTab, profileUserId]);
+
+  const resolveImage = useCallback(async (src: string): Promise<string | null> => {
+      if (src.startsWith('storage://')) {
+          return await getSignedUrlForPath(src);
+      }
+      return src;
+  }, []);
 
   useEffect(() => {
     // Only trigger autosave if content has changed due to user input
-    // (i.e., debouncedContent is different from the last saved content from the DB)
-    // and if the current user has edit permissions.
-    if (canEdit && debouncedContent !== lastSavedContentRef.current) {
-      saveEntry(debouncedContent);
+    // and matches the current state (preventing stale overwrites)
+    if (canEdit && debouncedContent !== lastSavedContentRef.current && debouncedContent === content) {
+      saveEntry(debouncedContent, date, isPublic);
     }
-  }, [debouncedContent, canEdit, saveEntry]);
+  }, [debouncedContent, canEdit, saveEntry, content, date, isPublic]);
+
+  const handleTabChange = async (newTab: string) => {
+      const tab = newTab as 'public' | 'private';
+      if (tab === activeTab) return;
+
+      // Force save current content if changed
+      if (content !== lastSavedContentRef.current) {
+          await saveEntry(content, date, isPublic);
+      }
+      setActiveTab(tab);
+  };
+
+  const handleDateSelect = async (newDate: Date | undefined) => {
+      if (!newDate) return;
+      if (content !== lastSavedContentRef.current) {
+          await saveEntry(content, date, isPublic);
+      }
+      setDate(newDate);
+  };
 
   // Sort activities by timestamp in descending order (most recent on top)
   const sortedActivityLog = [...activityLog].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
@@ -150,6 +183,10 @@ export function JournalPageContent({ profileUserId, isOwner }: JournalPageConten
   
   const totalPages = Math.ceil(activityLog.length / activitiesPerPage);
 
+  const JOURNAL_VIEW_OPTIONS = [
+      { id: 'public', label: 'Public', icon: Globe },
+      { id: 'private', label: 'Private', icon: Lock },
+  ];
 
   return (
     <div className="flex flex-col h-[calc(100vh-10rem)] w-full max-w-5xl mx-auto space-y-4">
@@ -174,70 +211,19 @@ export function JournalPageContent({ profileUserId, isOwner }: JournalPageConten
                         <Calendar
                             mode="single"
                             selected={date}
-                            onSelect={(d: Date | undefined) => d && setDate(d)}
+                            onSelect={handleDateSelect}
                             initialFocus
                         />
                     </PopoverContent>
                 </Popover>
 
                 {isOwner && (
-                    <TooltipProvider>
-                        <div className="flex items-center bg-card rounded-full p-2 shadow-md border border-primary gap-x-4">
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <button
-                                        type="button"
-                                        onClick={() => setActiveTab('public')}
-                                        className={cn(
-                                            "px-3 py-1 text-xs sm:text-sm font-medium rounded-full whitespace-nowrap flex items-center justify-center transition-all",
-                                            activeTab === 'public'
-                                                ? "bg-primary text-primary-foreground hover:bg-primary/90" // Selected: dim hover
-                                                : "bg-background/80 text-muted-foreground hover:bg-accent/50" // Unselected: light hover
-                                        )}
-                                        disabled={!isOwner && activeTab === 'private'}
-                                    >
-                                        <Globe className="h-4 w-4" />
-                                        <span className={cn(
-                                            "ml-2",
-                                            activeTab === 'public' ? "inline-block" : "hidden",
-                                            "lg:inline-block"
-                                        )}>
-                                            Public
-                                        </span>
-                                    </button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    <p>Public Journal</p>
-                                </TooltipContent>
-                            </Tooltip>
-                            
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <button
-                                        type="button"
-                                        onClick={() => setActiveTab('private')}
-                                        className={cn(
-                                            "px-3 py-1 text-xs sm:text-sm font-medium rounded-full whitespace-nowrap flex items-center justify-center transition-all",
-                                            activeTab === 'private'
-                                                ? "bg-primary text-primary-foreground hover:bg-primary/90" // Selected: dim hover
-                                                : "bg-background/80 text-muted-foreground hover:bg-accent/50" // Unselected: light hover
-                                        )}
-                                        disabled={!isOwner}
-                                    >
-                                        <Lock className="h-4 w-4" />
-                                        <span className={cn(
-                                            "ml-2",
-                                            activeTab === 'private' ? "inline-block" : "hidden",
-                                            "lg:inline-block"
-                                        )}>
-                                            Private
-                                        </span>
-                                    </button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    <p>Private Journal</p>
-                                </TooltipContent>
-                            </Tooltip>
+                    <div className="flex items-center gap-4">
+                        <ToggleButtonGroup
+                            options={JOURNAL_VIEW_OPTIONS}
+                            selectedValue={activeTab}
+                            onValueChange={handleTabChange}
+                        />
 
                             {/* Autosave Status Feedback */}
                             {canEdit && (
@@ -256,8 +242,7 @@ export function JournalPageContent({ profileUserId, isOwner }: JournalPageConten
                                     )}
                                 </div>
                             )}
-                        </div>
-                    </TooltipProvider>
+                    </div>
                 )}
             </div>
         </div>
@@ -323,6 +308,8 @@ export function JournalPageContent({ profileUserId, isOwner }: JournalPageConten
                     placeholder={canEdit ? "Write your daily reflections here..." : "No entry for this day."}
                     readOnly={!canEdit}
                     className="h-full border-0"
+                    onUpload={handleUpload}
+                    resolveImageUrl={resolveImage}
                 />
             )}
         </div>

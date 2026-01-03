@@ -8,7 +8,6 @@ import React from 'react';
 
 import {PublicPage} from '@/components/profile/PublicPage';
 import OwnerProfileView from '@/components/profile/OwnerProfileView'; // New component
-import { ProfileTourProvider } from './TourGuide';
 
 type ProfilePageClientProps = {
     username: string;
@@ -58,18 +57,16 @@ export function PrivatePage({
     if (isOwner) {
         // Type assertion needed because authenticatedUser is 'User | null', but if isOwner=true, it must be User
         return (
-            <ProfileTourProvider>
-                <OwnerProfileView
-                    username={username}
-                    initialProfileUser={authenticatedUser as typeof authenticatedUser & { username: string; id: string; }}
-                    publicActions={publicActions}
-                    publicHabits={publicHabits}
-                    publicJournalEntries={publicJournalEntries}
-                    publicIdentities={publicIdentities}
-                    publicTargets={publicTargets}
-                    privateCount={privateCount} // Pass privateCount
-                />
-            </ProfileTourProvider>
+            <OwnerProfileView
+                username={username}
+                initialProfileUser={authenticatedUser as typeof authenticatedUser & { username: string; id: string; }}
+                publicActions={publicActions}
+                publicHabits={publicHabits}
+                publicJournalEntries={publicJournalEntries}
+                publicIdentities={publicIdentities}
+                publicTargets={publicTargets}
+                privateCount={privateCount} // Pass privateCount
+            />
         );
     } else {
         // If not the owner, render the public version of the profile

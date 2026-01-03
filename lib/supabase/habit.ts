@@ -4,6 +4,7 @@ import { createClient } from "./client";
 import { ActivityLogEntry, CompletionsData, Habit, ISODate } from "./types";
 import { JournalActivityService } from "@/lib/logic/JournalActivityService";
 import { PostgrestError } from "@supabase/supabase-js";
+import { formatISO, parseISO } from "@/lib/date";
 
 /**
  * Fetches all unprocessed habits for a specific user.
@@ -222,7 +223,37 @@ export async function markHabit(
   const supabase = createClient();
   const journalActivityService = new JournalActivityService(supabase);
 
-  // 3. Update habit state
+  const attributedDate = completions_data.attributed_date;
+  const isDedication = !!attributedDate;
+
+  // 1. Determine Log Date and Log Activity
+  const timestamp = completionTime ? completionTime.toISOString() : new Date().toISOString();
+  // Use attributedDate if present, otherwise use the intended completion date from updates (usually Today)
+  const logDate = attributedDate 
+      ? formatISO(attributedDate) 
+      : (updates.completed_date ? formatISO(updates.completed_date) : null);
+
+  if (logDate) {
+      await journalActivityService.logActivity(habit.user_id, parseISO(logDate as ISODate), {
+          id: habit.id,
+          type: "habit",
+          description: habit.name,
+          timestamp: timestamp, 
+          is_public: habit.is_public,
+          status: "completed",
+          details: {
+            mood: completions_data.mood,
+            work_value: completions_data.work_value,
+            time_taken: completions_data.time_taken,
+            time_taken_unit: completions_data.time_taken_unit,
+            notes: completions_data.notes,
+            attributed_date: attributedDate ? attributedDate.toISOString() : undefined
+          }
+      });
+  }
+
+  // 2. Apply Updates
+  // Standard Flow Update (streak + 1, etc. calculated by lifecycle)
   const { error: updateError } = await supabase
     .from("habits")
     .update(updates)
@@ -231,32 +262,6 @@ export async function markHabit(
   if (updateError) {
     console.error("Error updating habit streak:", updateError);
     throw updateError;
-  }
-
-  // 4. Log activity to Journal
-  const logEntryDetails: ActivityLogEntry["details"] = {
-    mood: completions_data.mood,
-    work_value: completions_data.work_value,
-    time_taken: completions_data.time_taken,
-    time_taken_unit: completions_data.time_taken_unit,
-    notes: completions_data.notes
-  };
-
-  // Use provided completionTime or fallback to now (system time)
-  // This allows Time Travel logic to pass a simulated "now"
-  const timestamp = completionTime ? completionTime.toISOString() : new Date().toISOString();
-
-  // We log using the reference date provided (which preserves time) but ensured it's consistent with "Today"
-  if (updates.completed_date) {
-    await journalActivityService.logActivity(habit.user_id, updates.completed_date, {
-      id: habit.id,
-      type: "habit",
-      description: habit.name,
-      timestamp: timestamp,
-      is_public: habit.is_public,
-      status: "completed",
-      details: logEntryDetails
-    });
   }
 }
 

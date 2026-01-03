@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useState } from "react";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { createHabit } from "@/lib/supabase/habit"; // Import createHabit
@@ -11,8 +12,7 @@ import { Label } from "@/components/ui/label"; // Import Label
 import { Habit } from "@/lib/supabase/types";
 import { formatISO, getReferenceDateUI } from "@/lib/date.ts";
 import { useSimulatedTime } from "@/components/layout/SimulatedTimeProvider.tsx";
-import { X } from "lucide-react"; // Import X icon for clear button
-import TimeDropdown from '@/components/shared/TimeDropdown'; // Import the new TimeDropdown component
+import TimeDropdown from "@/components/shared/TimeDropdown"; // Import the new TimeDropdown component
 
 interface HabitCreatorProps {
   onHabitCreated: (habit: Habit) => void; // Updated to pass back the created habit
@@ -28,6 +28,7 @@ const predefinedUnits = ["minutes", "hours", "pages", "reps", "sets", "questions
 export function HabitCreator({ onHabitCreated }: Readonly<HabitCreatorProps>) {
   const { user } = useAuth();
   const [habitName, setHabitName] = useState("");
+  const [description, setDescription] = useState("");
   const [showGoalInput, setShowGoalInput] = useState(false);
   const [goalValue, setGoalValue] = useState<number | undefined>(undefined);
   const [goalUnit, setGoalUnit] = useState<string>(predefinedUnits[0]);
@@ -40,7 +41,6 @@ export function HabitCreator({ onHabitCreated }: Readonly<HabitCreatorProps>) {
 // Canonical Time Logic
   const { simulatedDate } = useSimulatedTime();
   const refDate = getReferenceDateUI(simulatedDate);
-
 
 
   const handleCreate = async () => {
@@ -57,7 +57,7 @@ export function HabitCreator({ onHabitCreated }: Readonly<HabitCreatorProps>) {
     setError(null);
 
     let finalGoalUnit = goalUnit;
-    if (goalUnit === "Custom...") {
+    if (goalUnit === "Custom unit...") {
       finalGoalUnit = customUnit.trim();
       if (!finalGoalUnit) {
         setError("Please specify a custom unit.");
@@ -83,6 +83,7 @@ export function HabitCreator({ onHabitCreated }: Readonly<HabitCreatorProps>) {
     const newHabitPayload: Partial<Habit> = {
       user_id: user.id,
       name: habitName.trim(),
+      descriptions: description.trim() || null,
       is_public: isPublic,
       goal_value: showGoalInput && goalValue !== undefined ? goalValue : undefined,
       goal_unit: showGoalInput && finalGoalUnit ? finalGoalUnit : undefined,
@@ -105,6 +106,7 @@ export function HabitCreator({ onHabitCreated }: Readonly<HabitCreatorProps>) {
       setCustomUnit("");
       setTargetTime(null); // Reset targetTime to null
       setIsPublic(true); // Reset isPublic to default
+      setDescription("");
     } catch (err: unknown) {
       setError((err instanceof Error) ? err.message : "Failed to create habit.");
     } finally {
@@ -112,30 +114,45 @@ export function HabitCreator({ onHabitCreated }: Readonly<HabitCreatorProps>) {
     }
   };
 
-  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === "Enter" && !loading) {
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    if (event.key === "Enter" && !event.shiftKey && !loading) {
+      event.preventDefault(); // Prevent new line in textarea if that's undesired, or keep default
       handleCreate();
     }
   };
 
   return (<div className="flex flex-col space-y-2 p-4 border rounded-lg shadow-sm">
-    <div className="flex items-center space-x-2">
-      <Input
-        type="text"
-        placeholder="Add a new habit..."
-        value={habitName}
-        onChange={(e) => setHabitName(e.target.value)}
-        onKeyDown={handleKeyDown}
-        className="flex-grow"
-        disabled={loading}
-      />
-      {habitName.trim() && !showGoalInput && (
-        <Button variant="outline" onClick={() => setShowGoalInput(true)} disabled={loading}>
-          + Add Goal/Time
-        </Button>)}
-      <Button onClick={handleCreate} disabled={loading || !habitName.trim()}>
-        {loading ? "Adding..." : "Add Habit"}
-      </Button>
+    <div className="flex flex-col space-y-2">
+      <div className="flex items-center space-x-2">
+        <Input
+          type="text"
+          placeholder="Add a new habit..."
+          value={habitName}
+          onChange={(e) => setHabitName(e.target.value)}
+          onKeyDown={handleKeyDown}
+          className="flex-grow"
+          disabled={loading}
+        />
+        {habitName.trim() && !showGoalInput && (
+          <Button variant="outline" onClick={() => setShowGoalInput(true)} disabled={loading}>
+            + Add Goal/Time
+          </Button>)}
+        <Button onClick={handleCreate} disabled={loading || !habitName.trim()}>
+          {loading ? "Adding..." : "Add Habit"}
+        </Button>
+      </div>
+
+      {habitName.trim() && (
+        <Textarea
+          placeholder="Description (optional)"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          onKeyDown={handleKeyDown}
+          className="resize-none"
+          rows={2}
+          disabled={loading}
+        />
+      )}
     </div>
 
     <div className="flex items-center space-x-2 justify-end">

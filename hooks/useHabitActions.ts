@@ -33,20 +33,42 @@ export const useHabitActions = ({
   /**
    * Updates an existing habit's details.
    */
-  const handleHabitUpdate = async (habitId: string, name: string, isPublic: boolean, goalValue?: number | null, goalUnit?: string | null, targetTime?: string | null) => {
-    console.log(`[useHabitActions] Updating habit ${habitId}`, { name, isPublic, goalValue, goalUnit, targetTime });
+  const handleHabitUpdate = async (habitId: string, name: string, isPublic: boolean, goalValue?: number | null, goalUnit?: string | null, targetTime?: string | null, description?: string | null) => {
+    console.log(`[useHabitActions] Updating habit ${habitId}`, {
+      name,
+      isPublic,
+      goalValue,
+      goalUnit,
+      targetTime,
+      description
+    });
 
     // Optimistic Update
     if (setOptimisticHabits) {
       setOptimisticHabits((prev) => prev.map(h =>
         h.id === habitId
-          ? { ...h, name, is_public: isPublic, goal_value: goalValue ?? null, goal_unit: goalUnit ?? null, target_time: targetTime ?? null }
+          ? {
+            ...h,
+            name,
+            is_public: isPublic,
+            goal_value: goalValue ?? null,
+            goal_unit: goalUnit ?? null,
+            target_time: targetTime ?? null,
+            descriptions: description ?? null
+          }
           : h
       ));
     }
 
     try {
-      await updateHabit(habitId, { name, is_public: isPublic, goal_value: goalValue, goal_unit: goalUnit, target_time: targetTime });
+      await updateHabit(habitId, {
+        name,
+        is_public: isPublic,
+        goal_value: goalValue,
+        goal_unit: goalUnit,
+        target_time: targetTime,
+        descriptions: description
+      });
       console.log(`[useHabitActions] Habit updated successfully: ${habitId}`);
       toast.success("Habit updated");
       onActivityLogged?.();
@@ -84,7 +106,7 @@ export const useHabitActions = ({
    */
   const handleCreateHabit = (newHabit: Habit, setIsCreateHabitModalOpen: (open: boolean) => void) => {
     console.log("[useHabitActions] Habit creation flow completed (UI)", newHabit);
-    
+
     // Optimistic Update (Append new habit)
     if (setOptimisticHabits) {
       setOptimisticHabits((prev) => [...prev, newHabit]);
@@ -104,17 +126,35 @@ export const useHabitActions = ({
       throw new Error(`No habits found with id: ${habitId} in habits: ${habits}`);
     }
     const event = isGrace ? HabitLifecycleEvent.GRACE_COMPLETE : HabitLifecycleEvent.USER_COMPLETE;
-    const updates = calculateHabitUpdates(habitToComplete, event, todayISO);
 
-    // Optimistic Update
-    if (setOptimisticHabits) {
-      if (habitToComplete) {
-        try {
-          setOptimisticHabits((prev) => prev.map(h =>
-            h.id === habitId ? { ...h, ...updates } : h
-          ));
-        } catch (e) {
-          console.warn("Optimistic calculation failed, skipping local update", e);
+    // Determine Updates
+    let updates: Partial<Habit> = {};
+
+    if (data.attributed_date) {
+      // Super Streak / Dedication Flow:
+      // Use LOG_EXTRA to calculate stats update
+      updates = calculateHabitUpdates(habitToComplete, HabitLifecycleEvent.LOG_EXTRA, todayISO);
+
+      // Optimistic Update
+      if (setOptimisticHabits) {
+        setOptimisticHabits((prev) => prev.map(h =>
+          h.id === habitId ? { ...h, ...updates } : h
+        ));
+      }
+    } else {
+      // Standard Flow
+      updates = calculateHabitUpdates(habitToComplete, event, todayISO);
+
+      // Optimistic Update
+      if (setOptimisticHabits) {
+        if (habitToComplete) {
+          try {
+            setOptimisticHabits((prev) => prev.map(h =>
+              h.id === habitId ? { ...h, ...updates } : h
+            ));
+          } catch (e) {
+            console.warn("Optimistic calculation failed, skipping local update", e);
+          }
         }
       }
     }

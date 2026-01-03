@@ -2,7 +2,7 @@ import BaseModal from '../shared/BaseModal'; // Import the new BaseModal
 import { Habit } from "@/lib/supabase/types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, LogIn } from "lucide-react";
 import EditHabitModal from "./EditHabitModal";
 import { useState } from "react";
 
@@ -19,10 +19,12 @@ interface HabitInfoModalProps {
     isPublic: boolean,
     goalValue?: number | null,
     goalUnit?: string | null,
-    targetTime?: string | null // Add targetTime
+    targetTime?: string | null, // Add targetTime
+    description?: string | null // Add description
   ) => void;
   onHabitDeleted?: (habitId: string) => void;
   onHabitMove?: (habitId: string, targetBox: HabitBoxType) => Promise<void>; // New prop
+  onLogExtra?: () => void; // Trigger for extra completion
   isPrivateHabit?: boolean;
   canBeDeleted?: boolean;
 }
@@ -38,6 +40,7 @@ const HabitInfoModal: React.FC<HabitInfoModalProps> = ({
   onHabitUpdated,
   onHabitDeleted,
   onHabitMove,
+  onLogExtra, // New prop
   isPrivateHabit,
   canBeDeleted,
 }) => {
@@ -49,9 +52,10 @@ const HabitInfoModal: React.FC<HabitInfoModalProps> = ({
     isPublic: boolean,
     goalValue?: number | null,
     goalUnit?: string | null,
-    targetTime?: string | null // Add targetTime
+    targetTime?: string | null, // Add targetTime
+    description?: string | null // Add description
   ) => {
-    onHabitUpdated?.(habitId, name, isPublic, goalValue, goalUnit, targetTime);
+    onHabitUpdated?.(habitId, name, isPublic, goalValue, goalUnit, targetTime, description);
     setIsEditModalOpen(false);
     onClose(); // Close info modal after saving
   };
@@ -85,9 +89,16 @@ const HabitInfoModal: React.FC<HabitInfoModalProps> = ({
                              Mark Done <ArrowRight className="ml-1 h-3 w-3" />
                          </Button>
                      ) : (
-                         <Button variant="outline" size="sm" onClick={() => handleMove(HabitBoxType.PILE)}>
-                             Unmark <ArrowRight className="ml-1 h-3 w-3" />
-                         </Button>
+                         <div className="flex gap-2">
+                             <Button variant="outline" size="sm" onClick={() => handleMove(HabitBoxType.PILE)}>
+                                 Unmark <ArrowRight className="ml-1 h-3 w-3" />
+                             </Button>
+                             {onLogExtra && (
+                                <Button variant="secondary" size="sm" onClick={() => { onClose(); onLogExtra(); }}>
+                                    <LogIn className="mr-1 h-3 w-3" /> Super Complete
+                                </Button>
+                             )}
+                         </div>
                      )}
                  </div>
              )}
@@ -124,6 +135,14 @@ const HabitInfoModal: React.FC<HabitInfoModalProps> = ({
               🔥 {habit.streak}
             </Badge>
           </div>
+          {habit.descriptions && (
+            <div className="flex flex-col gap-1">
+              <span className="text-muted-foreground text-sm">Description</span>
+              <p className="text-sm text-foreground/90 bg-muted/30 p-2 rounded-md">
+                {habit.descriptions}
+              </p>
+            </div>
+          )}
           <div className="flex justify-between items-center">
             <span className="text-muted-foreground">Longest Streak</span>
             <span className="font-semibold">{habit.longest_streak} days</span>

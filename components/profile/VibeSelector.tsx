@@ -13,29 +13,16 @@ interface VibeSelectorProps {
 export const VibeSelector: React.FC<VibeSelectorProps> = ({currentViewMode, onViewModeChange}) => {
     // UPDATED ORDER AND LABELS
     const VIBE_OPTIONS = [
-        { id: 'private', label: 'Private Preview', icon: Lock },
+        { id: 'private', label: <span>Private <span className="hidden sm:inline">Preview</span></span>, icon: Lock },
         { id: 'edit', label: 'Edit', icon: Pencil },
-        { id: 'public', label: 'Public Preview', icon: Users },
+        { id: 'public', label: <span>Public <span className="hidden sm:inline">Preview</span></span>, icon: Users },
     ];
-
-    const selectedClassMap = {
-        'private': "bg-primary text-primary-foreground hover:bg-primary/90",
-        'edit': "bg-primary text-primary-foreground hover:bg-primary/90",
-        'public': "bg-primary text-primary-foreground hover:bg-primary/90",
-    };
-
-    const unselectedButtonClass = "bg-background/80 text-muted-foreground hover:bg-accent/50";
-    const containerClass = "flex items-center justify-between bg-card rounded-full p-2 shadow-md border border-primary gap-x-4";
 
     return (
         <ToggleButtonGroup
             options={VIBE_OPTIONS}
             selectedValue={currentViewMode}
-            onValueChange={onViewModeChange as (value: string) => void} // Explicitly cast
-            selectedClassMap={selectedClassMap}
-            unselectedClass={unselectedButtonClass} // Corrected prop name
-            containerClass={containerClass}
-            showLabelOnSelected={true}
+            onValueChange={onViewModeChange as (value: string) => void}
         />
     );
 };

@@ -147,7 +147,7 @@ export default function IdentitySection({
 
     return (<div className="space-y-4">
             <div className="flex justify-between items-center border-b border-primary pb-4 mb-6">
-                <h2 className="text-2xl font-extrabold text-primary">Identity</h2>
+                <h2 className="text-2xl font-extrabold text-ring">Identity</h2>
                 {isOwner && !isReadOnly && ( // Conditional rendering for "New Identity" button
                     <TooltipProvider>
                         <Tooltip>

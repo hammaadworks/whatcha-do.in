@@ -239,6 +239,16 @@ export default function OwnerProfileView({
     return <div>Error: User profile not found for owner.</div>;
   }
 
+  const headerContent = (
+    <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
+      <VibeSelector
+        currentViewMode={currentViewMode}
+        onViewModeChange={handleViewModeChange}
+      />
+      <ViewSelector />
+    </div>
+  );
+
   return (<div className="relative pt-8 lg:pt-4 w-full max-w-6xl">
     <GracePeriodScreen
       habits={graceHabits}
@@ -250,17 +260,8 @@ export default function OwnerProfileView({
       onHabitCreated={(newHabit) => setOwnerHabits((prev) => [...prev, newHabit])}
     />
 
-    <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
-      <div data-tour-step-id="vibe">
-        <VibeSelector
-          currentViewMode={currentViewMode}
-          onViewModeChange={handleViewModeChange}
-        />
-      </div>
-      <ViewSelector />
-    </div>
-
     {currentViewMode === "public" ? (<div className="animate-in fade-in duration-300">
+      <div className="mb-6">{headerContent}</div>
       <PublicPage
         user={profileToDisplay}
         publicActions={finalPublicActions}
@@ -277,67 +278,60 @@ export default function OwnerProfileView({
       isReadOnly={isReadOnly}
       timezone={optimisticTimezone || profileToDisplay.timezone}
       onTimezoneChange={handleTimezoneChange}
+      headerContent={headerContent}
     >
-      <div data-tour-step-id="me">
-        <MeSection
-          isCollapsible={isCollapsible}
-          isReadOnly={isReadOnly}
-          username={username}
-          profileToDisplay={profileToDisplay}
-          ownerHabits={ownerHabits}
-          onBioUpdate={handleBioUpdate}
-          onActivityLogged={handleActivityLogged}
-          timezone={optimisticTimezone || profileToDisplay.timezone || "UTC"}
-          isFolded={isMeFolded}
-          toggleFold={toggleMeFold}
-        />
-      </div>
+      <MeSection
+        isCollapsible={isCollapsible}
+        isReadOnly={isReadOnly}
+        username={username}
+        profileToDisplay={profileToDisplay}
+        ownerHabits={ownerHabits}
+        onBioUpdate={handleBioUpdate}
+        onActivityLogged={handleActivityLogged}
+        timezone={optimisticTimezone || profileToDisplay.timezone || "UTC"}
+        isFolded={isMeFolded}
+        toggleFold={toggleMeFold}
+      />
 
-      <div data-tour-step-id="actions">
-        <ActionsSection
-          isOwner={true}
-          isReadOnly={isReadOnly}
-          actions={actions}
-          loading={actionsLoading}
-          onActionToggled={handleActionToggled}
-          onActionAdded={addAction}
-          onActionUpdated={updateActionText}
-          onActionDeleted={handleActionDeleted}
-          undoDeleteAction={undoDeleteAction}
-          onActionIndented={indentAction}
-          onActionOutdented={outdentAction}
-          onActionMovedUp={moveActionUp}
-          onActionMovedDown={moveActionDown}
-          onActionPrivacyToggled={toggleActionPrivacy}
-          onActionAddedAfter={addActionAfter}
-          isCollapsible={isCollapsible}
-          isFolded={isActionsFolded}
-          toggleFold={toggleActionsFold}
-        />
-      </div>
-      <div data-tour-step-id="habits">
-        <HabitsSection
-          isOwner={true}
-          isReadOnly={isReadOnly}
-          habits={ownerHabits}
-          loading={ownerHabitsLoading}
-          onActivityLogged={handleActivityLogged}
-          setOwnerHabits={setOwnerHabits} // Pass setter for optimistic updates
-          todayISO={todayISO}
-        />
-      </div>
-      <div data-tour-step-id="journal">
-        <JournalSection
-          isOwner={true}
-          isReadOnly={isReadOnly}
-          journalEntries={ownerJournalEntries}
-          loading={ownerJournalEntriesLoading}
-          isCollapsible={isCollapsible}
-          isFolded={isJournalFolded}
-          toggleFold={toggleJournalFold}
-          onEntrySaved={() => refreshJournalEntries(true)}
-        />
-      </div>
+      <ActionsSection
+        isOwner={true}
+        isReadOnly={isReadOnly}
+        actions={actions}
+        loading={actionsLoading}
+        onActionToggled={handleActionToggled}
+        onActionAdded={addAction}
+        onActionUpdated={updateActionText}
+        onActionDeleted={handleActionDeleted}
+        undoDeleteAction={undoDeleteAction}
+        onActionIndented={indentAction}
+        onActionOutdented={outdentAction}
+        onActionMovedUp={moveActionUp}
+        onActionMovedDown={moveActionDown}
+        onActionPrivacyToggled={toggleActionPrivacy}
+        onActionAddedAfter={addActionAfter}
+        isCollapsible={isCollapsible}
+        isFolded={isActionsFolded}
+        toggleFold={toggleActionsFold}
+      />
+      <HabitsSection
+        isOwner={true}
+        isReadOnly={isReadOnly}
+        habits={ownerHabits}
+        loading={ownerHabitsLoading}
+        onActivityLogged={handleActivityLogged}
+        setOwnerHabits={setOwnerHabits} // Pass setter for optimistic updates
+        todayISO={todayISO}
+      />
+      <JournalSection
+        isOwner={true}
+        isReadOnly={isReadOnly}
+        journalEntries={ownerJournalEntries}
+        loading={ownerJournalEntriesLoading}
+        isCollapsible={isCollapsible}
+        isFolded={isJournalFolded}
+        toggleFold={toggleJournalFold}
+        onEntrySaved={() => refreshJournalEntries(true)}
+      />
       <MotivationsSection
         username={username}
         isOwner={true}

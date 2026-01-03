@@ -21,29 +21,59 @@ CREATE TABLE public.habit_identities (
   CONSTRAINT habit_identities_identity_id_fkey FOREIGN KEY (identity_id) REFERENCES public.identities(id),
   CONSTRAINT habit_identities_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id)
 );
-CREATE TABLE public.habits (
-  id uuid NOT NULL DEFAULT uuid_generate_v4(),
-  user_id uuid NOT NULL,
-  name text NOT NULL,
-  is_public boolean NOT NULL DEFAULT false,
-  streak integer NOT NULL DEFAULT 0,
-  longest_streak integer NOT NULL DEFAULT 0,
-  goal_value numeric,
-  goal_unit text,
-  habit_state text NOT NULL DEFAULT 'lively'::text CHECK (habit_state = ANY (ARRAY['today'::text, 'yesterday'::text, 'lively'::text, 'junked'::text])),
-  created_at timestamp with time zone NOT NULL DEFAULT now(),
-  updated_at timestamp with time zone NOT NULL DEFAULT now(),
-  undo_streak integer NOT NULL DEFAULT 0,
-  undo_longest_streak integer NOT NULL DEFAULT 0,
-  undo_habit_state text NOT NULL DEFAULT 'lively'::text CHECK (undo_habit_state = ANY (ARRAY['today'::text, 'yesterday'::text, 'lively'::text, 'junked'::text])),
-  completed_date date,
-  undo_completed_date date,
-  processed_date character varying NOT NULL DEFAULT '''1999-01-01''::character varying'::character varying,
-  junked_date character varying DEFAULT '''1999-01-01''::character varying'::character varying,
-  undo_junked_date character varying DEFAULT '''1999-01-01''::character varying'::character varying,
-  CONSTRAINT habits_pkey PRIMARY KEY (id),
-  CONSTRAINT habits_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id)
-);
+create table public.habits (
+  id uuid not null default extensions.uuid_generate_v4 (),
+  user_id uuid not null,
+  name text not null,
+  is_public boolean not null default false,
+  streak integer not null default 0,
+  longest_streak integer not null default 0,
+  goal_value numeric null,
+  goal_unit text null,
+  habit_state text not null default 'lively'::text,
+  created_at timestamp with time zone not null default now(),
+  updated_at timestamp with time zone not null default now(),
+  undo_streak integer not null default 0,
+  undo_longest_streak integer not null default 0,
+  undo_habit_state text not null default 'lively'::text,
+  completed_date date null,
+  undo_completed_date date null,
+  processed_date character varying not null default '''1999-01-01''::character varying'::character varying,
+  junked_date character varying null default '''1999-01-01''::character varying'::character varying,
+  undo_junked_date character varying null default '''1999-01-01''::character varying'::character varying,
+  target_time time without time zone null,
+  descriptions text null,
+  constraint habits_pkey primary key (id),
+  constraint habits_user_id_fkey foreign KEY (user_id) references users (id) on delete CASCADE,
+  constraint habits_habit_state_check check (
+    (
+      habit_state = any (
+        array[
+          'today'::text,
+          'yesterday'::text,
+          'lively'::text,
+          'junked'::text
+        ]
+      )
+    )
+  ),
+  constraint habits_undo_habit_state_check check (
+    (
+      undo_habit_state = any (
+        array[
+          'today'::text,
+          'yesterday'::text,
+          'lively'::text,
+          'junked'::text
+        ]
+      )
+    )
+  )
+) TABLESPACE pg_default;
+
+create trigger update_habits_updated_at BEFORE
+update on habits for EACH row
+execute FUNCTION update_updated_at_column ();
 CREATE TABLE public.identities (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   user_id uuid NOT NULL,

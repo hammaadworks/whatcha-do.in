@@ -9,8 +9,12 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Clock, Dumbbell, Flame, StickyNote } from "lucide-react";
 import { CompletionsData, Habit } from "@/lib/supabase/types";
+import { HabitState } from "@/lib/enums";
+import { Calendar as CalendarIcon, Clock, Dumbbell, Flame, StickyNote } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/shared/Calendar";
+import { format } from "date-fns";
 
 interface HabitCompletionsModalProps {
   isOpen: boolean;
@@ -29,6 +33,7 @@ export const HabitCompletionsModal: React.FC<HabitCompletionsModalProps> = ({ is
   const [timeTaken, setTimeTaken] = useState<string>("");
   const [timeTakenUnit, setTimeTakenUnit] = useState("minutes");
   const [notes, setNotes] = useState("");
+  const [dedicatedDate, setDedicatedDate] = useState<Date | undefined>(undefined);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Reset form on open
@@ -39,13 +44,16 @@ export const HabitCompletionsModal: React.FC<HabitCompletionsModalProps> = ({ is
       setTimeTaken("");
       setTimeTakenUnit("minutes");
       setNotes("");
+      setDedicatedDate(undefined);
     }
   }, [isOpen]);
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
     const data: CompletionsData = {
-      mood: mood, notes: notes.trim() || undefined
+      mood: mood,
+      notes: notes.trim() || undefined,
+      attributed_date: dedicatedDate
     };
 
     if (workValue) data.work_value = Number.parseFloat(workValue);
@@ -63,6 +71,8 @@ export const HabitCompletionsModal: React.FC<HabitCompletionsModalProps> = ({ is
       setIsSubmitting(false);
     }
   };
+
+  const isTodayCompleted = habit.habit_state === HabitState.TODAY;
 
   return (<Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
     <DialogContent className="sm:max-w-[425px]">
@@ -82,10 +92,12 @@ export const HabitCompletionsModal: React.FC<HabitCompletionsModalProps> = ({ is
           </div>
           <div className="text-primary font-bold text-xl">→</div>
           <div className="text-center">
-            <p className="text-xs text-muted-foreground uppercase tracking-wide">New Streak</p>
+            <p className="text-xs text-muted-foreground uppercase tracking-wide">
+                {isTodayCompleted ? "Extra Streak 🔥" : "New Streak"}
+            </p>
             <Badge variant="default" className="text-lg px-3 py-1 mt-1 bg-green-500 hover:bg-green-600">
               <Flame className="w-4 h-4 mr-1 fill-current" />
-              {habit.streak < 1 ? 1 : habit.streak + 1}
+              {habit.streak + 1}
             </Badge>
           </div>
         </div>
@@ -163,6 +175,40 @@ export const HabitCompletionsModal: React.FC<HabitCompletionsModalProps> = ({ is
             </Select>
           </div>
         </div>
+        
+        {/* Dedicate Date (Super Streak) - Only visible if already completed today */}
+        {isTodayCompleted && (
+            <div className="space-y-2">
+                <Label className="flex items-center gap-2">
+                    <CalendarIcon size={16} /> Dedicate to Date (Optional)
+                </Label>
+                <Popover>
+                    <PopoverTrigger asChild>
+                        <Button
+                            variant={"outline"}
+                            className={cn(
+                                "w-full justify-start text-left font-normal",
+                                !dedicatedDate && "text-muted-foreground"
+                            )}
+                        >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {dedicatedDate ? format(dedicatedDate, "PPP") : <span>Pick a date (Default: Today)</span>}
+                        </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                        <Calendar
+                            mode="single"
+                            selected={dedicatedDate}
+                            onSelect={setDedicatedDate}
+                            initialFocus
+                        />
+                    </PopoverContent>
+                </Popover>
+                <p className="text-[10px] text-muted-foreground">
+                    Use this to fill a past gap or add an extra completion to a specific day.
+                </p>
+            </div>
+        )}
 
         {/* Notes */}
         <div className="space-y-2">

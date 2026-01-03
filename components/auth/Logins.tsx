@@ -5,12 +5,14 @@ import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { AlertCircle, CheckCircle2, ExternalLink, Loader2, Mail, MailOpen } from "lucide-react";
+import { AlertCircle, CheckCircle2, ExternalLink, Loader2, Mail, MailOpen, QrCode, Smartphone } from "lucide-react";
 import { DEFAULT_POST_LOGIN_REDIRECT } from "@/lib/constants";
 import { Button } from "@/components/ui/button"; // Import the Button component
 import { MagicCard } from "@/components/ui/magic-card";
 import { PrimaryCtaButton } from "@/components/ui/primary-cta-button"; // Added PrimaryCtaButton import
 import { BlurFade } from "@/components/ui/blur-fade";
+import { DeviceScanner } from "@/components/auth/DeviceScanner";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const isValidEmail = (email: string) => {
   return /\S+@\S+\.\S+/.test(email);
@@ -26,7 +28,7 @@ const openMailClient = (client: "gmail" | "outlook" | "yahoo" | "generic", userE
     case "gmail":
       if (isIOS) url = "googlegmail://";
       else if (isAndroid) url = "intent://#Intent;package=com.google.android.gm;scheme=googlegmail;end;";
-      else url = `mail.google.com{userEmail || ''}`;
+      else url = "https://mail.google.com";
       break;
     case "outlook":
       url = isIOS ? "ms-outlook://" : "outlook.live.com";
@@ -41,7 +43,11 @@ const openMailClient = (client: "gmail" | "outlook" | "yahoo" | "generic", userE
 
   // Direct redirection for apps; browsers handle the rest
   if (url) {
-    window.location.href = url;
+    if (url.startsWith("http")) {
+      window.open(url, "_blank");
+    } else {
+      window.location.href = url;
+    }
 
     // Simple fallback for web after a delay if it's a mobile device
     if (isIOS || isAndroid) {
@@ -60,6 +66,7 @@ export default function Logins() {
   const [error, setError] = useState<string | null>(null);
   const [isSuccess, setIsSuccess] = useState(false);
   const [clientTimezone, setClientTimezone] = useState<string | null>(null);
+  const [loginMethod, setLoginMethod] = useState<"email" | "qr">("email");
 
   const searchParams = useSearchParams();
 
@@ -120,11 +127,12 @@ export default function Logins() {
         gradientColor="#88888822"
       >
         <div className="flex flex-col px-6 py-4 md:p-6 overflow-y-auto max-h-full">
-          <div className="text-center mb-8">
+          <div className="text-center mb-6">
             <div
               className="mx-auto mb-6 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
               {isSuccess ? (<CheckCircle2 className="h-6 w-6 text-primary" />) : (
-                <Mail className="h-6 w-6 text-primary" />)}
+                loginMethod === 'email' ? <Mail className="h-6 w-6 text-primary" /> : <QrCode className="h-6 w-6 text-primary" />
+              )}
             </div>
             <h1 className="text-3xl font-bold tracking-tight text-foreground">
               {isSuccess ? "Check Your Inbox" : "Welcome Back"}
@@ -137,42 +145,60 @@ export default function Logins() {
             </p>
           </div>
 
-          {!isSuccess ? (<form onSubmit={handleLogins} className="space-y-4" suppressHydrationWarning={true}>
-            <div className="space-y-2">
-              <Label htmlFor="email" className="sr-only">
-                Email
-              </Label>
-              <div className="relative">
-                <Mail
-                  className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <div
-                  className="absolute left-9 top-1/2 -translate-y-1/2 h-5 w-px bg-gray-300 dark:bg-gray-700" />
-                {/* Delimiter */}
-                <Input
-                  type="email"
-                  id="email"
-                  placeholder="name@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className="pl-12 h-11 bg-background/50 border-input focus:ring-2 focus:ring-primary/50 transition-all"
-                  disabled={loading}
-                  suppressHydrationWarning={true}
-                />
-              </div>
-            </div>
+          {!isSuccess && (
+            <div className="mb-6">
+              <Tabs defaultValue="email" className="w-full" onValueChange={(v) => setLoginMethod(v as 'email' | 'qr')}>
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="email">Email</TabsTrigger>
+                  <TabsTrigger value="qr">Scan QR</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="email">
+                  <form onSubmit={handleLogins} className="space-y-4 mt-4" suppressHydrationWarning={true}>
+                    <div className="space-y-2">
+                      <Label htmlFor="email" className="sr-only">
+                        Email
+                      </Label>
+                      <div className="relative">
+                        <Mail
+                          className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                        <div
+                          className="absolute left-9 top-1/2 -translate-y-1/2 h-5 w-px bg-gray-300 dark:bg-gray-700" />
+                        <Input
+                          type="email"
+                          id="email"
+                          placeholder="name@example.com"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          required
+                          className="pl-12 h-11 bg-background/50 border-input focus:ring-2 focus:ring-primary/50 transition-all"
+                          disabled={loading}
+                          suppressHydrationWarning={true}
+                        />
+                      </div>
+                    </div>
 
-            <PrimaryCtaButton
-              type="submit"
-              disabled={loading}
-              className="w-full h-12" // Simplified className as PrimaryCtaButton sets text-base font-medium
-            >
-              {loading ? (<span className="flex items-center gap-2">
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      Sending...
-                    </span>) : ("Continue with Magic Link")}
-            </PrimaryCtaButton>
-          </form>) : (<div
+                    <PrimaryCtaButton
+                      type="submit"
+                      disabled={loading}
+                      className="w-full h-12"
+                    >
+                      {loading ? (<span className="flex items-center gap-2">
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                              Sending...
+                            </span>) : ("Continue with Magic Link")}
+                    </PrimaryCtaButton>
+                  </form>
+                </TabsContent>
+
+                <TabsContent value="qr" className="mt-4">
+                  <DeviceScanner />
+                </TabsContent>
+              </Tabs>
+            </div>
+          )}
+
+          {isSuccess && (<div
             className="flex flex-col items-center space-y-4 animate-in fade-in zoom-in duration-500">
             <div className="text-center space-y-2">
               <p className="text-muted-foreground max-w-[250px] mx-auto">

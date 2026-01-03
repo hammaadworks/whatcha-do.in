@@ -2,35 +2,35 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { TargetBucket, useTargets } from "@/hooks/useTargets";
 import { ActionsList } from "@/components/shared/ActionsList";
 import { AddActionForm } from "@/components/shared/AddActionForm";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs"; // Removed TabsList, TabsTrigger
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
 import { getCurrentMonthStartISO, getReferenceDateUI, parseISO } from "@/lib/date";
 import { ActionNode } from "@/lib/supabase/types";
 import { cn } from "@/lib/utils";
-import { Undo2 } from "lucide-react"; // Removed Check, Undo2
-import { CircularProgress } from "@/components/ui/circular-progress"; // Added CircularProgress
-import { toast } from "sonner"; // Import sonner toast
+import { Undo2 } from "lucide-react";
+import { CircularProgress } from "@/components/ui/circular-progress";
+import { toast } from "sonner";
 import { useSimulatedTime } from "@/components/layout/SimulatedTimeProvider";
+import { ToggleButtonGroup } from "@/components/shared/ToggleButtonGroup"; // Import ToggleButtonGroup
 
 interface TargetsSectionProps {
   isOwner: boolean;
-  isReadOnly?: boolean; // Add isReadOnly prop
+  isReadOnly?: boolean;
   timezone: string;
-  targets?: ActionNode[]; // Optional targets prop
-  onActivityLogged?: () => void; // New prop
-  isCollapsible?: boolean; // New prop
-  isFolded?: boolean; // New prop
-  toggleFold?: () => void; // New prop
+  targets?: ActionNode[];
+  onActivityLogged?: () => void;
+  isCollapsible?: boolean;
+  isFolded?: boolean;
+  toggleFold?: () => void;
 }
 
-// Helper to recursively count total and completed actions for a given list of ActionNodes
 const getMonthlyTargetCompletionCounts = (nodes: ActionNode[]): { total: number; completed: number } => {
   let total = 0;
   let completed = 0;
 
   nodes.forEach(node => {
-    total++; // Count the current node
+    total++;
     if (node.completed) {
       completed++;
     }
@@ -47,22 +47,22 @@ const getMonthlyTargetCompletionCounts = (nodes: ActionNode[]): { total: number;
 
 export default function TargetsSection({
                                          isOwner, isReadOnly = false, timezone, targets: propTargets, onActivityLogged,
-                                         isCollapsible = false, isFolded, toggleFold // Destructure new props
+                                         isCollapsible = false, isFolded, toggleFold
                                        }: TargetsSectionProps) {
   const {
-    buckets, loading, addTarget, addTargetAfter, // Destructure new function
-    toggleTarget, updateTargetText, deleteTarget, undoDeleteTarget, // Add undoDeleteTarget
-    lastDeletedTargetContext, // Add lastDeletedTargetContext
-    indentTarget, outdentTarget, moveTargetUp, moveTargetDown, toggleTargetPrivacy, // Add this
+    buckets, loading, addTarget, addTargetAfter,
+    toggleTarget, updateTargetText, deleteTarget, undoDeleteTarget,
+    lastDeletedTargetContext,
+    indentTarget, outdentTarget, moveTargetUp, moveTargetDown, toggleTargetPrivacy,
     moveTargetToBucket
-  } = useTargets(isOwner, timezone, propTargets); // Pass propTargets to hook
+  } = useTargets(isOwner, timezone, propTargets);
 
   const { simulatedDate } = useSimulatedTime();
   const refDate = getReferenceDateUI(simulatedDate);
 
   const [activeTab, setActiveTab] = useState<TargetBucket>("current");
-  const [focusedActionId, setFocusedActionId] = useState<string | null>(null); // Add focus state
-  const [newlyAddedActionId, setNewlyAddedActionId] = useState<string | null>(null); // New state for newly added action
+  const [focusedActionId, setFocusedActionId] = useState<string | null>(null);
+  const [newlyAddedActionId, setNewlyAddedActionId] = useState<string | null>(null);
   const handleNewlyAddedActionProcessed = useCallback(() => {
     setNewlyAddedActionId(null);
   }, []);
@@ -74,7 +74,6 @@ export default function TargetsSection({
     blurInput: () => void;
   }>(null);
 
-  // Handle delete target and show undo toast
   const handleDeleteTarget = async (bucket: TargetBucket, id: string) => {
     const deletedContext = await deleteTarget(bucket, id);
     if (deletedContext) {
@@ -90,18 +89,16 @@ export default function TargetsSection({
                         </span>
         </div>), action: {
           label: "Undo", onClick: () => undoDeleteTarget()
-        }, duration: 5000, // Show toast for 5 seconds
+        }, duration: 5000,
         icon: <Undo2 className="h-4 w-4" />
       });
     }
   };
 
-  // Keyboard event handling for Alt+A and ArrowUp
   useEffect(() => {
     if (!isOwner || isReadOnly) return;
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      // Alt + T (Toggle Add Target form / List focus) - Changed from Alt + A
       if (event.altKey && !event.shiftKey && event.code === "KeyT") {
         event.preventDefault();
 
@@ -114,7 +111,6 @@ export default function TargetsSection({
             if (activeItems.length > 0) {
               setFocusedActionId(activeItems[0].id);
             } else if (flattened.length > 0) {
-              // Only completed items exist, focus Yay button
               setFocusedActionId("yay-toggle-root");
             }
           } else {
@@ -123,7 +119,6 @@ export default function TargetsSection({
           }
         }
       }
-      // ArrowUp in Input -> Focus Last Item (from AddActionForm input)
       else if (event.key === "ArrowUp" && addTargetFormRef.current?.isInputFocused()) {
         event.preventDefault();
         addTargetFormRef.current.blurInput();
@@ -133,47 +128,39 @@ export default function TargetsSection({
         if (activeItems.length > 0) {
           setFocusedActionId(activeItems[activeItems.length - 1].id);
         } else if (flattened.length > 0) {
-          // Only completed items exist, focus Yay button
           setFocusedActionId("yay-toggle-root");
         }
       }
       if (event.key === "Escape") {
-        event.preventDefault(); // Prevent default browser behavior
+        event.preventDefault();
 
-        // Scenario 1: AddTargetForm is focused and empty -> clear and blur it.
         if (addTargetFormRef.current?.isInputFocused() && addTargetFormRef.current?.isInputEmpty()) {
           addTargetFormRef.current.clearInput();
           addTargetFormRef.current.blurInput();
           const flattened = flattenActionTree(buckets[activeTab]);
           if (flattened.length > 0) {
-            setFocusedActionId(flattened[flattened.length - 1].id); // Focus the last item
+            setFocusedActionId(flattened[flattened.length - 1].id);
           } else {
             setFocusedActionId(null);
-            (document.activeElement as HTMLElement)?.blur(); // Truly exit section focus
+            (document.activeElement as HTMLElement)?.blur();
           }
         }
-        // Scenario 2: AddTargetForm is focused and HAS content -> clear and blur it.
         else if (addTargetFormRef.current?.isInputFocused()) {
           addTargetFormRef.current.clearInput();
           addTargetFormRef.current.blurInput();
-          setFocusedActionId(null); // Clear focus from list
-          (document.activeElement as HTMLElement)?.blur(); // Blur current focus
+          setFocusedActionId(null);
+          (document.activeElement as HTMLElement)?.blur();
         }
-        // Scenario 3: An ActionItem is focused (but not editing)
         else if (focusedActionId) {
-          setFocusedActionId(null); // Clear focus from the ActionItem
-          (document.activeElement as HTMLElement)?.blur(); // Blur current focus
+          setFocusedActionId(null);
+          (document.activeElement as HTMLElement)?.blur();
         }
-          // Scenario 4: Nothing specific in the section is focused.
-        // This means focus should leave the whole section.
         else {
-          (document.activeElement as HTMLElement)?.blur(); // Blur whatever is currently focused
+          (document.activeElement as HTMLElement)?.blur();
         }
       }
-      // Ctrl+Z (Undo)
       else if ((event.ctrlKey || event.metaKey) && (event.key === "z" || event.key === "Z")) {
         event.preventDefault();
-        // Check if current bucket or future allows editing
         const canEdit = activeTab === "current" || activeTab === "future";
         if (canEdit && lastDeletedTargetContext) {
           undoDeleteTarget();
@@ -186,12 +173,10 @@ export default function TargetsSection({
   }, [isOwner, isReadOnly, activeTab, buckets, addTargetFormRef]);
 
 
-  // Date labels
   const currentMonthLabel = format(parseISO(getCurrentMonthStartISO(timezone, refDate)), "MMM yyyy");
   const prevMonthLabel = format(parseISO(getCurrentMonthStartISO(timezone, refDate, -1)), "MMM");
   const prev1MonthLabel = format(parseISO(getCurrentMonthStartISO(timezone, refDate, -2)), "MMM");
 
-  // Calculate progress for the current month's targets
   const {
     total: currentMonthTotal,
     completed: currentMonthCompleted
@@ -200,7 +185,6 @@ export default function TargetsSection({
   const isCurrentMonthAllComplete = currentMonthTotal > 0 && currentMonthCompleted === currentMonthTotal;
 
 
-  // Helper (duplicated from ActionsSection, ideally move to utils)
   const flattenActionTree = (nodes: ActionNode[]): ActionNode[] => {
     let flattened: ActionNode[] = [];
     nodes.forEach(node => {
@@ -214,43 +198,41 @@ export default function TargetsSection({
 
   const renderTabContent = (bucket: TargetBucket) => {
     const actions = buckets[bucket];
-    const canEdit = isOwner && !isReadOnly && (bucket === "current"); // Only allow *marking/unmarking and other destructive edits* for the current month
+    const canEdit = isOwner && !isReadOnly && (bucket === "current");
 
-    // Flatten for ActionsList focus management
     const flattened = flattenActionTree(actions);
 
     return (<div className="mt-4">
       <ActionsList
         actions={actions}
         onActionToggled={canEdit ? async (id) => {
-          const toggledNode = await toggleTarget(bucket, id); // AWAIT HERE
+          const toggledNode = await toggleTarget(bucket, id);
           onActivityLogged?.();
           return toggledNode;
         } : undefined}
-        onActionAdded={canEdit ? async (desc, parentId) => { // Make async
-          await addTarget(bucket, desc, parentId); // AWAIT HERE
+        onActionAdded={canEdit ? async (desc, parentId) => {
+          await addTarget(bucket, desc, parentId);
         } : undefined}
         onActionUpdated={canEdit ? (id, text) => updateTargetText(bucket, id, text) : undefined}
-        onActionDeleted={canEdit ? (id) => handleDeleteTarget(bucket, id) : undefined} // Use local handler
-        onActionIndented={canEdit ? async (id) => { // Make async
-          await indentTarget(bucket, id); // AWAIT HERE
+        onActionDeleted={canEdit ? (id) => handleDeleteTarget(bucket, id) : undefined}
+        onActionIndented={canEdit ? async (id) => {
+          await indentTarget(bucket, id);
         } : undefined}
         onActionOutdented={canEdit ? (id) => outdentTarget(bucket, id) : undefined}
         onActionMovedUp={canEdit ? (id) => moveTargetUp(bucket, id) : undefined}
         onActionMovedDown={canEdit ? (id) => moveTargetDown(bucket, id) : undefined}
-        onActionPrivacyToggled={canEdit ? (id) => toggleTargetPrivacy(bucket, id) : undefined} // Enable privacy toggle
-        onActionAddedAfter={canEdit ? async (afterId, description, isPublic) => { // Make async
-          const newActionId = await addTargetAfter(bucket, afterId, description, isPublic); // AWAIT HERE
+        onActionPrivacyToggled={canEdit ? (id) => toggleTargetPrivacy(bucket, id) : undefined}
+        onActionAddedAfter={canEdit ? async (afterId, description, isPublic) => {
+          const newActionId = await addTargetAfter(bucket, afterId, description, isPublic);
           setNewlyAddedActionId(newActionId);
           setFocusedActionId(newActionId);
           return newActionId;
-        } : undefined} // New
+        } : undefined}
         flattenedActions={flattened.filter(a => !a.completed)}
-        focusedActionId={focusedActionId} // Pass focusedActionId
-        setFocusedActionId={setFocusedActionId} // Pass setFocusedActionId
-        newlyAddedActionId={newlyAddedActionId} // Pass new prop
-        onNewlyAddedActionProcessed={handleNewlyAddedActionProcessed} // Pass new prop
-        // New props for future bucket functionality
+        focusedActionId={focusedActionId}
+        setFocusedActionId={setFocusedActionId}
+        newlyAddedActionId={newlyAddedActionId}
+        onNewlyAddedActionProcessed={handleNewlyAddedActionProcessed}
         isFutureBucket={bucket === "future"}
         onActionMoveToCurrent={isOwner && !isReadOnly && bucket === "future" ? async (id) => {
           await moveTargetToBucket(bucket, "current", id);
@@ -261,22 +243,20 @@ export default function TargetsSection({
       {(isOwner && !isReadOnly && (bucket === "current" || bucket === "future")) && (<div className="mt-4">
         <AddActionForm
           ref={addTargetFormRef}
-          onSave={async (desc) => { // Make async
-            await addTarget(bucket, desc); // AWAIT HERE
+          onSave={async (desc) => {
+            await addTarget(bucket, desc);
           }}
           onCancel={() => {
             addTargetFormRef.current?.clearInput();
-            const currentFlattened = flattenActionTree(buckets[activeTab]); // Get fresh flattened list
+            const currentFlattened = flattenActionTree(buckets[activeTab]);
             if (currentFlattened.length > 0) {
               setFocusedActionId(currentFlattened[currentFlattened.length - 1].id);
             }
           }}
-          triggerKey="T" // Pass triggerKey for Targets (Alt+T)
+          triggerKey="T"
           autoFocusOnMount={false}
         />
       </div>)}
-
-      {/* Removed the "Move selected items to current month?" placeholder */}
     </div>);
   };
 
@@ -284,10 +264,14 @@ export default function TargetsSection({
     return <Skeleton className="h-64 w-full" />;
   }
 
-  // If not owner and not read-only (shouldn't happen in public view, but safe guard)
-  // Actually, if targets are empty and not owner, maybe hide?
-  // But let's show empty state if that's desired.
   if (!isOwner && !isReadOnly) return null;
+
+  const MONTH_OPTIONS = [
+    { id: "prev1", label: prev1MonthLabel },
+    { id: "prev", label: prevMonthLabel },
+    { id: "current", label: currentMonthLabel },
+    { id: "future", label: "Future" },
+  ];
 
   return (<>
       <div className="space-y-4">
@@ -308,53 +292,17 @@ export default function TargetsSection({
           </div>
         </div>
 
-        <Tabs value={activeTab} onValueChange={(v: string) => setActiveTab(v as TargetBucket)} className="w-full">
-          <div className="w-full flex justify-center pt-4 sm:pt-0"> {/* Outer container for centering and padding */}
-            <TabsList
-              className="w-full flex items-center justify-between bg-card rounded-full p-2 shadow-md border border-primary gap-x-4"> {/* Inner container styling */}
-              <TabsTrigger
-                value="prev1"
-                className={cn(
-                  "px-3 py-1 text-xs sm:text-sm font-medium rounded-full whitespace-nowrap flex items-center justify-center", // VibeSelector base
-                  "bg-background/80 text-muted-foreground hover:bg-accent/50", // VibeSelector unselected (default)
-                  "data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:hover:bg-primary/90", // VibeSelector selected override
-                  "data-[state=active]:shadow-none data-[state=active]:border data-[state=active]:border-primary", // Custom active styles
-                  "focus-visible:ring-0 focus-visible:ring-offset-0 disabled:opacity-100 disabled:cursor-default" // Remove focus ring, disable opacity
-                )}
-              >{prev1MonthLabel}</TabsTrigger>
-              <TabsTrigger
-                value="prev"
-                className={cn(
-                  "px-3 py-1 text-xs sm:text-sm font-medium rounded-full whitespace-nowrap flex items-center justify-center",
-                  "bg-background/80 text-muted-foreground hover:bg-accent/50",
-                  "data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:hover:bg-primary/90",
-                  "data-[state=active]:shadow-none data-[state=active]:border data-[state=active]:border-primary",
-                  "focus-visible:ring-0 focus-visible:ring-offset-0 disabled:opacity-100 disabled:cursor-default"
-                )}
-              >{prevMonthLabel}</TabsTrigger>
-              <TabsTrigger
-                value="current"
-                className={cn(
-                  "px-3 py-1 text-xs sm:text-sm font-medium rounded-full whitespace-nowrap flex items-center justify-center",
-                  "bg-background/80 text-muted-foreground hover:bg-accent/50",
-                  "data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:hover:bg-primary/90",
-                  "data-[state=active]:shadow-none data-[state=active]:border data-[state=active]:border-primary",
-                  "focus-visible:ring-0 focus-visible:ring-offset-0 disabled:opacity-100 disabled:cursor-default"
-                )}
-              >{currentMonthLabel}</TabsTrigger>
-              <TabsTrigger
-                value="future"
-                className={cn(
-                  "px-3 py-1 text-xs sm:text-sm font-medium rounded-full whitespace-nowrap flex items-center justify-center",
-                  "bg-background/80 text-muted-foreground hover:bg-accent/50",
-                  "data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:hover:bg-primary/90",
-                  "data-[state=active]:shadow-none data-[state=active]:border data-[state=active]:border-primary",
-                  "focus-visible:ring-0 focus-visible:ring-offset-0 disabled:opacity-100 disabled:cursor-default"
-                )}
-              >Future</TabsTrigger>
-            </TabsList>
-          </div>
+        <div className="w-full flex justify-center pt-4 sm:pt-0"> {/* Outer container for centering and padding */}
+            <ToggleButtonGroup
+                options={MONTH_OPTIONS}
+                selectedValue={activeTab}
+                onValueChange={(value) => setActiveTab(value as TargetBucket)}
+                className="w-full flex-1" // Make it full width to fill container
+                itemClassName="flex-1" // Make items flex-1 to distribute space
+            />
+        </div>
 
+        <Tabs value={activeTab} onValueChange={(v: string) => setActiveTab(v as TargetBucket)} className="w-full">
           <TabsContent value="prev1">{renderTabContent("prev1")}</TabsContent>
           <TabsContent value="prev">{renderTabContent("prev")}</TabsContent>
           <TabsContent value="current">{renderTabContent("current")}</TabsContent>
@@ -365,7 +313,6 @@ export default function TargetsSection({
   );
 }
 
-// Helper (duplicated from ActionsSection, ideally move to utils)
 const flattenActionTree = (nodes: ActionNode[]): ActionNode[] => {
   let flattened: ActionNode[] = [];
   nodes.forEach(node => {

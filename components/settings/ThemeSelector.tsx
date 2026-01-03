@@ -123,22 +123,27 @@ export function ThemeSelector(props: ThemeSelectorProps) {
     return true;
   }, [currentPreviewThemeDef, user, localPurchasedThemes]);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (isLocked) {
       toast.error("Unlock this theme first to catch the vibe.");
       return;
     }
     isSavingRef.current = true;
-    setTheme(theme); // Commit the current preview (which is 'theme')
+    await setTheme(theme); // Commit the current preview (which is 'theme')
     setOpen(false);
 
     toast.success("Theme applied! Workspace looking fresh. ✨", {
       action: {
-        label: "Refresh",
+        label: "Refresh Now",
         onClick: () => window.location.reload()
       },
-      duration: 5000
+      duration: 3000
     });
+
+    // Auto refresh after short delay
+    setTimeout(() => {
+      window.location.reload();
+    }, 1500);
   };
 
   const getSocialAction = () => {

@@ -26,9 +26,27 @@ export function calculateHabitUpdates(habit: Habit, event: HabitLifecycleEvent, 
       return handleGraceComplete(habit, todayDate);
     case HabitLifecycleEvent.GRACE_INCOMPLETE:
       return handleGraceIncomplete(habit, todayDate);
+    case HabitLifecycleEvent.LOG_EXTRA:
+      return handleLogExtra(habit);
     default:
       throw new Error(`Unhandled event: ${event}`);
   }
+}
+
+/**
+ * Handles the LOG_EXTRA event.
+ * Increments streak statistics without changing state or dates.
+ * Used for "Super Streak" (multiple completions per day) or retroactive logging.
+ */
+function handleLogExtra(habit: Habit): Partial<Habit> {
+  const newStreak = habit.streak + 1;
+  const update: Partial<Habit> = {
+    streak: newStreak,
+    longest_streak: Math.max(habit.longest_streak, newStreak),
+    // We do NOT update state or dates here as this is an out-of-band update
+  };
+  console.log("[HabitLifecycle] Log Extra Update:", update);
+  return update;
 }
 
 /**

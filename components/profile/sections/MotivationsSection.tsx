@@ -238,7 +238,6 @@ const MotivationsSection: React.FC<MotivationsSectionProps> = ({ username, loadi
                                             e.stopPropagation();
                                             handleShuffle();
                                         }}
-                                        disabled={!hasMotivations && currentQuote.id === defaultQuote.id}
                                     >
                                         <Shuffle className="w-4 h-4" />
                                         Shuffle

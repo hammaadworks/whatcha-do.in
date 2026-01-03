@@ -17,7 +17,7 @@ interface HabitChipProps {
   habit: Habit;
   isOwner?: boolean;
   // Owner-only props
-  onHabitUpdated?: (habitId: string, name: string, isPublic: boolean, goalValue?: number | null, goalUnit?: string | null) => void;
+  onHabitUpdated?: (habitId: string, name: string, isPublic: boolean, goalValue?: number | null, goalUnit?: string | null, targetTime?: string | null, description?: string | null) => void;
   onHabitDeleted?: (habitId: string) => void;
   onHabitCompleted?: (habitId: string, data: CompletionsData) => void;
   onHabitMove?: (habitId: string, targetBox: HabitBoxType) => Promise<void>; // New prop
@@ -168,6 +168,7 @@ export const HabitChip: React.FC<HabitChipProps> = ({
       onHabitUpdated={isOwner ? onHabitUpdated : undefined}
       onHabitDeleted={isOwner ? onHabitDeleted : undefined}
       onHabitMove={isOwner ? onHabitMove : undefined} // Pass to modal
+      onLogExtra={isOwner ? () => setIsCompletionModalOpen(true) : undefined}
       isPrivateHabit={isOwner}
       canBeDeleted={canBeDeleted}
     />
