@@ -53,7 +53,7 @@ const AsyncImage = ({ src, alt, resolve }: { src: string, alt?: string, resolve?
         return () => { active = false; };
     }, [src, resolve]);
 
-    if (!resolvedSrc) return <div className="animate-pulse bg-muted w-full h-48 rounded-md" />; 
+    if (!resolvedSrc) return <span className="block animate-pulse bg-muted w-full h-48 rounded-md" />; 
     
     return <img src={resolvedSrc} alt={alt} className="rounded-md max-w-full h-auto my-4 border bg-card shadow-sm" loading="lazy" />;
 }
