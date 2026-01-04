@@ -25,6 +25,8 @@ import { useAuth } from "@/packages/auth/hooks/useAuth";
 import { toast } from "sonner";
 import { purchaseTheme, verifySocialUnlock } from "@/lib/actions/theme";
 import { fetchUserPurchasedThemes } from "@/lib/supabase/user.client";
+import { ProSubscriptionsModal } from "@/components/shared/ProSubscriptionsModal";
+import { sendLarkMessage } from "@/lib/lark";
 
 interface ThemeSelectorProps {
   open?: boolean;
@@ -39,6 +41,7 @@ export function ThemeSelector(props: ThemeSelectorProps) {
 
   // Local state for purchased themes to ensure freshness
   const [localPurchasedThemes, setLocalPurchasedThemes] = useState<string[]>(user?.purchased_themes || []);
+  const [showProModal, setShowProModal] = useState(false);
 
   // Sync local state when user prop updates (e.g. initial load)
   React.useEffect(() => {
@@ -211,6 +214,11 @@ export function ThemeSelector(props: ThemeSelectorProps) {
       return;
     }
 
+    if (currentPreviewThemeDef.unlockCondition === "payment") {
+        setShowProModal(true);
+        return;
+    }
+
     // Payment Flow (Simulation)
     setIsUnlocking(true);
     try {
@@ -292,7 +300,21 @@ export function ThemeSelector(props: ThemeSelectorProps) {
 
   const socialAction = getSocialAction();
 
+  const handleProSuccess = async () => {
+      await refreshUser();
+      setShowProModal(false);
+      
+      if (user) {
+        const larkPrefix = process.env.LARK_MESSAGE_PREFIX || '';
+        const env = process.env.NODE_ENV || 'development';
+        const envTag = `[${env}]`;
+        const message = `User upgraded to PRO via Theme Selector!\n\nID: ${user.id}\nEmail: ${user.email}`;
+        await sendLarkMessage(`${larkPrefix} ${envTag} ${message}`, "💰 New Pro Upgrade (Theme)");
+      }
+  };
+
   return (
+    <>
     <Dialog open={open} onOpenChange={handleOpenChange}>
       {props.trigger !== null && (
         <DialogTrigger asChild>
@@ -481,5 +503,12 @@ export function ThemeSelector(props: ThemeSelectorProps) {
         </DialogFooter>
       </DialogContent>
     </Dialog>
+
+    <ProSubscriptionsModal 
+        open={showProModal} 
+        onOpenChange={setShowProModal} 
+        onSuccess={handleProSuccess} 
+    />
+    </>
   );
 }

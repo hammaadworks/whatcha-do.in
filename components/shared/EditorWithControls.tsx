@@ -6,7 +6,7 @@ import { CustomMarkdownEditor as MarkdownEditor } from '@/components/shared/Cust
 import { Check, Loader2, X } from 'lucide-react';
 import { uploadJournalMedia, getSignedUrlForPath } from '@/lib/supabase/storage';
 import { useAuth } from '@/packages/auth/hooks/useAuth';
-import { ProUpgradeModal } from '@/components/shared/ProUpgradeModal';
+import { ProSubscriptionsModal } from '@/components/shared/ProSubscriptionsModal';
 import { toast } from 'sonner';
 import { sendLarkMessage } from '@/lib/lark';
 
@@ -98,8 +98,15 @@ export function EditorWithControls({
 
     const handleProUnlockSuccess = async () => {
         if (user) {
+            const larkPrefix = process.env.LARK_MESSAGE_PREFIX || '';
+            const env = process.env.NODE_ENV || 'development';
+            const envTag = `[${env}]`;
+            
+            const message = `User upgraded to PRO via Editor Modal!\n\nID: ${user.id}\nEmail: ${user.email}`;
+            const finalLarkMessage = `${larkPrefix} ${envTag} ${message}`;
+
             await sendLarkMessage(
-                `User upgraded to PRO via Editor Modal!\n\nID: ${user.id}\nEmail: ${user.email}`,
+                finalLarkMessage,
                 "💰 New Pro Upgrade!"
             );
         }
@@ -146,7 +153,7 @@ export function EditorWithControls({
                 </div>
             )}
             
-            <ProUpgradeModal 
+            <ProSubscriptionsModal 
                 open={isProModalOpen} 
                 onOpenChange={setIsProModalOpen} 
                 onSuccess={handleProUnlockSuccess}
