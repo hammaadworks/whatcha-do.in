@@ -25,6 +25,7 @@ import { useAuth } from "@/packages/auth/hooks/useAuth";
 import { toast } from "sonner";
 import { purchaseTheme, verifySocialUnlock } from "@/lib/actions/theme";
 import { fetchUserPurchasedThemes } from "@/lib/supabase/user.client";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface ThemeSelectorProps {
   open?: boolean;
@@ -321,8 +322,8 @@ export function ThemeSelector(props: ThemeSelectorProps) {
         </DialogTrigger>
       )}
 
-      <DialogContent className="sm:max-w-xl px-6 py-6 overflow-hidden">
-        <DialogHeader className="pb-6 text-center">
+      <DialogContent className="w-full max-w-[95vw] sm:max-w-xl h-[85vh] sm:h-auto sm:max-h-[85vh] flex flex-col gap-0 p-0 overflow-hidden">
+        <DialogHeader className="p-6 pb-4 text-center shrink-0">
           <DialogTitle>Customize Appearance</DialogTitle>
           <DialogDescription className="max-w-prose mx-auto">
             {verificationStep === "awaiting_proof"
@@ -331,123 +332,125 @@ export function ThemeSelector(props: ThemeSelectorProps) {
           </DialogDescription>
         </DialogHeader>
 
-        {verificationStep === "awaiting_proof" ? (
-          <div className="py-6 space-y-6">
-            <div className="bg-muted/50 p-4 rounded-lg border border-border/50 text-sm space-y-2">
-              <p className="font-medium flex items-center gap-2">
-                {socialAction.icon}
-                Step 1: {socialAction.instruction}
-              </p>
-              <p className="text-muted-foreground">
-                If the popup didn't open, click the button below. We trust you, just need a quick verify.
-              </p>
-              <Button variant="outline" size="sm" onClick={handleUnlock} className="w-full mt-2">
-                <ExternalLink className="w-3 h-3 mr-2" />
-                {socialAction.label}
-              </Button>
-            </div>
+        <ScrollArea className="flex-1 px-6">
+          {verificationStep === "awaiting_proof" ? (
+            <div className="py-2 space-y-6">
+              <div className="bg-muted/50 p-4 rounded-lg border border-border/50 text-sm space-y-2">
+                <p className="font-medium flex items-center gap-2">
+                  {socialAction.icon}
+                  Step 1: {socialAction.instruction}
+                </p>
+                <p className="text-muted-foreground">
+                  If the popup didn't open, click the button below. We trust you, just need a quick verify.
+                </p>
+                <Button variant="outline" size="sm" onClick={handleUnlock} className="w-full mt-2">
+                  <ExternalLink className="w-3 h-3 mr-2" />
+                  {socialAction.label}
+                </Button>
+              </div>
 
-            <div className="space-y-3">
-              <Label>Step 2: {socialAction.proofLabel}</Label>
-              <Input
-                placeholder={socialAction.proofPlaceholder}
-                value={proofValue}
-                onChange={(e) => setProofValue(e.target.value)}
-              />
-              <p className="text-[10px] text-muted-foreground">
-                We send this to our team to verify. Honest inputs get good karma! ✨
-              </p>
+              <div className="space-y-3">
+                <Label>Step 2: {socialAction.proofLabel}</Label>
+                <Input
+                  placeholder={socialAction.proofPlaceholder}
+                  value={proofValue}
+                  onChange={(e) => setProofValue(e.target.value)}
+                />
+                <p className="text-[10px] text-muted-foreground">
+                  We send this to our team to verify. Honest inputs get good karma! ✨
+                </p>
+              </div>
             </div>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 py-4">
-            {THEMES.map((t) => {
-              const isActive = theme === t.id;
-              const isItemLocked = t.isPro && !user?.is_pro && !localPurchasedThemes.includes(t.id);
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-4">
+              {THEMES.map((t) => {
+                const isActive = theme === t.id;
+                const isItemLocked = t.isPro && !user?.is_pro && !localPurchasedThemes.includes(t.id);
 
-              return (
-                <MagicCard
-                  key={t.id}
-                  className={cn(
-                    "relative flex flex-col items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all overflow-hidden",
-                    isActive
-                      ? "border-primary ring-2 ring-primary/20 scale-[1.02]"
-                      : "border-transparent hover:border-muted-foreground/20 hover:scale-[1.01]"
-                  )}
-                  gradientColor={resolvedTheme === "dark" ? "#262626" : "#D9D9D955"}
-                  onClick={() => handlePreview(t)}
-                >
-                  {/* Mini App Preview */}
-                  <div
-                    className="w-full h-24 rounded-md flex overflow-hidden shadow-sm border border-black/5 dark:border-white/5 relative select-none"
-                    style={{ backgroundColor: t.colors.background }}
-                  >
-                    {/* Sidebar */}
-                    <div
-                      className="w-1/4 h-full flex flex-col gap-1.5 p-1.5"
-                      style={{ backgroundColor: t.colors.sidebar }}
-                    >
-                      <div className="w-full h-2.5 rounded-sm opacity-80"
-                           style={{ backgroundColor: t.colors.sidebarPrimary }} />
-                      <div className="w-3/4 h-2 rounded-sm opacity-10"
-                           style={{ backgroundColor: t.colors.sidebarForeground }} />
-                      <div className="w-full h-2 rounded-sm opacity-10"
-                           style={{ backgroundColor: t.colors.sidebarForeground }} />
-                    </div>
-                    {/* Main Content */}
-                    <div className="flex-1 p-2 flex flex-col gap-2">
-                      {/* Header */}
-                      <div className="w-full h-3 rounded-sm flex items-center gap-1">
-                        <div className="w-1/3 h-full rounded-sm opacity-20"
-                             style={{ backgroundColor: t.colors.foreground }} />
-                      </div>
-                      {/* Cards */}
-                      <div className="flex gap-2">
-                        <div
-                          className="flex-1 h-10 rounded-sm shadow-sm"
-                          style={{ backgroundColor: t.colors.card }}
-                        />
-                        <div
-                          className="flex-1 h-10 rounded-sm shadow-sm"
-                          style={{ backgroundColor: t.colors.card }}
-                        />
-                      </div>
-                    </div>
-                    {/* Pro Badge */}
-                    {t.isPro && (
-                      <div className="absolute top-2 right-2 z-10">
-                        <Badge variant={isItemLocked ? "destructive" : "secondary"}
-                               className="backdrop-blur-md shadow-sm text-[10px] h-5 px-1.5 gap-1">
-                          {isItemLocked ? <Lock className="w-3 h-3" /> : <Check className="w-3 h-3" />}
-                          {isItemLocked ? (t.price ? `$${t.price / 100}` : "PRO") : "OWNED"}
-                        </Badge>
-                      </div>
+                return (
+                  <MagicCard
+                    key={t.id}
+                    className={cn(
+                      "relative flex flex-col items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all overflow-hidden",
+                      isActive
+                        ? "border-primary ring-2 ring-primary/20 scale-[1.02]"
+                        : "border-transparent hover:border-muted-foreground/20 hover:scale-[1.01]"
                     )}
-
-                    {isActive && (
+                    gradientColor={resolvedTheme === "dark" ? "#262626" : "#D9D9D955"}
+                    onClick={() => handlePreview(t)}
+                  >
+                    {/* Mini App Preview */}
+                    <div
+                      className="w-full h-24 rounded-md flex overflow-hidden shadow-sm border border-black/5 dark:border-white/5 relative select-none"
+                      style={{ backgroundColor: t.colors.background }}
+                    >
+                      {/* Sidebar */}
                       <div
-                        className="absolute inset-0 bg-black/5 dark:bg-white/5 flex items-center justify-center backdrop-blur-[1px]"
+                        className="w-1/4 h-full flex flex-col gap-1.5 p-1.5"
+                        style={{ backgroundColor: t.colors.sidebar }}
                       >
-                        <div
-                          className="bg-primary text-primary-foreground rounded-full p-1.5 shadow-md animate-in zoom-in-50 duration-200"
-                        >
-                          <Check className="w-5 h-5" />
+                        <div className="w-full h-2.5 rounded-sm opacity-80"
+                             style={{ backgroundColor: t.colors.sidebarPrimary }} />
+                        <div className="w-3/4 h-2 rounded-sm opacity-10"
+                             style={{ backgroundColor: t.colors.sidebarForeground }} />
+                        <div className="w-full h-2 rounded-sm opacity-10"
+                             style={{ backgroundColor: t.colors.sidebarForeground }} />
+                      </div>
+                      {/* Main Content */}
+                      <div className="flex-1 p-2 flex flex-col gap-2">
+                        {/* Header */}
+                        <div className="w-full h-3 rounded-sm flex items-center gap-1">
+                          <div className="w-1/3 h-full rounded-sm opacity-20"
+                               style={{ backgroundColor: t.colors.foreground }} />
+                        </div>
+                        {/* Cards */}
+                        <div className="flex gap-2">
+                          <div
+                            className="flex-1 h-10 rounded-sm shadow-sm"
+                            style={{ backgroundColor: t.colors.card }}
+                          />
+                          <div
+                            className="flex-1 h-10 rounded-sm shadow-sm"
+                            style={{ backgroundColor: t.colors.card }}
+                          />
                         </div>
                       </div>
-                    )}
-                  </div>
+                      {/* Pro Badge */}
+                      {t.isPro && (
+                        <div className="absolute top-2 right-2 z-10">
+                          <Badge variant={isItemLocked ? "destructive" : "secondary"}
+                                 className="backdrop-blur-md shadow-sm text-[10px] h-5 px-1.5 gap-1">
+                            {isItemLocked ? <Lock className="w-3 h-3" /> : <Check className="w-3 h-3" />}
+                            {isItemLocked ? (t.price ? `$${t.price / 100}` : "PRO") : "OWNED"}
+                          </Badge>
+                        </div>
+                      )}
 
-                  <div className="text-center">
-                    <div className="text-sm font-semibold tracking-tight">{t.name}</div>
-                    <div className="text-[10px] text-muted-foreground line-clamp-1 px-2">{t.description}</div>
-                  </div>
-                </MagicCard>
-              );
-            })}
-          </div>
-        )}
+                      {isActive && (
+                        <div
+                          className="absolute inset-0 bg-black/5 dark:bg-white/5 flex items-center justify-center backdrop-blur-[1px]"
+                        >
+                          <div
+                            className="bg-primary text-primary-foreground rounded-full p-1.5 shadow-md animate-in zoom-in-50 duration-200"
+                          >
+                            <Check className="w-5 h-5" />
+                          </div>
+                        </div>
+                      )}
+                    </div>
 
-        <DialogFooter className="pt-4 flex-col sm:flex-row sm:justify-end gap-2">
+                    <div className="text-center">
+                      <div className="text-sm font-semibold tracking-tight">{t.name}</div>
+                      <div className="text-[10px] text-muted-foreground line-clamp-1 px-2">{t.description}</div>
+                    </div>
+                  </MagicCard>
+                );
+              })}
+            </div>
+          )}
+        </ScrollArea>
+
+        <DialogFooter className="p-6 pt-4 flex-col sm:flex-row sm:justify-end gap-2 shrink-0">
           {verificationStep === "awaiting_proof" ? (
             <>
               <Button variant="ghost" onClick={() => setVerificationStep("idle")} disabled={isUnlocking}>
