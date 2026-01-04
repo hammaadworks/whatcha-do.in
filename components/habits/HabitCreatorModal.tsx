@@ -24,7 +24,7 @@ interface HabitCreatorModalProps {
 export function HabitCreatorModal({ isOpen, onClose, onHabitCreated }: HabitCreatorModalProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="w-full max-w-[95vw] sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Create New Habit</DialogTitle>
         </DialogHeader>

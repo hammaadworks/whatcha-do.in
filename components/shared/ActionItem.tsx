@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
-import { Check, ChevronDown, Edit2, Globe, Lock, Plus, Trash2, X, GripVertical } from "lucide-react";
+import { Check, ChevronDown, Edit2, Globe, Lock, Plus, Trash2, X, GripVertical, MoreHorizontal } from "lucide-react";
 import { ActionsList } from "./ActionsList";
 import { CircularProgress } from "@/components/ui/circular-progress";
 import { AddActionForm } from "./AddActionForm";
@@ -13,6 +13,22 @@ import { ActionNode } from "@/lib/supabase/types";
 import { areAllChildrenCompleted } from "@/lib/logic/actions/tree-utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { motion, PanInfo } from "framer-motion";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 
 /**
  * Props for the ActionItem component.
@@ -120,10 +136,13 @@ export const ActionItem: React.FC<ActionItemProps> = ({
   const [isExpanded, setIsExpanded] = useState(true);
   const [isAddingSubItem, setIsAddingSubItem] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false); // Mobile edit modal state
   const [editText, setEditText] = useState(action.description);
   const editInputRef = useRef<HTMLInputElement>(null);
   const divRef = useRef<HTMLDivElement>(null);
   const [isFocused, setIsFocused] = useState(false);
+  
+  const isDesktop = useMediaQuery("(min-width: 1024px)");
 
   // Local state for delayed completion
   const [isCompleting, setIsCompleting] = useState(false);
@@ -189,22 +208,27 @@ export const ActionItem: React.FC<ActionItemProps> = ({
 
   // Effect to automatically enter edit mode for newly added action
   useEffect(() => {
-    if (newlyAddedActionId === action.id && focusedActionId === action.id && !isEditing) {
-      setIsEditing(true);
-      if (editInputRef.current) {
-        editInputRef.current.focus();
-      }
+    if (newlyAddedActionId === action.id && focusedActionId === action.id && !isEditing && !isEditModalOpen) {
+      handleEditStart();
       onNewlyAddedActionProcessed?.(action.id);
     }
-  }, [newlyAddedActionId, focusedActionId, action.id, isEditing, onNewlyAddedActionProcessed]);
+  }, [newlyAddedActionId, focusedActionId, action.id, isEditing, isEditModalOpen, onNewlyAddedActionProcessed]);
 
   // Sync local editText with prop changes
   useEffect(() => {
-    if (!isEditing && editText !== action.description) {
+    if (!isEditing && !isEditModalOpen && editText !== action.description) {
       setEditText(action.description);
     }
-  }, [action.description, isEditing, editText]);
+  }, [action.description, isEditing, isEditModalOpen, editText]);
 
+
+  const handleEditStart = () => {
+    if (isDesktop) {
+      setIsEditing(true);
+    } else {
+      setIsEditModalOpen(true);
+    }
+  };
 
   const handleEditSave = () => {
     if (editText.trim()) {
@@ -213,6 +237,7 @@ export const ActionItem: React.FC<ActionItemProps> = ({
       onActionDeleted?.(action.id); // Delete if empty
     }
     setIsEditing(false);
+    setIsEditModalOpen(false);
     setTimeout(() => {
       divRef.current?.focus();
     }, 0);
@@ -221,6 +246,7 @@ export const ActionItem: React.FC<ActionItemProps> = ({
   const handleEditCancel = () => {
     setEditText(action.description);
     setIsEditing(false);
+    setIsEditModalOpen(false);
     setTimeout(() => {
       divRef.current?.focus();
     }, 0);
@@ -258,7 +284,7 @@ export const ActionItem: React.FC<ActionItemProps> = ({
         break;
       case " ":
         // Space: Start editing
-        if (onActionUpdated) setIsEditing(true);
+        if (onActionUpdated) handleEditStart();
         break;
       case "p":
       case "P":
@@ -344,7 +370,7 @@ export const ActionItem: React.FC<ActionItemProps> = ({
         role="button" // Indicates this element is interactive
         aria-label={`${action.description} ${action.completed ? "(Completed)" : ""}`}
         className={cn(
-          "flex items-center space-x-3 p-3 rounded-md border shadow-sm transition-all duration-300 group focus:outline-none",
+          "flex items-center space-x-3 p-3 rounded-md border shadow-sm transition-all duration-300 group focus:outline-none min-w-0", // Added min-w-0 for proper flex shrinking
           isFocused ? "border-primary-light ring-2 ring-primary-light" : "border-card-border",
           {
             "bg-accent/30 scale-95": justCompletedId === action.id,
@@ -360,7 +386,7 @@ export const ActionItem: React.FC<ActionItemProps> = ({
           onCheckedChange={handleToggle}
           disabled={isDisabledForCompletion && !action.completed}
           className={cn(
-            "h-5 w-5 rounded-full z-10",
+            "h-5 w-5 rounded-full z-10 shrink-0", // Added shrink-0
             {
               "pointer-events-none opacity-50 cursor-not-allowed": isDisabledForCompletion && !action.completed,
               "pointer-events-none": !onActionToggled
@@ -397,15 +423,17 @@ export const ActionItem: React.FC<ActionItemProps> = ({
               }
             )}
             onDoubleClick={() => {
-              if (onActionUpdated) setIsEditing(true);
+              if (onActionUpdated) handleEditStart();
             }}
           >
-            {action.description}
+            <span className="flex-1 min-w-0 break-words break-all [overflow-wrap:anywhere] whitespace-normal leading-snug">
+              {action.description}
+            </span>
             {!isPublic && (
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Lock size={14} className="ml-2 text-muted-foreground/60" aria-label="Private" />
+                    <Lock size={14} className="ml-2 text-muted-foreground/60 shrink-0" aria-label="Private" />
                   </TooltipTrigger>
                   <TooltipContent>This action is private</TooltipContent>
                 </Tooltip>
@@ -414,8 +442,9 @@ export const ActionItem: React.FC<ActionItemProps> = ({
           </Label>
         )}
 
-        {/* Action Buttons (Visible on Hover) */}
-        <div className="flex items-center space-x-1 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity" role="group"
+        {/* Action Buttons (Desktop: Row, Mobile: Dropdown) */}
+        {/* Desktop View */}
+        <div className="hidden lg:flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity" role="group"
              aria-label="Action controls">
           {onActionPrivacyToggled && (
             <button
@@ -429,7 +458,7 @@ export const ActionItem: React.FC<ActionItemProps> = ({
           )}
           {onActionUpdated && !isEditing && (
             <button
-              onClick={() => setIsEditing(true)}
+              onClick={handleEditStart}
               className="p-1.5 rounded-md hover:bg-accent text-muted-foreground hover:text-foreground"
               title="Edit"
               aria-label="Edit"
@@ -457,6 +486,43 @@ export const ActionItem: React.FC<ActionItemProps> = ({
               <Trash2 size={14} />
             </button>
           )}
+        </div>
+
+        {/* Mobile View */}
+        <div className="lg:hidden">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="p-1.5 rounded-md text-muted-foreground hover:text-foreground focus:outline-none">
+                <MoreHorizontal size={16} />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {onActionPrivacyToggled && (
+                <DropdownMenuItem onClick={() => onActionPrivacyToggled(action.id)}>
+                  {isPublic ? <Lock size={14} className="mr-2"/> : <Globe size={14} className="mr-2"/>}
+                  {isPublic ? "Make Private" : "Make Public"}
+                </DropdownMenuItem>
+              )}
+              {onActionUpdated && !isEditing && (
+                <DropdownMenuItem onClick={handleEditStart}>
+                  <Edit2 size={14} className="mr-2"/>
+                  Edit
+                </DropdownMenuItem>
+              )}
+               {onActionAdded && (
+                <DropdownMenuItem onClick={() => setIsAddingSubItem(true)}>
+                  <Plus size={14} className="mr-2"/>
+                  Add Sub-action
+                </DropdownMenuItem>
+              )}
+              {onActionDeleted && (
+                <DropdownMenuItem onClick={() => onActionDeleted(action.id)} className="text-destructive focus:text-destructive">
+                  <Trash2 size={14} className="mr-2"/>
+                  Delete
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
         {isFutureBucket && onActionMoveToCurrent && (
           <TooltipProvider>
@@ -514,6 +580,28 @@ export const ActionItem: React.FC<ActionItemProps> = ({
           />
         </div>
       )}
+
+      {/* Mobile Edit Modal */}
+      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Edit Action</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <Textarea
+              id="edit-action"
+              value={editText}
+              onChange={(e) => setEditText(e.target.value)}
+              className="min-h-[100px]"
+              placeholder="Action description..."
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={handleEditCancel}>Cancel</Button>
+            <Button onClick={handleEditSave}>Save changes</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {hasChildren && isExpanded && (
         <div className="ml-4 mt-2 border-l-2 border-border pl-2" role="group">

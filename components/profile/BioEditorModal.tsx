@@ -21,7 +21,7 @@ export const BioEditorModal: React.FC<BioEditorModalProps> = ({isOpen, onClose, 
 
     return (
         <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-            <DialogContent className="w-[95vw] h-[95vh] max-w-none sm:max-w-none flex flex-col p-4 sm:p-6 overflow-hidden rounded-xl border shadow-2xl gap-0">
+            <DialogContent className="w-full max-w-[95vw] sm:max-w-4xl h-[95vh] flex flex-col p-4 sm:p-6 overflow-hidden rounded-xl border shadow-2xl gap-0">
                 <DialogHeader className="px-6 pt-6 pb-4 sm:px-0 sm:pt-0">
                     <DialogTitle className="text-2xl font-bold text-primary">Edit Bio</DialogTitle>
                 </DialogHeader>

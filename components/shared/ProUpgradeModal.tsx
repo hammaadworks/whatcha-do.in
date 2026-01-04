@@ -29,7 +29,7 @@ export function ProUpgradeModal({ open, onOpenChange }: ProUpgradeModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md p-0 overflow-hidden border-0 shadow-2xl">
+      <DialogContent className="sm:max-w-md p-0 overflow-hidden border-0 shadow-2xl">
         <div className="relative p-6 bg-gradient-to-br from-indigo-900 via-purple-900 to-black text-white">
           <div className="absolute top-0 right-0 p-4 opacity-10">
             <Sparkles className="w-32 h-32" />

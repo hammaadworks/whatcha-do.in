@@ -79,10 +79,10 @@ const AppHeader = ({ themeTogglerRef }: AppHeaderProps) => {
                 className="fixed top-0 z-50 w-full flex justify-center pointer-events-none"
             >
                 <div className={cn(
-                    "pointer-events-auto flex items-center rounded-full transition-all duration-500 ease-in-out backdrop-blur-md w-[calc(100%-1rem)] sm:w-[calc(100%-2rem)] mx-auto max-w-5xl mt-2 sm:mt-4 border border-border/50",
+                    "pointer-events-auto flex items-center rounded-full transition-all duration-500 ease-in-out backdrop-blur-md w-[calc(100%-2rem)] sm:w-[calc(100%-2rem)] mx-auto max-w-5xl mt-2 sm:mt-4 border border-border/50",
                     isScrolled
-                                                ? "px-4 py-1 sm:px-4 sm:py-2 bg-background/80 shadow-lg"
-                                                : "px-6 py-1.5 sm:px-6 sm:py-3 bg-background/60 shadow-md"
+                                                ? "px-2 py-1 sm:px-4 sm:py-2 bg-background/80 shadow-lg"
+                                                : "px-3 py-1.5 sm:px-6 sm:py-3 bg-background/60 shadow-md"
                 )}>
                     {/* Left Section: Logo and App Name */}
                     <div className="flex items-center space-x-2 min-w-max">
@@ -91,7 +91,7 @@ const AppHeader = ({ themeTogglerRef }: AppHeaderProps) => {
                                 <img src={logoSrc} alt="Whatcha Doin' Logo" className="h-8 w-auto"/>
                             </div>
                             <span className="text-muted-foreground/50">|</span>
-                            <span className="text-base sm:text-lg font-bold tracking-tight text-foreground/90 transition-opacity duration-300 whitespace-nowrap">
+                            <span className="text-sm sm:text-lg font-bold tracking-tight text-foreground/90 transition-opacity duration-300 whitespace-nowrap">
                                 whatcha-do.in
                             </span>
                         </Link>
@@ -121,7 +121,7 @@ const AppHeader = ({ themeTogglerRef }: AppHeaderProps) => {
                     </div>
 
                     {/* Right Section: Theme Toggler, Settings, User Menu/Login */}
-                    <div className="flex items-center space-x-3 sm:space-x-4 min-w-max">
+                    <div className="flex items-center space-x-1 sm:space-x-4 min-w-max">
                         <AnimatedThemeToggler ref={themeTogglerRef}/> {/* Pass the ref */}
 
                         {user && (

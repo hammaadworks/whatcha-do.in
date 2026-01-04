@@ -15,7 +15,7 @@ import { cn } from "@/lib/utils";
 interface BaseModalProps {
   isOpen: boolean;
   onClose: () => void;
-  title: string;
+  title: React.ReactNode;
   description?: string;
   children?: React.ReactNode;
   footerContent?: React.ReactNode; 
@@ -49,20 +49,18 @@ const BaseModal: React.FC<BaseModalProps> = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent 
         className={cn(
-          "w-full max-w-full sm:max-w-lg max-h-[80vh] overflow-y-auto p-0", 
-          // Responsive width override for mobile-first feel:
-          "!w-[calc(100vw-2rem)] sm:!w-full", 
+          "max-h-[80vh] p-0 flex flex-col overflow-hidden", 
           className
         )}
       >
-        <DialogHeader className="px-4 pt-10">
+        <DialogHeader className="px-4 pt-10 shrink-0">
           <DialogTitle>{title}</DialogTitle>
           {description && <DialogDescription className="mt-1">{description}</DialogDescription>}
         </DialogHeader>
-        <div className="px-4">
+        <div className="px-4 flex-1 overflow-y-auto">
           {children}
         </div>
-        <DialogFooter className="px-4 pb-4">
+        <DialogFooter className="px-4 pb-4 shrink-0">
           {footerContent ? (
             footerContent
           ) : (

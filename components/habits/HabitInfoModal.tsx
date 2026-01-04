@@ -125,7 +125,7 @@ const HabitInfoModal: React.FC<HabitInfoModalProps> = ({
         </div>
       )}
     >
-        <div className="flex flex-col gap-6 pb-2 max-h-[75vh] overflow-y-auto px-1">
+        <div className="flex flex-col gap-6 pb-2 px-1">
           {/* Header Section */}
           <div className="text-center space-y-1">
              <h2 className="text-2xl font-bold tracking-tight">{habit.name}</h2>

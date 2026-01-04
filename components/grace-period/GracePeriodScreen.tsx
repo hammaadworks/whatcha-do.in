@@ -168,6 +168,7 @@ export function GracePeriodScreen({ habits, onComplete, onSkip, onHabitCreated }
           }}
           habit={selectedHabitForCompletion}
           onConfirm={finalConfirm}
+          isFromGrace={true}
         />
       )}
     </>

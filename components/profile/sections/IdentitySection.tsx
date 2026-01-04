@@ -62,13 +62,24 @@ export default function IdentitySection({
         }
     };
 
-    const handleCreate = async (title: string, isPublic: boolean, color: string) => {
+    const handleCreate = async (title: string, isPublic: boolean, color: string, linkedHabitIds: string[]) => {
         if (!user) return;
         try {
-            await createIdentity(user.id, {title, is_public: isPublic, color});
+            const newIdentity = await createIdentity(user.id, {title, is_public: isPublic, color});
+            
+            if (newIdentity && linkedHabitIds.length > 0) {
+                await Promise.all(linkedHabitIds.map(habitId => 
+                    linkHabitToIdentity(user.id, habitId, newIdentity.id)
+                ));
+            }
+
             toast.success("Identity created!");
             loadIdentities();
+            if (linkedHabitIds.length > 0) {
+                onHabitUpdated?.();
+            }
         } catch (error) {
+            console.error(error);
             toast.error("Failed to create identity");
         }
     };
@@ -184,6 +195,7 @@ export default function IdentitySection({
                     isOpen={isCreateModalOpen}
                     onClose={() => setIsCreateModalOpen(false)}
                     onCreate={handleCreate}
+                    habits={ownerHabits}
                 />)}
 
             {isOwner && selectedIdentity && ( // Conditional rendering for IdentityDetailsModal

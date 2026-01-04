@@ -321,7 +321,7 @@ export function ThemeSelector(props: ThemeSelectorProps) {
         </DialogTrigger>
       )}
 
-      <DialogContent className="max-w-xl px-6 py-6 overflow-hidden">
+      <DialogContent className="sm:max-w-xl px-6 py-6 overflow-hidden">
         <DialogHeader className="pb-6 text-center">
           <DialogTitle>Customize Appearance</DialogTitle>
           <DialogDescription className="max-w-prose mx-auto">

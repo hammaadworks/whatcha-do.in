@@ -16,7 +16,9 @@ import {
     Smile,
     Briefcase,
     Timer,
-    StickyNote
+    StickyNote,
+    ChevronLeft,
+    ChevronRight
 } from 'lucide-react';
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,} from "@/components/ui/tooltip";
 import {Button} from '@/components/ui/button';
@@ -36,6 +38,8 @@ import { useSimulatedTime } from '@/components/layout/SimulatedTimeProvider';
 import { ToggleButtonGroup } from '@/components/shared/ToggleButtonGroup';
 import { uploadJournalMedia, getSignedUrlForPath } from '@/lib/supabase/storage';
 
+import { PaginationControls } from '@/components/shared/PaginationControls';
+
 interface JournalSectionProps {
     isOwner: boolean;
     isReadOnly?: boolean;
@@ -54,16 +58,16 @@ const ActivityItem = ({ entry }: { entry: ActivityLogEntry }) => {
     // Determine Icon and Color
     let Icon = CheckCircle2;
     let iconColor = "text-chart-4";
-    let bgColor = "bg-chart-4/10";
+    let bgColor = "bg-chart-4/20";
     
     if (entry.type === 'habit') {
         Icon = Zap;
         iconColor = "text-chart-5";
-        bgColor = "bg-chart-5/10";
+        bgColor = "bg-chart-5/20";
     } else if (entry.type === 'target') {
         Icon = Target;
         iconColor = "text-destructive";
-        bgColor = "bg-destructive/10";
+        bgColor = "bg-destructive/20";
     }
 
     // Extract known details
@@ -143,9 +147,16 @@ const JournalSection: React.FC<JournalSectionProps> = ({isOwner, isReadOnly = fa
     const debouncedSaving = useDebounce(entryContent, 5000);
     const mainDatePickerButtonRef = useRef<HTMLButtonElement>(null);
     const [isMainDatePickerOpen, setIsMainDatePickerOpen] = useState(false);
+    const [activityPage, setActivityPage] = useState(1);
+    const ACTIVITY_PAGE_SIZE = 5;
 
     // Track if content is user-edited or loaded
     const isUserTyping = useRef(false);
+
+    // Reset pagination when date or tab changes
+    useEffect(() => {
+        setActivityPage(1);
+    }, [selectedDate, activeTab]);
 
     // Update selectedDate when simulatedDate changes
     useEffect(() => {
@@ -271,6 +282,13 @@ const JournalSection: React.FC<JournalSectionProps> = ({isOwner, isReadOnly = fa
 
     // Sort logs by timestamp descending (newest first)
     const sortedLogs = [...activityLog].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
+    // Pagination Logic
+    const totalActivityPages = Math.ceil(sortedLogs.length / ACTIVITY_PAGE_SIZE);
+    const paginatedLogs = sortedLogs.slice((activityPage - 1) * ACTIVITY_PAGE_SIZE, activityPage * ACTIVITY_PAGE_SIZE);
+
+    const handlePrevPage = () => setActivityPage(p => Math.max(1, p - 1));
+    const handleNextPage = () => setActivityPage(p => Math.min(totalActivityPages, p + 1));
 
     const JOURNAL_VIEW_OPTIONS = [
         { id: 'public', label: 'Public Journal', icon: Globe },
@@ -451,10 +469,20 @@ const JournalSection: React.FC<JournalSectionProps> = ({isOwner, isReadOnly = fa
                     {sortedLogs.length === 0 ? (
                         <p className="text-muted-foreground text-sm">No activities logged for this day yet.</p>
                     ) : (
-                        <div className="grid grid-cols-1 gap-2">
-                           {sortedLogs.map((entry, index) => (
-                               <ActivityItem key={entry.id + index} entry={entry} />
-                           ))}
+                        <div className="flex flex-col gap-2">
+                            <div className="grid grid-cols-1 gap-2">
+                               {paginatedLogs.map((entry, index) => (
+                                   <ActivityItem key={entry.id + index} entry={entry} />
+                               ))}
+                            </div>
+
+                            <PaginationControls 
+                                currentPage={activityPage}
+                                totalPages={totalActivityPages}
+                                onPageChange={setActivityPage}
+                                totalItems={sortedLogs.length}
+                                pageSize={ACTIVITY_PAGE_SIZE}
+                            />
                         </div>
                     )}
                 </div>
