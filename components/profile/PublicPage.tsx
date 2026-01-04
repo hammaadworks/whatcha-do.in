@@ -59,7 +59,7 @@ export function PublicPage({
          <div className="flex items-center gap-2 bg-muted/50 px-3 py-1.5 rounded-full border border-border/50 text-xs text-muted-foreground animate-in fade-in slide-in-from-top-2 duration-700">
            <Palette className="w-3 h-3" />
            <span>Theme: <span className="font-semibold text-foreground">{activeThemeObj.name}</span></span>
-           {viewer?.username !== user.username && (
+           {viewer && viewer.username !== user.username && (
                <Link 
                     href={`?theme-preview=${activeThemeObj.id}`} 
                     scroll={false} 

@@ -41,7 +41,7 @@ export default function BioSection({
     return (
         <div className="w-full h-full flex flex-col">
             <div className="flex justify-between items-center border-b border-primary pb-4 mb-6">
-                <h2 className="text-2xl font-extrabold text-primary flex items-center gap-2">
+                <h2 className="text-2xl font-extrabold text-primary">
                     Bio
                 </h2>
                 {isOwner && onBioUpdate && !isReadOnly && (

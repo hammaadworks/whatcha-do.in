@@ -4,7 +4,7 @@ import React from 'react';
 import BaseModal from './BaseModal';
 import { Button } from '@/components/ui/button';
 import KeyboardShortcut from './KeyboardShortcut';
-import { Globe, ListTodo, Command, ChevronsUpDown } from 'lucide-react'; // Import ChevronsUpDown
+import { Globe, ListTodo, ChevronsUpDown } from 'lucide-react'; // Import ChevronsUpDown
 import { cn } from '@/lib/utils';
 
 interface KeyboardShortcutsModalProps {
@@ -41,12 +41,11 @@ const KeyboardShortcutsModal: React.FC<KeyboardShortcutsModalProps> = ({ open, o
             <h4 className="font-semibold text-sm uppercase tracking-wider">Global Navigation</h4>
           </div>
           <div className="space-y-1">
-            <ShortcutRow label="View Profile" keys={["P"]} />
-            <ShortcutRow label="Open Shortcuts" keys={["/"]} />
-            <ShortcutRow label="Open Settings" keys={["S"]} />
-            <ShortcutRow label="Toggle Theme" keys={["C"]} />
-            <ShortcutRow label="Add Action" keys={["A"]} />
-            <ShortcutRow label="Add Target" keys={["T"]} />
+            <ShortcutRow label="Open Shortcuts" keys={["Shift", "/"]} />
+            <ShortcutRow label="View Profile" keys={["Shift", "."]} />
+            <ShortcutRow label="Open Settings" keys={["Shift", ","]} />
+            <ShortcutRow label="Toggle Vibe (Mode)" keys={["Shift", ";"]} />
+            <ShortcutRow label="Toggle View (Layout)" keys={["Shift", "'"]} />
           </div>
         </div>
 
@@ -54,13 +53,12 @@ const KeyboardShortcutsModal: React.FC<KeyboardShortcutsModalProps> = ({ open, o
         <div className="space-y-4">
           <div className="flex items-center gap-2 text-primary border-b border-border pb-2">
             <ChevronsUpDown className="w-4 h-4" />
-            <h4 className="font-semibold text-sm uppercase tracking-wider">Folding Sections <span className="text-xs text-muted-foreground normal-case font-normal">(Alt+Shift)</span></h4>
+            <h4 className="font-semibold text-sm uppercase tracking-wider">Folding Sections <span className="text-xs text-muted-foreground normal-case font-normal">(Shift + ])</span></h4>
           </div>
           <div className="space-y-1">
-            <ShortcutRow label="Me Section" keys={["Shift", "M"]} />
-            <ShortcutRow label="Actions Section" keys={["Shift", "A"]} />
-            <ShortcutRow label="Journal Section" keys={["Shift", "J"]} />
-            <ShortcutRow label="Targets Section" keys={["Shift", "T"]} />
+            <ShortcutRow label="Toggle 'Me' Section" keys={["Shift", "]", "1"]} />
+            <ShortcutRow label="Toggle 'Actions' Section" keys={["Shift", "]", "2"]} />
+            <ShortcutRow label="Toggle 'Journal' Section" keys={["Shift", "]", "3"]} />
           </div>
         </div>
 

@@ -204,8 +204,14 @@ export function AuthProvider({ children, initialUser }: AuthProviderProps) {
       if (currentUser) {
         const userWithProfile = await fetchUserProfile(currentUser);
         if (mounted) {
-          setUser(userWithProfile);
-          userIdRef.current = userWithProfile.id;
+          setUser((prev) => {
+             // Deep comparison to prevent redundant updates
+             if (JSON.stringify(prev) === JSON.stringify(userWithProfile)) {
+                 return prev;
+             }
+             userIdRef.current = userWithProfile.id;
+             return userWithProfile;
+          });
           setLoading(false);
         }
       } else {
@@ -239,13 +245,22 @@ export function AuthProvider({ children, initialUser }: AuthProviderProps) {
       } else if (session?.user) {
         // If we have a session, ensure we have the profile data too
         // We only update if the user ID has changed to avoid unnecessary re-fetches
-        if (userIdRef.current !== session.user.id) {
-          const userWithProfile = await fetchUserProfile(session.user);
-          if (mounted) {
-            setUser(userWithProfile);
-            userIdRef.current = userWithProfile.id;
+        // Or if we specifically want to sync
+        
+        // Optimization: Check userIdRef first to avoid unnecessary fetch if possible, 
+        // but since profile data might change, we might want to fetch. 
+        // However, 'onAuthStateChange' fires often. We should rely on 'fetchUserProfile' caching or deep compare.
+        
+        const userWithProfile = await fetchUserProfile(session.user);
+        if (mounted) {
+            setUser((prev) => {
+                 if (JSON.stringify(prev) === JSON.stringify(userWithProfile)) {
+                     return prev;
+                 }
+                 userIdRef.current = userWithProfile.id;
+                 return userWithProfile;
+            });
             setLoading(false);
-          }
         }
       } else {
         // Case where session is null but not explicitly SIGNED_OUT event (e.g. unexpected state)
