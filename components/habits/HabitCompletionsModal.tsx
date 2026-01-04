@@ -103,7 +103,7 @@ export const HabitCompletionsModal: React.FC<HabitCompletionsModalProps> = ({isO
                     <div className="text-center min-w-[60px]">
                         <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold mb-1">Current</p>
                         <Badge variant="secondary"
-                               className="text-base sm:text-lg px-3 py-1 bg-secondary text-secondary-foreground border shadow-sm">{habit.streak < 1 ? habit.streak + 1 : habit.streak}</Badge>
+                               className="text-base sm:text-lg px-3 py-1 bg-secondary text-secondary-foreground border shadow-sm">{habit.streak < 0 ? habit.streak + 1 : habit.streak}</Badge>
                     </div>
                     <div className="text-muted-foreground/40 font-bold text-xl">→</div>
                     <div className="text-center min-w-[60px]">
@@ -113,7 +113,7 @@ export const HabitCompletionsModal: React.FC<HabitCompletionsModalProps> = ({isO
                         <Badge variant="default"
                                className="text-base sm:text-lg px-3 py-1 bg-primary text-primary-foreground shadow-md shadow-primary/20">
                             <Flame className="w-4 h-4 mr-1 fill-current"/>
-                            {habit.streak + 1}
+                            {habit.streak < 1 ? 1 : habit.streak + 1}
                         </Badge>
                     </div>
                 </div>
@@ -186,51 +186,51 @@ export const HabitCompletionsModal: React.FC<HabitCompletionsModalProps> = ({isO
 
                 {/* Duration */}
                 {!isGoalUnitTimeBased && (<div className="space-y-2 shrink-0">
-                        <Label
-                            className="flex items-center gap-2 text-xs font-semibold uppercase text-muted-foreground tracking-wide">
-                            <Clock size={14}/> Duration
-                        </Label>
-                        <div className="flex gap-2">
-                            <Input
-                                type="number"
-                                placeholder="0"
-                                min="1"                     // 1. Prevents browser arrows from dipping below 1
-                                inputMode="numeric"        // 2. Mobile UX: Forces the pure number keypad
-                                onKeyDown={(e) => {
-                                    // 3. Prevent typing symbols like "-", "+", and "e"
-                                    if (["-", "+", "e", "E"].includes(e.key)) {
-                                        e.preventDefault();
-                                    }
-                                }}
-                                onPaste={(e) => {
-                                    // 4. Sanitizes pasted content to block negative values
-                                    const pasteData = e.clipboardData.getData("text");
-                                    if (Number(pasteData) < 0) {
-                                        e.preventDefault();
-                                    }
-                                }}
-                                value={timeTaken}
-                                onChange={(e) => {
-                                    const val = Number.parseFloat(e.target.value);
-                                    // 5. Final state check: only allow positive values or empty input
-                                    if (val > 0 || e.target.value === "") {
-                                        setTimeTaken(e.target.value);
-                                    }
-                                }}
-                                className="flex-1 h-11 text-lg"
-                            />
+                    <Label
+                        className="flex items-center gap-2 text-xs font-semibold uppercase text-muted-foreground tracking-wide">
+                        <Clock size={14}/> Duration
+                    </Label>
+                    <div className="flex gap-2">
+                        <Input
+                            type="number"
+                            placeholder="0"
+                            min="1"                     // 1. Prevents browser arrows from dipping below 1
+                            inputMode="numeric"        // 2. Mobile UX: Forces the pure number keypad
+                            onKeyDown={(e) => {
+                                // 3. Prevent typing symbols like "-", "+", and "e"
+                                if (["-", "+", "e", "E"].includes(e.key)) {
+                                    e.preventDefault();
+                                }
+                            }}
+                            onPaste={(e) => {
+                                // 4. Sanitizes pasted content to block negative values
+                                const pasteData = e.clipboardData.getData("text");
+                                if (Number(pasteData) < 0) {
+                                    e.preventDefault();
+                                }
+                            }}
+                            value={timeTaken}
+                            onChange={(e) => {
+                                const val = Number.parseFloat(e.target.value);
+                                // 5. Final state check: only allow positive values or empty input
+                                if (val > 0 || e.target.value === "") {
+                                    setTimeTaken(e.target.value);
+                                }
+                            }}
+                            className="flex-1 h-11 text-lg"
+                        />
 
-                            <Select value={timeTakenUnit} onValueChange={setTimeTakenUnit}>
-                                <SelectTrigger className="w-[110px] h-11">
-                                    <SelectValue/>
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="minutes">mins</SelectItem>
-                                    <SelectItem value="hours">hours</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    </div>)}
+                        <Select value={timeTakenUnit} onValueChange={setTimeTakenUnit}>
+                            <SelectTrigger className="w-[110px] h-11">
+                                <SelectValue/>
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="minutes">mins</SelectItem>
+                                <SelectItem value="hours">hours</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                </div>)}
 
                 {/* Dedicate Date (Super Streak) - Only visible if already completed today */}
                 {isTodayCompleted && (
