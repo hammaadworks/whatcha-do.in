@@ -38,6 +38,8 @@ import { useSimulatedTime } from '@/components/layout/SimulatedTimeProvider';
 import { ToggleButtonGroup } from '@/components/shared/ToggleButtonGroup';
 import { uploadJournalMedia, getSignedUrlForPath } from '@/lib/supabase/storage';
 
+import { PaginationControls } from '@/components/shared/PaginationControls';
+
 interface JournalSectionProps {
     isOwner: boolean;
     isReadOnly?: boolean;
@@ -56,16 +58,16 @@ const ActivityItem = ({ entry }: { entry: ActivityLogEntry }) => {
     // Determine Icon and Color
     let Icon = CheckCircle2;
     let iconColor = "text-chart-4";
-    let bgColor = "bg-chart-4/10";
+    let bgColor = "bg-chart-4/20";
     
     if (entry.type === 'habit') {
         Icon = Zap;
         iconColor = "text-chart-5";
-        bgColor = "bg-chart-5/10";
+        bgColor = "bg-chart-5/20";
     } else if (entry.type === 'target') {
         Icon = Target;
         iconColor = "text-destructive";
-        bgColor = "bg-destructive/10";
+        bgColor = "bg-destructive/20";
     }
 
     // Extract known details
@@ -474,42 +476,13 @@ const JournalSection: React.FC<JournalSectionProps> = ({isOwner, isReadOnly = fa
                                ))}
                             </div>
 
-                            {/* Pagination Controls */}
-                            {totalActivityPages > 1 && (
-                                <div className="flex items-center justify-between pt-4 border-t border-border/50 mt-2">
-                                    <span className="text-xs text-muted-foreground">
-                                        Showing <span className="font-medium text-foreground">{(activityPage - 1) * ACTIVITY_PAGE_SIZE + 1}</span> to{' '}
-                                        <span className="font-medium text-foreground">
-                                            {Math.min(activityPage * ACTIVITY_PAGE_SIZE, sortedLogs.length)}
-                                        </span>{' '}
-                                        of <span className="font-medium text-foreground">{sortedLogs.length}</span> results
-                                    </span>
-
-                                    <div className="flex gap-2">
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={handlePrevPage}
-                                            disabled={activityPage === 1}
-                                            className="h-8 px-2 gap-1 text-xs"
-                                        >
-                                            <ChevronLeft className="h-3 w-3" />
-                                            Prev
-                                        </Button>
-                                        
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={handleNextPage}
-                                            disabled={activityPage === totalActivityPages}
-                                            className="h-8 px-2 gap-1 text-xs"
-                                        >
-                                            Next
-                                            <ChevronRight className="h-3 w-3" />
-                                        </Button>
-                                    </div>
-                                </div>
-                            )}
+                            <PaginationControls 
+                                currentPage={activityPage}
+                                totalPages={totalActivityPages}
+                                onPageChange={setActivityPage}
+                                totalItems={sortedLogs.length}
+                                pageSize={ACTIVITY_PAGE_SIZE}
+                            />
                         </div>
                     )}
                 </div>
