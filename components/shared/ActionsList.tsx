@@ -85,6 +85,18 @@ export const ActionsList: React.FC<ActionsListProps> = ({
 
   if (!actions) return <div>No actions prop provided</div>;
 
+  if (actions.length === 0) {
+      return (
+          <div className="flex flex-col items-center justify-center p-8 text-center border rounded-lg bg-muted/20 border-border/50 border-dashed">
+              <p className="text-muted-foreground italic">
+                  {onActionAdded 
+                      ? "No actions yet. Add one to get started!" 
+                      : "No actions to show."}
+              </p>
+          </div>
+      );
+  }
+
   const activeActions = actions.filter(a => !a.completed);
   const completedActions = actions.filter(a => a.completed);
 
