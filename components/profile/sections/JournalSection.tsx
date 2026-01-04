@@ -16,6 +16,7 @@ import {
     Timer,
     StickyNote
 } from 'lucide-react';
+import * as LucideIcons from 'lucide-react';
 import {Button} from '@/components/ui/button';
 import {Skeleton} from '@/components/ui/skeleton';
 import {EditorWithControls} from '@/components/shared/EditorWithControls';
@@ -51,77 +52,86 @@ const ActivityItem = ({ entry }: { entry: ActivityLogEntry }) => {
     // Determine Icon and Color
     let Icon = CheckCircle2;
     let iconColor = "text-chart-4";
-    let bgColor = "bg-chart-4/20";
+    let bgColor = "bg-chart-4/10";
+    let borderColor = "border-chart-4/20";
     
     if (entry.type === 'habit') {
         Icon = Zap;
-        iconColor = "text-chart-5";
-        bgColor = "bg-chart-5/20";
+        // Try to find specific icon
+        if (entry.details?.icon) {
+            const SpecificIcon = (LucideIcons as any)[entry.details.icon];
+            if (SpecificIcon) {
+                Icon = SpecificIcon;
+            }
+        }
+
+        iconColor = "text-amber-500";
+        bgColor = "bg-amber-500/10";
+        borderColor = "border-amber-500/20";
     } else if (entry.type === 'target') {
         Icon = Target;
         iconColor = "text-destructive";
-        bgColor = "bg-destructive/20";
+        bgColor = "bg-destructive/10";
+        borderColor = "border-destructive/20";
     }
 
     // Extract known details
     const { mood, work_value, time_taken, time_taken_unit, notes } = entry.details || {};
 
     return (
-        <div className="group flex items-start gap-3 p-3 rounded-xl border bg-card/50 hover:bg-card hover:shadow-sm transition-all duration-200">
-            <div className={cn("p-2 rounded-full shrink-0 mt-0.5", bgColor, iconColor)}>
-                <Icon className="w-4 h-4" />
+        <div className={cn(
+            "group flex items-center gap-4 p-4 rounded-xl border transition-all duration-200",
+            "bg-card hover:bg-accent/5 hover:border-accent/20", // Card background
+            borderColor
+        )}>
+            <div className={cn("p-2.5 rounded-full shrink-0 flex items-center justify-center", bgColor, iconColor)}>
+                <Icon className="w-5 h-5" />
             </div>
-            <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                    <span className="text-sm font-medium truncate">{entry.description}</span>
+            
+            <div className="flex-1 min-w-0 flex flex-col gap-1">
+                <div className="flex items-center justify-between gap-2">
+                    <span className="text-base font-medium truncate text-foreground/90">{entry.description}</span>
+                    <span className="text-xs font-mono text-muted-foreground shrink-0">{time}</span>
                 </div>
                 
                 {/* Details Row */}
-                <div className="flex flex-wrap gap-2 text-xs text-muted-foreground items-center">
-                   {/* Time */}
-                   <span className="flex items-center gap-1 text-xs font-mono opacity-70">
-                        <Clock className="w-3 h-3" />
-                        {time}
-                   </span>
-                   
-                   {(mood !== undefined || work_value !== undefined || time_taken !== undefined || notes) && (
-                       <span className="text-border">|</span>
-                   )}
+                {(mood !== undefined || work_value !== undefined || time_taken !== undefined || notes) && (
+                    <div className="flex flex-wrap gap-2 text-xs text-muted-foreground items-center mt-1">
+                        {mood !== undefined && (
+                            <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-muted/50 border border-border/50 text-foreground/80">
+                                <Smile className="w-3.5 h-3.5" /> Mood: {mood}
+                            </span>
+                        )}
+                        
+                        {work_value !== undefined && (
+                            <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-muted/50 border border-border/50 text-foreground/80">
+                                <Briefcase className="w-3.5 h-3.5" /> Work: {work_value}
+                            </span>
+                        )}
+                        
+                        {time_taken !== undefined && (
+                            <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-muted/50 border border-border/50 text-foreground/80">
+                                <Timer className="w-3.5 h-3.5" /> {time_taken} {time_taken_unit || 'min'}
+                            </span>
+                        )}
 
-                   {mood !== undefined && (
-                       <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-muted/50 border border-border/50">
-                           <Smile className="w-3 h-3" /> Mood: {mood}
-                       </span>
-                   )}
-                   
-                   {work_value !== undefined && (
-                       <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-muted/50 border border-border/50">
-                           <Briefcase className="w-3 h-3" /> Work: {work_value}
-                       </span>
-                   )}
-                   
-                   {time_taken !== undefined && (
-                       <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-muted/50 border border-border/50">
-                           <Timer className="w-3 h-3" /> {time_taken} {time_taken_unit || 'min'}
-                       </span>
-                   )}
-
-                   {notes && (
-                       <button 
-                           onClick={() => setIsNoteExpanded(!isNoteExpanded)}
-                           className={cn(
-                               "flex items-start gap-1 px-1.5 py-0.5 rounded-md bg-muted/50 border border-border/50 hover:bg-muted/80 transition-all text-left cursor-pointer group-hover:border-border/80",
-                               isNoteExpanded ? "max-w-full" : "max-w-[200px]"
-                           )}
-                           title={isNoteExpanded ? "Click to collapse" : "Click to expand"}
-                       >
-                           <StickyNote className="w-3 h-3 shrink-0 mt-0.5" /> 
-                           <span className={cn(isNoteExpanded ? "whitespace-pre-wrap break-words" : "truncate")}>
-                               {notes}
-                           </span>
-                       </button>
-                   )}
-                </div>
+                        {notes && (
+                            <button 
+                                onClick={() => setIsNoteExpanded(!isNoteExpanded)}
+                                className={cn(
+                                    "flex items-start gap-1.5 px-2 py-0.5 rounded-full bg-muted/50 border border-border/50 hover:bg-muted/80 transition-all text-left cursor-pointer group-hover:border-border/80 text-foreground/80",
+                                    isNoteExpanded ? "max-w-full rounded-md" : "max-w-[200px]"
+                                )}
+                                title={isNoteExpanded ? "Click to collapse" : "Click to expand"}
+                            >
+                                <StickyNote className="w-3.5 h-3.5 shrink-0 mt-0.5" /> 
+                                <span className={cn(isNoteExpanded ? "whitespace-pre-wrap break-words" : "truncate")}>
+                                    {notes}
+                                </span>
+                            </button>
+                        )}
+                    </div>
+                )}
             </div>
         </div>
     )
