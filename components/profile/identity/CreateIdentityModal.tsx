@@ -13,23 +13,30 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import {Check, Loader2} from 'lucide-react';
+import {Check, Loader2, Plus, X} from 'lucide-react';
 import { IDENTITY_START_PHRASE, IDENTITY_COLORS } from '@/lib/constants';
 import { cn } from '@/lib/utils';
+import { Habit } from '@/lib/supabase/types';
+import { Badge } from '@/components/ui/badge';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 
 interface CreateIdentityModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onCreate: (title: string, isPublic: boolean, color: string) => Promise<void>;
+    onCreate: (title: string, isPublic: boolean, color: string, linkedHabitIds: string[]) => Promise<void>;
+    habits: Habit[];
 }
 
-export const CreateIdentityModal: React.FC<CreateIdentityModalProps> = ({isOpen, onClose, onCreate}) => {
+export const CreateIdentityModal: React.FC<CreateIdentityModalProps> = ({isOpen, onClose, onCreate, habits}) => {
     const [title, setTitle] = useState('');
     const [prefix, setPrefix] = useState('a');
     const [isManualPrefix, setIsManualPrefix] = useState(false);
     const [isPublic, setIsPublic] = useState(false);
     const [isCreating, setIsCreating] = useState(false);
     const [selectedColor, setSelectedColor] = useState(IDENTITY_COLORS[0]);
+    const [selectedHabitIds, setSelectedHabitIds] = useState<string[]>([]);
+    const [openCombobox, setOpenCombobox] = useState(false);
 
     const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const newVal = e.target.value;
@@ -66,19 +73,29 @@ export const CreateIdentityModal: React.FC<CreateIdentityModalProps> = ({isOpen,
                 finalTitle = `${IDENTITY_START_PHRASE} ${prefix} ${title.trim()}`;
             }
             
-            await onCreate(finalTitle, isPublic, selectedColor);
+            await onCreate(finalTitle, isPublic, selectedColor, selectedHabitIds);
             // Reset state
             setTitle('');
             setPrefix('a');
             setIsManualPrefix(false);
             setIsPublic(false);
             setSelectedColor(IDENTITY_COLORS[0]);
+            setSelectedHabitIds([]);
             onClose();
         } catch (error) {
             console.error("Failed to create identity", error);
         } finally {
             setIsCreating(false);
         }
+    };
+
+    const toggleHabit = (habitId: string) => {
+        setSelectedHabitIds(prev => 
+            prev.includes(habitId) 
+                ? prev.filter(id => id !== habitId)
+                : [...prev, habitId]
+        );
+        setOpenCombobox(false);
     };
 
     const footerContent = (
@@ -92,6 +109,9 @@ export const CreateIdentityModal: React.FC<CreateIdentityModalProps> = ({isOpen,
             </Button>
         </>
     );
+
+    const availableHabits = habits.filter(h => !selectedHabitIds.includes(h.id));
+    const selectedHabitObjects = habits.filter(h => selectedHabitIds.includes(h.id));
 
     return (
         <BaseModal
@@ -155,6 +175,57 @@ export const CreateIdentityModal: React.FC<CreateIdentityModalProps> = ({isOpen,
                         checked={isPublic}
                         onCheckedChange={setIsPublic}
                     />
+                </div>
+
+                {/* Habits Linking */}
+                <div className="grid gap-2 mt-2">
+                    <Label>Backed By Habits</Label>
+                    <div className="flex flex-wrap gap-2 mb-2">
+                        {selectedHabitObjects.map(habit => (
+                            <Badge key={habit.id} variant="secondary" className="pl-2 pr-1 py-1 flex items-center gap-1">
+                                {habit.name}
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-4 w-4 hover:bg-destructive/20 rounded-full"
+                                    onClick={() => toggleHabit(habit.id)}
+                                >
+                                    <X className="h-3 w-3"/>
+                                </Button>
+                            </Badge>
+                        ))}
+                        {selectedHabitObjects.length === 0 && (
+                            <span className="text-sm text-muted-foreground italic">No habits linked yet.</span>
+                        )}
+                    </div>
+
+                    <Popover open={openCombobox} onOpenChange={setOpenCombobox}>
+                        <PopoverTrigger asChild>
+                            <Button variant="outline" role="combobox" className="w-full justify-between">
+                                Link a Habit...
+                                <Plus className="ml-2 h-4 w-4 shrink-0 opacity-50"/>
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-[300px] p-0">
+                            <Command>
+                                <CommandInput placeholder="Search habits..."/>
+                                <CommandList>
+                                    <CommandEmpty>No habits found.</CommandEmpty>
+                                    <CommandGroup heading="Available Habits">
+                                        {availableHabits.map(habit => (
+                                            <CommandItem
+                                                key={habit.id}
+                                                value={habit.name}
+                                                onSelect={() => toggleHabit(habit.id)}
+                                            >
+                                                {habit.name}
+                                            </CommandItem>
+                                        ))}
+                                    </CommandGroup>
+                                </CommandList>
+                            </Command>
+                        </PopoverContent>
+                    </Popover>
                 </div>
             </div>
         </BaseModal>

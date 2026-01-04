@@ -308,24 +308,46 @@ export function CustomMarkdownEditor({
                 "flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between p-2 shrink-0 sticky top-0 z-20 transition-all duration-200",
                 isFullscreen ? "px-4 sm:px-8 bg-background/95 backdrop-blur-md border-b" : "bg-transparent"
             )}>
-                <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide pr-2 w-full sm:w-auto">
-                    <div className="flex items-center gap-0.5">
-                        <ToolbarButton icon={Bold} label="Bold" onClick={() => insertText('**', '**')} />
-                        <ToolbarButton icon={Italic} label="Italic" onClick={() => insertText('*', '*')} />
-                        <ToolbarButton icon={Strikethrough} label="Strikethrough" onClick={() => insertText('~~', '~~')} />
+                <div className="flex flex-col gap-2 w-full sm:w-auto">
+                    {/* Formatting Tools - Two Rows on Mobile, One on Desktop */}
+                    <div className="flex flex-wrap items-center gap-1 sm:gap-0.5">
+                        <div className="flex items-center gap-0.5">
+                            <ToolbarButton icon={Bold} label="Bold" onClick={() => insertText('**', '**')} />
+                            <ToolbarButton icon={Italic} label="Italic" onClick={() => insertText('*', '*')} />
+                            <ToolbarButton icon={Strikethrough} label="Strikethrough" onClick={() => insertText('~~', '~~')} />
+                        </div>
+                        <Separator orientation="vertical" className="h-6 mx-1 hidden sm:block" />
+                        <div className="flex items-center gap-0.5">
+                            <ToolbarButton icon={Heading1} label="Heading" onClick={() => insertBlock('# ')} />
+                            <ToolbarButton icon={Quote} label="Quote" onClick={() => insertBlock('> ')} />
+                            <ToolbarButton icon={Code} label="Code Block" onClick={() => insertText('```\n', '\n```')} />
+                        </div>
+                        <Separator orientation="vertical" className="h-6 mx-1 hidden sm:block" />
+                        <div className="flex items-center gap-0.5">
+                            <ToolbarButton icon={List} label="Bullet List" onClick={() => insertBlock('- ')} />
+                            <ToolbarButton icon={ListOrdered} label="Numbered List" onClick={() => insertBlock('1. ')} />
+                            <ToolbarButton icon={LinkIcon} label="Link" onClick={() => insertText('[', '](url)')} />
+                        </div>
                     </div>
-                    <Separator orientation="vertical" className="h-6 mx-1" />
-                    <div className="flex items-center gap-0.5">
-                        <ToolbarButton icon={Heading1} label="Heading" onClick={() => insertBlock('# ')} />
-                        <ToolbarButton icon={Quote} label="Quote" onClick={() => insertBlock('> ')} />
-                        <ToolbarButton icon={Code} label="Code Block" onClick={() => insertText('```\n', '\n```')} />
+                    
+                    {/* Add Media - Full width on mobile for easier access */}
+                    <div className="flex sm:hidden w-full">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="w-full h-9 gap-2 text-primary hover:text-primary-foreground hover:bg-primary border-primary/20 bg-primary/5 transition-all shadow-sm group"
+                            onClick={handleImageClick}
+                            type="button"
+                        >
+                            <ImageIcon className="h-4 w-4 transition-transform group-hover:scale-110" />
+                            <span className="font-medium text-xs">Add Media</span>
+                        </Button>
                     </div>
-                    <Separator orientation="vertical" className="h-6 mx-1" />
-                    <div className="flex items-center gap-0.5">
-                        <ToolbarButton icon={List} label="Bullet List" onClick={() => insertBlock('- ')} />
-                        <ToolbarButton icon={ListOrdered} label="Numbered List" onClick={() => insertBlock('1. ')} />
-                        <ToolbarButton icon={LinkIcon} label="Link" onClick={() => insertText('[', '](url)')} />
-                        
+                </div>
+
+                <div className="flex items-center justify-between sm:justify-between gap-2 sm:ml-auto w-full sm:w-auto pb-2 sm:pb-0">
+                    {/* Desktop "Add Media" Button */}
+                     <div className="hidden sm:block">
                         <Tooltip>
                             <TooltipTrigger asChild>
                                 <Button
@@ -343,16 +365,16 @@ export function CustomMarkdownEditor({
                                 <p>Upload Images or Video</p>
                             </TooltipContent>
                         </Tooltip>
+                     </div>
+                    {/* New div to center ToggleButtonGroup */}
+                    <div className="flex-1 flex justify-center">
+                        <ToggleButtonGroup 
+                            options={VIEW_OPTIONS}
+                            selectedValue={viewMode}
+                            onValueChange={(val) => setViewMode(val as ViewMode)}
+                            className="scale-90 origin-center" 
+                        />
                     </div>
-                </div>
-
-                <div className="flex items-center justify-between sm:justify-end gap-2 sm:ml-auto w-full sm:w-auto pb-2 sm:pb-0">
-                    <ToggleButtonGroup 
-                        options={VIEW_OPTIONS}
-                        selectedValue={viewMode}
-                        onValueChange={(val) => setViewMode(val as ViewMode)}
-                        className="scale-90 origin-right" 
-                    />
                     
                     <div className="flex items-center gap-2">
                         <Separator orientation="vertical" className="h-6 mx-1 hidden sm:block" />

@@ -49,7 +49,7 @@ export const ToggleButtonGroup: React.FC<ToggleButtonGroupProps> = ({
                                     )}
                                 >
                                     {option.icon && <option.icon className="h-4 w-4 shrink-0" />}
-                                    <span>{option.label}</span>
+                                    <span className={cn("transition-all", isSelected ? "inline" : "inline")}>{option.label}</span>
                                 </button>
                             </TooltipTrigger>
                             <TooltipContent>

@@ -290,13 +290,16 @@ export const IdentityDetailsModal: React.FC<IdentityDetailsModalProps> = ({
                                         <CommandList>
                                             <CommandEmpty>No habits found.</CommandEmpty>
                                             <CommandGroup heading="Available Habits">
-                                                {availableHabits.map(habit => (<CommandItem
-                                                        key={habit.id}
-                                                        value={habit.name}
-                                                        onSelect={() => handleLink(habit.id)}
-                                                    >
-                                                        {habit.name}
-                                                    </CommandItem>))}
+                                                {availableHabits.map(habit => (
+                                            <CommandItem
+                                                key={habit.id}
+                                                value={habit.name}
+                                                onSelect={() => handleLink(habit.id)}
+                                                className="cursor-pointer"
+                                            >
+                                                {habit.name}
+                                            </CommandItem>
+                                        ))}
                                             </CommandGroup>
                                         </CommandList>
                                     </Command>

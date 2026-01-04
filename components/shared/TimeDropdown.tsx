@@ -96,9 +96,9 @@ const TimeDropdown: React.FC<TimeDropdownProps> = ({ value, onChange, disabled }
   };
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2 w-full max-w-sm">
       <Select onValueChange={handleHourChange} value={selectedHour || ""} disabled={disabled}>
-        <SelectTrigger className="w-[80px]">
+        <SelectTrigger className="flex-1 min-w-[60px]">
           <SelectValue placeholder="Hour" />
         </SelectTrigger>
         <SelectContent>
@@ -107,10 +107,10 @@ const TimeDropdown: React.FC<TimeDropdownProps> = ({ value, onChange, disabled }
           ))}
         </SelectContent>
       </Select>
-      :
+      <span className="shrink-0">:</span>
       <Select onValueChange={handleMinuteChange} value={selectedMinute || ""} disabled={disabled}>
-        <SelectTrigger className="w-[80px]">
-          <SelectValue placeholder="Minute" />
+        <SelectTrigger className="flex-1 min-w-[60px]">
+          <SelectValue placeholder="Min" />
         </SelectTrigger>
         <SelectContent>
           {minutesProgression.map((m) => (
@@ -119,7 +119,7 @@ const TimeDropdown: React.FC<TimeDropdownProps> = ({ value, onChange, disabled }
         </SelectContent>
       </Select>
       <Select onValueChange={handleAmPmChange} value={selectedAmPm} disabled={disabled}>
-        <SelectTrigger className="w-[80px]">
+        <SelectTrigger className="flex-1 min-w-[60px]">
           <SelectValue placeholder="AM/PM" />
         </SelectTrigger>
         <SelectContent>
@@ -128,7 +128,7 @@ const TimeDropdown: React.FC<TimeDropdownProps> = ({ value, onChange, disabled }
           ))}
         </SelectContent>
       </Select>
-      <Button variant="outline" size="icon" onClick={handleClear} disabled={disabled}>
+      <Button variant="outline" size="icon" onClick={handleClear} disabled={disabled} className="shrink-0">
         <X className="h-4 w-4" />
       </Button>
     </div>

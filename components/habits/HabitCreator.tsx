@@ -187,13 +187,15 @@ export function HabitCreator({onHabitCreated}: Readonly<HabitCreatorProps>) {
             </div>
 
             {/* Target Time */}
-            <div className="flex items-center gap-2">
-                <Label htmlFor="target-time" className="shrink-0 text-muted-foreground w-20">Target Time</Label>
-                <TimeDropdown
-                    value={targetTime}
-                    onChange={setTargetTime}
-                    disabled={loading}
-                />
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 items-start">
+                <Label htmlFor="target-time" className="shrink-0 text-muted-foreground w-20 pt-1 sm:pt-0">Target Time</Label>
+                <div className="w-full sm:w-auto">
+                    <TimeDropdown
+                        value={targetTime}
+                        onChange={setTargetTime}
+                        disabled={loading}
+                    />
+                </div>
             </div>
 
             {/* Description */}
