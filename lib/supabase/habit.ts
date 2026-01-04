@@ -25,7 +25,8 @@ export async function fetchUnprocessedHabits(userId: string, todayDate: ISODate)
       habit_identities (
         identities (
           id,
-          color
+          color,
+          title
         )
       )
     `)
@@ -64,7 +65,8 @@ export async function fetchOwnerHabits(userId: string): Promise<Habit[]> {
       habit_identities (
         identities (
           id,
-          color
+          color,
+          title
         )
       )
     `)

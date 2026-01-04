@@ -39,7 +39,7 @@ export function BrandThemeProvider({
     if (initialActiveTheme && initialActiveTheme !== savedTheme) {
       setSavedTheme(initialActiveTheme);
     }
-  }, [initialActiveTheme, savedTheme]);
+  }, [initialActiveTheme]);
 
   // 3. Sync with User Object (from useAuth)
   // This handles the case where the user logs in client-side and their theme loads.
@@ -47,11 +47,11 @@ export function BrandThemeProvider({
     if (!disableAuthSync && user?.active_theme && user.active_theme !== savedTheme) {
       setSavedTheme(user.active_theme as BrandTheme);
     }
-  }, [user?.active_theme, savedTheme, disableAuthSync]);
+  }, [user?.active_theme, disableAuthSync]);
 
   // 4. Calculate Effective Theme
-  // Priority: Forced > Preview > Saved
-  const effectiveTheme = forcedTheme || previewTheme || savedTheme;
+  // Priority: Preview > Forced > Saved
+  const effectiveTheme = previewTheme || forcedTheme || savedTheme;
 
   // 5. Handle Mounting (Hydration)
   useEffect(() => {

@@ -1,12 +1,11 @@
 'use client';
 
-import React, {createContext, useCallback, useContext, useEffect, useRef, useState} from 'react';
-import {useRouter} from 'next/navigation'; // Import useRouter
+import React, {createContext, useCallback, useContext, useEffect, useState} from 'react';
+import {useRouter, useSearchParams} from 'next/navigation'; // Import useRouter, useSearchParams
 import {useAuth} from '@/packages/auth/hooks/useAuth'; // Import useAuth
 import KeyboardShortcutsModal from './KeyboardShortcutsModal';
 import {useTheme} from 'next-themes'; // New import for theme management
-import {AnimatedThemeTogglerRef} from '@/components/ui/animated-theme-toggler'; // New import for the ref type
-import {toast} from 'sonner'; // Import toast for debugging
+import {useUiStore} from "@/lib/store/uiStore";
 import {
     LOCAL_STORAGE_ACTIONS_FOLDED_KEY,
     LOCAL_STORAGE_JOURNAL_FOLDED_KEY,
@@ -17,11 +16,8 @@ interface KeyboardShortcutsContextType {
     isOpen: boolean;
     setIsOpen: (open: boolean) => void;
     toggleShortcutsModal: () => void;
-    isInsightsOpen: boolean; // Exposed Insights state
-    toggleInsightsModal: () => void; // Exposed Insights toggler
     isSettingsOpen: boolean; // Exposed Settings state
     toggleSettingsModal: () => void; // Exposed Settings toggler
-    themeTogglerRef: React.RefObject<AnimatedThemeTogglerRef | null>; // Expose the ref for AnimatedThemeToggler, allowing null
     isMeFolded: boolean; // New state for 'Me' section folding
     toggleMeFold: () => void; // New toggler for 'Me' section folding
     isActionsFolded: boolean; // New state for 'Actions' section folding
@@ -34,7 +30,6 @@ const KeyboardShortcutsContext = createContext<KeyboardShortcutsContextType | un
 
 export const KeyboardShortcutsProvider: React.FC<{ children: React.ReactNode }> = ({children}) => {
     const [isOpen, setIsOpen] = useState(false);
-    const [isInsightsOpen, setInsightsOpen] = useState(false); // Re-added state for Insights
     const [isSettingsOpen, setSettingsOpen] = useState(false); // New state for Settings
 
     const [isMeFolded, setIsMeFolded] = useState(() => {
@@ -59,18 +54,14 @@ export const KeyboardShortcutsProvider: React.FC<{ children: React.ReactNode }> 
         return true;
     });
 
-    const [isMac, setIsMac] = useState(false);
     const router = useRouter(); // Initialize useRouter
+    const searchParams = useSearchParams();
     const {user} = useAuth(); // Get user from useAuth
     const {theme} = useTheme(); // Use the theme hook (setTheme is no longer needed directly here)
-    const themeTogglerRef = useRef<AnimatedThemeTogglerRef>(null); // Create ref for AnimatedThemeToggler
+    const {layoutMode, setLayoutMode} = useUiStore();
 
     const toggleShortcutsModal = useCallback(() => {
         setIsOpen((prev) => !prev);
-    }, []);
-
-    const toggleInsightsModal = useCallback(() => { // Re-added toggler for Insights
-        setInsightsOpen((prev) => !prev);
     }, []);
 
     const toggleSettingsModal = useCallback(() => { // New toggler for Settings
@@ -91,51 +82,56 @@ export const KeyboardShortcutsProvider: React.FC<{ children: React.ReactNode }> 
 
     useEffect(() => {
         console.log('KeyboardShortcutsProvider useEffect running: Attaching keydown listener'); // Added log
-        setIsMac(navigator.platform.toUpperCase().indexOf('MAC') >= 0);
 
         const handleKeyPress = (event: KeyboardEvent) => {
-            const isModifierPressed = event.altKey || event.metaKey; // Check for Alt/Option/Command
-            const isShiftPressed = event.shiftKey; // New check for Shift
+            const isAltPressed = event.altKey; // New check for Alt
             const isSlashPressed = event.code === 'Slash'; // Use event.code for physical key detection
-            const isPPressed = event.code === 'KeyP'; // Check for 'P' key
-            const isIPressed = event.code === 'KeyI'; // Check for 'I' key
-            const isSPressed = event.code === 'KeyS'; // Check for 'S' key
-            const isCPressed = event.code === 'KeyC'; // Check for 'C' key
-            const isMPressed = event.code === 'KeyM'; // Check for 'M' key
-            // Check for 'A' key: KeyA code OR char 'a'/'A' OR Mac special chars 'å' (Opt+A) / 'Å' (Opt+Shift+A)
-            const isAPressed = event.code === 'KeyA' || ['a', 'A', 'å', 'Å'].includes(event.key);
-            const isJPressed = event.code === 'KeyJ'; // Check for 'J' key
-            const isTPressed = event.code === 'KeyT'; // Check for 'T' key
+            const isPeriodPressed = event.code === 'Period'; // Profile
+            const isCommaPressed = event.code === 'Comma'; // Settings
+            const isSemicolonPressed = event.code === 'Semicolon'; // Vibe
+            const isQuotePressed = event.code === "Quote"; // View
+            const is1Pressed = event.code === 'Digit1'; // Me
+            const is2Pressed = event.code === 'Digit2'; // Actions
+            const is3Pressed = event.code === 'Digit3'; // Journal
 
-            if (isModifierPressed && isSlashPressed) {
+            if (isAltPressed && isSlashPressed) {
                 event.preventDefault();
                 setIsOpen((prev) => !prev);
-            } else if (isModifierPressed && isPPressed) {
+            } else if (isAltPressed && isPeriodPressed) {
                 event.preventDefault();
                 if (user?.username) {
                     router.push(`/${user.username}`);
                 }
-            } else if (isModifierPressed && isIPressed) { // Handle Alt + I - Re-added
-                event.preventDefault();
-                if (user?.username) { // Only open if user is logged in
-                    setInsightsOpen((prev) => !prev);
-                }
-            } else if (isModifierPressed && isSPressed) { // Handle Alt + S for Settings
+            } else if (isAltPressed && isCommaPressed) {
                 event.preventDefault();
                 if (user?.username) { // Only open if user is logged in
                     setSettingsOpen((prev) => !prev);
                 }
-            } else if (isModifierPressed && isCPressed) { // Handle Alt + C for Theme Toggle
+            } else if (isAltPressed && isSemicolonPressed) {
                 event.preventDefault();
-                themeTogglerRef.current?.toggle();
-            } else if (isModifierPressed && isShiftPressed && isMPressed) { // Alt + Shift + M
+                // vibe selector toggle
+                const currentVibe = searchParams?.get('vibe') || 'edit';
+                let nextVibe;
+                // Cycle: edit -> public -> private -> edit
+                if (currentVibe === 'edit') nextVibe = 'public'; else if (currentVibe === 'public') nextVibe = 'private'; else nextVibe = 'edit';
+
+                const params = new URLSearchParams(searchParams ? searchParams.toString() : "");
+                params.set('vibe', nextVibe);
+                router.push(`?${params.toString()}`);
+
+            } else if (isAltPressed && isQuotePressed) {
+                event.preventDefault();
+                // view selector toggle
+                const newMode = layoutMode === 'card' ? 'section' : 'card';
+                setLayoutMode(newMode);
+
+            } else if (isAltPressed && is1Pressed) {
                 event.preventDefault();
                 toggleMeFold();
-            } else if (isModifierPressed && isShiftPressed && isAPressed) { // Alt + Shift + A
-                toast("Actions Fold Toggled"); // Visual feedback enabled
+            } else if (isAltPressed && is2Pressed) {
                 event.preventDefault();
                 toggleActionsFold();
-            } else if (isModifierPressed && isShiftPressed && isJPressed) { // Alt + Shift + J
+            } else if (isAltPressed && is3Pressed) {
                 event.preventDefault();
                 toggleJournalFold();
             }
@@ -145,7 +141,7 @@ export const KeyboardShortcutsProvider: React.FC<{ children: React.ReactNode }> 
             console.log('KeyboardShortcutsProvider useEffect cleanup: Removing keydown listener'); // Added log
             document.removeEventListener('keydown', handleKeyPress);
         };
-    }, [user, router, theme, toggleMeFold, toggleActionsFold, toggleJournalFold, setInsightsOpen]); // Re-add setInsightsOpen to dependency array
+    }, [user, router, theme, toggleMeFold, toggleActionsFold, toggleJournalFold, searchParams, layoutMode, setLayoutMode]); // Re-add setInsightsOpen to dependency array
 
     useEffect(() => {
         if (typeof window !== 'undefined') {
@@ -166,11 +162,9 @@ export const KeyboardShortcutsProvider: React.FC<{ children: React.ReactNode }> 
     }, [isJournalFolded]);
 
     return (<KeyboardShortcutsContext.Provider value={{
-        isOpen, setIsOpen, toggleShortcutsModal, isInsightsOpen, // Provided Insights state
-        toggleInsightsModal, // Provided Insights toggler
+        isOpen, setIsOpen, toggleShortcutsModal, // Provided Insights state
         isSettingsOpen, // Provide Settings state
         toggleSettingsModal, // Provide Settings toggler
-        themeTogglerRef, // Provide the ref
         isMeFolded, // Provide 'Me' section folding state
         toggleMeFold, // Provide 'Me' section folding toggler
         isActionsFolded, // Provide 'Actions' section folding state

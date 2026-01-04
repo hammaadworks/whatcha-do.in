@@ -154,11 +154,22 @@ export default function IdentitySection({
         }
     };
 
-    if (!isOwner && identities.length === 0) return null;
+    if (!isOwner && identities.length === 0) {
+        return (
+            <div className="space-y-4">
+                <div className="flex justify-between items-center border-b border-primary pb-4 mb-6">
+                    <h2 className="text-2xl font-extrabold text-primary">Identity</h2>
+                </div>
+                <div className="text-center p-8 border-2 border-dashed rounded-lg text-muted-foreground bg-muted/20 border-border/50">
+                    No public identities visible.
+                </div>
+            </div>
+        );
+    }
 
     return (<div className="space-y-4">
             <div className="flex justify-between items-center border-b border-primary pb-4 mb-6">
-                <h2 className="text-2xl font-extrabold text-ring">Identity</h2>
+                <h2 className="text-2xl font-extrabold text-primary">Identity</h2>
                 {isOwner && !isReadOnly && ( // Conditional rendering for "New Identity" button
                     <TooltipProvider>
                         <Tooltip>

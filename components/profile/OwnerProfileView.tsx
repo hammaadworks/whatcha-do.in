@@ -1,29 +1,30 @@
 "use client";
 
-import React, { useCallback, useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import React, {useCallback, useEffect, useState} from "react";
+import {useRouter, useSearchParams} from "next/navigation";
 import ProfileLayout from "@/components/profile/ProfileLayout";
 import ActionsSection from "@/components/profile/sections/ActionsSection";
-import { HabitsSection } from "@/components/profile/sections/HabitsSection";
+import {HabitsSection} from "@/components/profile/sections/HabitsSection";
 import JournalSection from "@/components/profile/sections/JournalSection";
 import MotivationsSection from "@/components/profile/sections/MotivationsSection";
-import { useActions } from "@/hooks/useActions";
-import { useHabitActions } from "@/hooks/useHabitActions";
-import { useAuth, User } from "@/packages/auth/hooks/useAuth";
-import { updateUserProfile, updateUserTimezone } from "@/lib/supabase/user.client";
-import { PublicPage } from "@/components/profile/PublicPage";
-import { toast } from "sonner";
-import { fetchOwnerHabits } from "@/lib/supabase/habit";
-import { fetchJournalEntries } from "@/lib/supabase/journal";
-import { ActionNode, Habit, Identity, JournalEntry } from "@/lib/supabase/types";
-import { VibeSelector } from "@/components/profile/VibeSelector";
+import {useActions} from "@/hooks/useActions";
+import {useHabitActions} from "@/hooks/useHabitActions";
+import {useAuth, User} from "@/packages/auth/hooks/useAuth";
+import {updateUserProfile, updateUserTimezone} from "@/lib/supabase/user.client";
+import {PublicPage} from "@/components/profile/PublicPage";
+import {toast} from "sonner";
+import {fetchOwnerHabits} from "@/lib/supabase/habit";
+import {fetchJournalEntries} from "@/lib/supabase/journal";
+import {ActionNode, Habit, Identity, JournalEntry} from "@/lib/supabase/types";
+import {VibeSelector} from "@/components/profile/VibeSelector";
 import MeSection from "@/components/profile/sections/MeSection";
-import { useKeyboardShortcuts } from "@/components/shared/KeyboardShortcutsProvider";
-import { useGracePeriod } from "@/hooks/useGracePeriod";
-import { GracePeriodScreen } from "@/components/grace-period/GracePeriodScreen";
-import { getReferenceDateUI, getTodayISO } from "@/lib/date";
-import { useSimulatedTime } from "@/components/layout/SimulatedTimeProvider";
-import { ViewSelector } from "@/components/profile/ViewSelector";
+import {useKeyboardShortcuts} from "@/components/shared/KeyboardShortcutsProvider";
+import {useGracePeriod} from "@/hooks/useGracePeriod";
+import {GracePeriodScreen} from "@/components/grace-period/GracePeriodScreen";
+import {getReferenceDateUI, getTodayISO} from "@/lib/date";
+import {useSimulatedTime} from "@/components/layout/SimulatedTimeProvider";
+import {ViewSelector} from "@/components/profile/ViewSelector";
+import {HabitState} from "@/lib/enums.ts";
 
 interface OwnerProfileViewProps {
   username: string;
@@ -212,7 +213,7 @@ export default function OwnerProfileView({
   };
 
   // Derive live public data from owner state
-  const livePublicHabits = ownerHabits.length > 0 ? ownerHabits.filter((h) => h.is_public) : publicHabits;
+  const livePublicHabits = ownerHabits.length > 0 ? ownerHabits.filter((h) => h.is_public && h.habit_state!=HabitState.JUNKED) : publicHabits;
   const livePublicJournal = ownerJournalEntries.length > 0 ? ownerJournalEntries.filter((j) => j.is_public) : publicJournalEntries;
 
   // For actions, we need to filter the tree
@@ -284,6 +285,7 @@ export default function OwnerProfileView({
         isCollapsible={isCollapsible}
         isReadOnly={isReadOnly}
         username={username}
+        isOwner={true}
         profileToDisplay={profileToDisplay}
         ownerHabits={ownerHabits}
         onBioUpdate={handleBioUpdate}

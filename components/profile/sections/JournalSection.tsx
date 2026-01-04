@@ -6,24 +6,20 @@ import {JournalEntry, ActivityLogEntry} from '@/lib/supabase/types';
 import {
     Calendar as CalendarIcon,
     Globe,
-    Loader2,
     Lock,
     CheckCircle2,
     Target,
     Zap,
     Clock,
-    CloudCheck,
     Smile,
     Briefcase,
     Timer,
-    StickyNote,
-    ChevronLeft,
-    ChevronRight
+    StickyNote
 } from 'lucide-react';
-import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,} from "@/components/ui/tooltip";
+import * as LucideIcons from 'lucide-react';
 import {Button} from '@/components/ui/button';
 import {Skeleton} from '@/components/ui/skeleton';
-import {CustomMarkdownEditor} from '@/components/shared/CustomMarkdownEditor';
+import {EditorWithControls} from '@/components/shared/EditorWithControls';
 import {Calendar} from '@/components/shared/Calendar';
 import {Popover, PopoverContent, PopoverTrigger} from '@/components/ui/popover';
 import {format} from 'date-fns';
@@ -32,11 +28,9 @@ import {toast} from 'sonner';
 import {cn} from '@/lib/utils';
 import {useAuth} from '@/packages/auth/hooks/useAuth';
 import {ShineBorder} from "@/components/ui/shine-border";
-import {useDebounce} from '@/hooks/useDebounce';
 import {CollapsibleSectionWrapper} from '@/components/ui/collapsible-section-wrapper';
 import { useSimulatedTime } from '@/components/layout/SimulatedTimeProvider';
 import { ToggleButtonGroup } from '@/components/shared/ToggleButtonGroup';
-import { uploadJournalMedia, getSignedUrlForPath } from '@/lib/supabase/storage';
 
 import { PaginationControls } from '@/components/shared/PaginationControls';
 
@@ -58,77 +52,86 @@ const ActivityItem = ({ entry }: { entry: ActivityLogEntry }) => {
     // Determine Icon and Color
     let Icon = CheckCircle2;
     let iconColor = "text-chart-4";
-    let bgColor = "bg-chart-4/20";
+    let bgColor = "bg-chart-4/10";
+    let borderColor = "border-chart-4/20";
     
     if (entry.type === 'habit') {
         Icon = Zap;
-        iconColor = "text-chart-5";
-        bgColor = "bg-chart-5/20";
+        // Try to find specific icon
+        if (entry.details?.icon) {
+            const SpecificIcon = (LucideIcons as any)[entry.details.icon];
+            if (SpecificIcon) {
+                Icon = SpecificIcon;
+            }
+        }
+
+        iconColor = "text-amber-500";
+        bgColor = "bg-amber-500/10";
+        borderColor = "border-amber-500/20";
     } else if (entry.type === 'target') {
         Icon = Target;
         iconColor = "text-destructive";
-        bgColor = "bg-destructive/20";
+        bgColor = "bg-destructive/10";
+        borderColor = "border-destructive/20";
     }
 
     // Extract known details
     const { mood, work_value, time_taken, time_taken_unit, notes } = entry.details || {};
 
     return (
-        <div className="group flex items-start gap-3 p-3 rounded-xl border bg-card/50 hover:bg-card hover:shadow-sm transition-all duration-200">
-            <div className={cn("p-2 rounded-full shrink-0 mt-0.5", bgColor, iconColor)}>
-                <Icon className="w-4 h-4" />
+        <div className={cn(
+            "group flex items-center gap-4 p-4 rounded-xl border transition-all duration-200",
+            "bg-card hover:bg-accent/5 hover:border-accent/20", // Card background
+            borderColor
+        )}>
+            <div className={cn("p-2.5 rounded-full shrink-0 flex items-center justify-center", bgColor, iconColor)}>
+                <Icon className="w-5 h-5" />
             </div>
-            <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                    <span className="text-sm font-medium truncate">{entry.description}</span>
+            
+            <div className="flex-1 min-w-0 flex flex-col gap-1">
+                <div className="flex items-center justify-between gap-2">
+                    <span className="text-base font-medium truncate text-foreground/90">{entry.description}</span>
+                    <span className="text-xs font-mono text-muted-foreground shrink-0">{time}</span>
                 </div>
                 
                 {/* Details Row */}
-                <div className="flex flex-wrap gap-2 text-xs text-muted-foreground items-center">
-                   {/* Time */}
-                   <span className="flex items-center gap-1 text-xs font-mono opacity-70">
-                        <Clock className="w-3 h-3" />
-                        {time}
-                   </span>
-                   
-                   {(mood !== undefined || work_value !== undefined || time_taken !== undefined || notes) && (
-                       <span className="text-border">|</span>
-                   )}
+                {(mood !== undefined || work_value !== undefined || time_taken !== undefined || notes) && (
+                    <div className="flex flex-wrap gap-2 text-xs text-muted-foreground items-center mt-1">
+                        {mood !== undefined && (
+                            <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-muted/50 border border-border/50 text-foreground/80">
+                                <Smile className="w-3.5 h-3.5" /> Mood: {mood}
+                            </span>
+                        )}
+                        
+                        {work_value !== undefined && (
+                            <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-muted/50 border border-border/50 text-foreground/80">
+                                <Briefcase className="w-3.5 h-3.5" /> Work: {work_value}
+                            </span>
+                        )}
+                        
+                        {time_taken !== undefined && (
+                            <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-muted/50 border border-border/50 text-foreground/80">
+                                <Timer className="w-3.5 h-3.5" /> {time_taken} {time_taken_unit || 'min'}
+                            </span>
+                        )}
 
-                   {mood !== undefined && (
-                       <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-muted/50 border border-border/50">
-                           <Smile className="w-3 h-3" /> Mood: {mood}
-                       </span>
-                   )}
-                   
-                   {work_value !== undefined && (
-                       <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-muted/50 border border-border/50">
-                           <Briefcase className="w-3 h-3" /> Work: {work_value}
-                       </span>
-                   )}
-                   
-                   {time_taken !== undefined && (
-                       <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-muted/50 border border-border/50">
-                           <Timer className="w-3 h-3" /> {time_taken} {time_taken_unit || 'min'}
-                       </span>
-                   )}
-
-                   {notes && (
-                       <button 
-                           onClick={() => setIsNoteExpanded(!isNoteExpanded)}
-                           className={cn(
-                               "flex items-start gap-1 px-1.5 py-0.5 rounded-md bg-muted/50 border border-border/50 hover:bg-muted/80 transition-all text-left cursor-pointer group-hover:border-border/80",
-                               isNoteExpanded ? "max-w-full" : "max-w-[200px]"
-                           )}
-                           title={isNoteExpanded ? "Click to collapse" : "Click to expand"}
-                       >
-                           <StickyNote className="w-3 h-3 shrink-0 mt-0.5" /> 
-                           <span className={cn(isNoteExpanded ? "whitespace-pre-wrap break-words" : "truncate")}>
-                               {notes}
-                           </span>
-                       </button>
-                   )}
-                </div>
+                        {notes && (
+                            <button 
+                                onClick={() => setIsNoteExpanded(!isNoteExpanded)}
+                                className={cn(
+                                    "flex items-start gap-1.5 px-2 py-0.5 rounded-full bg-muted/50 border border-border/50 hover:bg-muted/80 transition-all text-left cursor-pointer group-hover:border-border/80 text-foreground/80",
+                                    isNoteExpanded ? "max-w-full rounded-md" : "max-w-[200px]"
+                                )}
+                                title={isNoteExpanded ? "Click to collapse" : "Click to expand"}
+                            >
+                                <StickyNote className="w-3.5 h-3.5 shrink-0 mt-0.5" /> 
+                                <span className={cn(isNoteExpanded ? "whitespace-pre-wrap break-words" : "truncate")}>
+                                    {notes}
+                                </span>
+                            </button>
+                        )}
+                    </div>
+                )}
             </div>
         </div>
     )
@@ -139,19 +142,12 @@ const JournalSection: React.FC<JournalSectionProps> = ({isOwner, isReadOnly = fa
     const { simulatedDate } = useSimulatedTime();
     const [selectedDate, setSelectedDate] = useState<Date>(simulatedDate || new Date());
     const [activeTab, setActiveTab] = useState<'private' | 'public'>('public'); // Default to public
-    const [entryContent, setEntryContent] = useState('');
     const [activityLog, setActivityLog] = useState<ActivityLogEntry[]>([]);
-    const [autosaveStatus, setAutosaveStatus] = useState<'idle' | 'processing' | 'saving' | 'saved' | 'error'>('saved');
-    const lastSavedContentRef = useRef('');
-    const debouncedProcessing = useDebounce(entryContent, 1000);
-    const debouncedSaving = useDebounce(entryContent, 5000);
     const mainDatePickerButtonRef = useRef<HTMLButtonElement>(null);
     const [isMainDatePickerOpen, setIsMainDatePickerOpen] = useState(false);
     const [activityPage, setActivityPage] = useState(1);
+    const [isDirty, setIsDirty] = useState(false);
     const ACTIVITY_PAGE_SIZE = 5;
-
-    // Track if content is user-edited or loaded
-    const isUserTyping = useRef(false);
 
     // Reset pagination when date or tab changes
     useEffect(() => {
@@ -180,100 +176,58 @@ const JournalSection: React.FC<JournalSectionProps> = ({isOwner, isReadOnly = fa
         return journalEntries.some(e => e.entry_date === dateStr && e.is_public === isPublic);
     };
 
+    // Derived state for current content
+    const currentEntry = getCurrentEntry();
+    const initialContent = currentEntry?.content || '';
+
     useEffect(() => {
-        const entry = getCurrentEntry();
-        const newContent = entry?.content || '';
-        setEntryContent(newContent);
-        setActivityLog(entry?.activity_log || []);
-        lastSavedContentRef.current = newContent;
-        setAutosaveStatus('saved'); // When a new entry is loaded, it is "saved"
-        isUserTyping.current = false;
-    }, [selectedDate, activeTab, journalEntries, getCurrentEntry]);
+        setActivityLog(currentEntry?.activity_log || []);
+    }, [currentEntry]);
 
-    const saveEntry = useCallback(async (currentContent: string, dateToSave: Date, isPublicToSave: boolean) => {
+    const handleSave = async (content: string) => {
         if (!user || isReadOnly) return;
-
-        const trimmedContent = currentContent.trim();
-        // If empty and not in DB, skip? No, user might delete content.
+        const trimmedContent = content.trim();
         
-        setAutosaveStatus('saving');
         try {
-            const dateStr = format(dateToSave, 'yyyy-MM-dd');
+            const dateStr = format(selectedDate, 'yyyy-MM-dd');
+            const isPublic = activeTab === 'public';
 
             await upsertJournalEntry({
-                user_id: user.id, entry_date: dateStr, is_public: isPublicToSave, content: trimmedContent
+                user_id: user.id, entry_date: dateStr, is_public: isPublic, content: trimmedContent
             });
 
-            lastSavedContentRef.current = currentContent;
-            setAutosaveStatus('saved');
-            
             // Notify parent to refresh data (which updates the calendar dots)
             if (onEntrySaved) {
                 onEntrySaved();
             }
         } catch (error) {
             console.error('Failed to save journal:', error);
-            setAutosaveStatus('error');
-            toast.error('Failed to autosave journal');
+            // EditorWithControls handles UI toast for error usually, but we throw to let it know?
+            // EditorWithControls expects onSave to be a Promise. If it rejects, it shows error toast.
+            throw error;
         }
-    }, [user, isReadOnly, onEntrySaved]);
+    };
 
-    const handleUpload = useCallback(async (file: File): Promise<string> => {
-        if (!user) throw new Error("You must be logged in to upload media.");
-        const isPublic = activeTab === 'public';
-        const { path } = await uploadJournalMedia(file, user.id, isPublic);
-        return `![Image](${path})`;
-    }, [user, activeTab]);
-
-    const resolveImage = useCallback(async (src: string): Promise<string | null> => {
-        if (src.startsWith('storage://')) {
-            return await getSignedUrlForPath(src);
-        }
-        return src;
-    }, []);
-
-    // Processing state effect (1s debounce)
-    useEffect(() => {
-        if (isOwner && !isReadOnly && debouncedProcessing !== lastSavedContentRef.current) {
-             if (autosaveStatus !== 'saving') {
-                 setAutosaveStatus('processing');
-             }
-        }
-    }, [debouncedProcessing, isOwner, isReadOnly, lastSavedContentRef]);
-
-    // Saving effect (5s debounce)
-    useEffect(() => {
-        // Prevent overwrite: Only save if debounced value matches current content
-        // This handles the race condition where tab switches but debounce fires with old content
-        if (debouncedSaving !== entryContent) {
-            return; 
-        }
-
-        if (isOwner && !isReadOnly && debouncedSaving !== lastSavedContentRef.current) {
-            // Safe to save using current state vars because we verified content matches
-            saveEntry(debouncedSaving, selectedDate, activeTab === 'public');
-        }
-    }, [debouncedSaving, isOwner, isReadOnly, saveEntry, selectedDate, activeTab, entryContent]);
-
-    // Explicit handle for tab change to force save
+    // Explicit handle for tab change
     const handleTabChange = async (newTab: string) => {
         const tab = newTab as 'public' | 'private';
         if (tab === activeTab) return;
 
-        // Force save current content before switching if it changed
-        if (entryContent !== lastSavedContentRef.current) {
-            await saveEntry(entryContent, selectedDate, activeTab === 'public');
+        if (isDirty) {
+            const confirmSwitch = window.confirm("You have unsaved changes. Switch tabs anyway?");
+            if (!confirmSwitch) return;
         }
         
         setActiveTab(tab);
     };
 
-    // Explicit handle for date change to force save
+    // Explicit handle for date change
     const handleDateSelect = async (date: Date | undefined) => {
         if (!date) return;
         
-        if (entryContent !== lastSavedContentRef.current) {
-            await saveEntry(entryContent, selectedDate, activeTab === 'public');
+        if (isDirty) {
+            const confirmSwitch = window.confirm("You have unsaved changes. Switch date anyway?");
+            if (!confirmSwitch) return;
         }
         
         setSelectedDate(date);
@@ -286,9 +240,6 @@ const JournalSection: React.FC<JournalSectionProps> = ({isOwner, isReadOnly = fa
     // Pagination Logic
     const totalActivityPages = Math.ceil(sortedLogs.length / ACTIVITY_PAGE_SIZE);
     const paginatedLogs = sortedLogs.slice((activityPage - 1) * ACTIVITY_PAGE_SIZE, activityPage * ACTIVITY_PAGE_SIZE);
-
-    const handlePrevPage = () => setActivityPage(p => Math.max(1, p - 1));
-    const handleNextPage = () => setActivityPage(p => Math.min(totalActivityPages, p + 1));
 
     const JOURNAL_VIEW_OPTIONS = [
         { id: 'public', label: 'Public Journal', icon: Globe },
@@ -307,8 +258,8 @@ const JournalSection: React.FC<JournalSectionProps> = ({isOwner, isReadOnly = fa
         <CollapsibleSectionWrapper
             title="Journal"
             isCollapsible={isCollapsible}
-            isFolded={isFolded} // Pass new prop
-            toggleFold={toggleFold} // Pass new prop
+            isFolded={isFolded}
+            toggleFold={toggleFold}
             rightElement={
                 <div className="flex items-center gap-2">
                     {/* Date Picker */}
@@ -365,40 +316,6 @@ const JournalSection: React.FC<JournalSectionProps> = ({isOwner, isReadOnly = fa
                         className="flex-1"
                         itemClassName="flex-1 justify-center"
                     />
-
-                        {/* Autosave Status Feedback */}
-                        {isOwner && !isReadOnly && (
-                            <div
-                                className="flex items-center justify-end gap-2 text-sm font-medium shrink-0 min-w-[100px] text-muted-foreground">
-                                {autosaveStatus === 'processing' && (
-                                    <div className="flex items-center gap-2 text-muted-foreground/80">
-                                        <span className="relative flex h-2 w-2">
-                                           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75 duration-[1000ms]"></span>
-                                           <span className="relative inline-flex rounded-full h-2 w-2 bg-primary/50"></span>
-                                        </span>
-                                        <span>Processing...</span>
-                                    </div>
-                                )}
-                                {autosaveStatus === 'saving' && (
-                                    <div className="flex items-center gap-2 text-primary">
-                                        <span className="relative flex h-2 w-2">
-                                           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75 duration-300"></span>
-                                           <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
-                                        </span>
-                                        <span>Saving...</span>
-                                    </div>
-                                )}
-                                {(autosaveStatus === 'saved' || autosaveStatus === 'idle') && (
-                                    <div className="flex items-center gap-2 text-primary/80">
-                                        <CloudCheck className="h-4 w-4"/>
-                                        <span>Saved</span>
-                                    </div>
-                                )}
-                                {autosaveStatus === 'error' && (
-                                    <span className="text-destructive">Error</span>
-                                )}
-                            </div>
-                        )}
                     </div>
                 )}
 
@@ -409,25 +326,20 @@ const JournalSection: React.FC<JournalSectionProps> = ({isOwner, isReadOnly = fa
                             ? "bg-primary/[0.03] dark:bg-primary/[0.1] border-2 border-primary/20 dark:border-primary/30" // Private: Warm/Theme Tint (Dark mode boosted)
                             : "bg-accent/[0.05] border-2 border-accent/20" // Public: Accent Tint
                     )}
-                    style={{
-                        backgroundImage: activeTab === 'private'
-                            ? `radial-gradient(hsl(var(--primary) / 0.15) 1px, transparent 1px)` // Dot Pattern (slightly higher opacity for visibility)
-                            : `linear-gradient(to right, hsl(var(--foreground) / 0.07) 1px, transparent 1px), linear-gradient(to bottom, hsl(var(--foreground) / 0.07) 1px, transparent 1px)`, // Grid Pattern
-                        backgroundSize: '24px 24px'
-                    }}
                 >
                     {isOwner && !isReadOnly ? (
                         <div className={cn("h-full flex flex-col gap-4 relative z-10", 
                             activeTab === 'private' ? "caret-primary" : "caret-accent" // Caret Color Cue
                         )}>
-                            <CustomMarkdownEditor
-                                value={entryContent}
-                                onChange={setEntryContent}
+                            <EditorWithControls
+                                initialContent={initialContent}
+                                onSave={handleSave}
+                                userId={user?.id || ''}
+                                isOwner={true}
+                                uploadIsPublic={activeTab === 'public'}
                                 placeholder={activeTab === 'private' ? "Private thoughts..." : "Public thoughts..."}
                                 className="min-h-[200px] border-none shadow-none focus-visible:ring-0 p-0 text-base leading-relaxed bg-transparent"
-                                textareaClassName={activeTab === 'private' ? "caret-primary !text-foreground" : "caret-accent !text-foreground"}
-                                onUpload={handleUpload}
-                                resolveImageUrl={resolveImage}
+                                onDirtyChange={setIsDirty}
                                 watermark={
                                     <div className="opacity-[0.05] dark:opacity-[0.08] flex items-center justify-center w-full h-full">
                                         {activeTab === 'private' ? (
@@ -437,12 +349,18 @@ const JournalSection: React.FC<JournalSectionProps> = ({isOwner, isReadOnly = fa
                                         )}
                                     </div>
                                 }
+                                style={{
+                                    backgroundImage: activeTab === 'private'
+                                        ? `radial-gradient(hsl(var(--primary) / 0.15) 1px, transparent 1px)` 
+                                        : `linear-gradient(to right, hsl(var(--foreground) / 0.07) 1px, transparent 1px), linear-gradient(to bottom, hsl(var(--foreground) / 0.07) 1px, transparent 1px)`,
+                                    backgroundSize: '24px 24px'
+                                }}
                             />
                         </div>
                     ) : (
                         <div className="prose prose-sm sm:prose-base dark:prose-invert max-w-none text-left leading-relaxed break-words relative z-10">
-                            {entryContent ? (
-                                <ReactMarkdown>{entryContent}</ReactMarkdown>
+                            {initialContent ? (
+                                <ReactMarkdown>{initialContent}</ReactMarkdown>
                             ) : (
                                 <p className="text-muted-foreground italic">No entry for this date.</p>
                             )}

@@ -25,7 +25,7 @@ export interface Habit {
   updated_at: string;
   target_time?: string | null; // Added target_time
   descriptions?: string | null; // Added descriptions
-  linked_identities?: { id: string; color?: string }[]; // Added linked_identities
+  linked_identities?: { id: string; color?: string; title: string }[]; // Added linked_identities with title
 }
 
 export interface Todo {

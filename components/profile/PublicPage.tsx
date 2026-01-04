@@ -6,9 +6,7 @@ import ActionsSection from "@/components/profile/sections/ActionsSection";
 import { HabitsSection } from "@/components/profile/sections/HabitsSection";
 import JournalSection from "@/components/profile/sections/JournalSection";
 import MotivationsSection from "@/components/profile/sections/MotivationsSection";
-import IdentitySection from "@/components/profile/sections/IdentitySection"; // Import
-import TargetsSection from "@/components/profile/sections/TargetsSection"; // Import
-import BioSection from "@/components/profile/sections/BioSection";
+import MeSection from "@/components/profile/sections/MeSection";
 
 import { ViewSelector } from "@/components/profile/ViewSelector";
 import { getReferenceDateUI, getTodayISO } from "@/lib/date.ts";
@@ -59,7 +57,7 @@ export function PublicPage({
          <div className="flex items-center gap-2 bg-muted/50 px-3 py-1.5 rounded-full border border-border/50 text-xs text-muted-foreground animate-in fade-in slide-in-from-top-2 duration-700">
            <Palette className="w-3 h-3" />
            <span>Theme: <span className="font-semibold text-foreground">{activeThemeObj.name}</span></span>
-           {viewer?.username !== user.username && (
+           {viewer && viewer.username !== user.username && (
                <Link 
                     href={`?theme-preview=${activeThemeObj.id}`} 
                     scroll={false} 
@@ -85,37 +83,21 @@ export function PublicPage({
         timezone={user.timezone} // Pass timezone
         headerContent={headerContent}
       >
-        {/* Top row: Bio and Identity AND Targets wrapped in one div for Section Layout consistency */}
-        <div className="flex flex-col gap-8 mb-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div>
-              <BioSection
-                userId={user.id}
-                username={user.username || ""}
-                bio={user.bio ?? null}
-                isOwner={false}
-                isReadOnly={true}
-              />
-            </div>
-            <div>
-              <IdentitySection
-                isOwner={false}
-                isReadOnly={true}
-                identities={publicIdentities}
-                ownerHabits={[]}
-              />
-            </div>
-          </div>
-
-          <div className="">
-            <TargetsSection
-              isOwner={false}
-              isReadOnly={true}
-              timezone={user.timezone || "UTC"}
-              targets={publicTargets}
-            />
-          </div>
-        </div>
+        <MeSection
+            isCollapsible={false}
+            isReadOnly={true}
+            username={user.username || ""}
+            isOwner={false}
+            profileToDisplay={user}
+            ownerHabits={publicHabits}
+            identities={publicIdentities}
+            targets={publicTargets}
+            onBioUpdate={async () => {}}
+            onActivityLogged={async () => {}}
+            timezone={user.timezone || "UTC"}
+            isFolded={false}
+            toggleFold={() => {}}
+        />
 
         <ActionsSection
           isOwner={false}

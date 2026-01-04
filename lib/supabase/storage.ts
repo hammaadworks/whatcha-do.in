@@ -1,7 +1,7 @@
 import { createClient } from './client';
 import { v4 as uuidv4 } from 'uuid';
 
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const MAX_FILE_SIZE = 8 * 1024 * 1024; // 8MB
 
 export interface UploadResult {
     path: string; // The stored path or public URL
@@ -11,7 +11,7 @@ export interface UploadResult {
 
 export async function uploadJournalMedia(file: File, userId: string, isPublic: boolean): Promise<UploadResult> {
     if (file.size > MAX_FILE_SIZE) {
-        throw new Error('File size exceeds 5MB limit.');
+        throw new Error('File size exceeds 8MB limit.');
     }
 
     const supabase = createClient();

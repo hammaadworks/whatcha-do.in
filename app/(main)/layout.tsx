@@ -2,31 +2,31 @@
 
 /**
  * @file Next.js App Router layout for the `(main)` route group.
- *       Responsible for providing global authentication context to all pages within this group.
+ *       Responsible for layout structure of pages within this group.
  */
 
-// Marks this component as client-side rendered. Essential for `AuthProvider`
-// which likely depends on browser APIs or client-side React hooks for auth state management.
-"use client";
+// Marks this component as client-side rendered if needed, but for simple pass-through it can be server or client.
+// Keeping "use client" if there were other client-side logic, but strictly for children it's not needed.
+// However, since the original file had it and imported AuthProvider, we can revert to a simple server component or client component.
+// Let's keep it simple.
 
-import { AuthProvider } from "@/packages/auth/components/AuthProvider";
+import React from "react";
 
 /**
  * MainLayout Component
  *
- * Wraps child pages/components within the `(main)` route group, providing them
- * with the `AuthProvider` context. This centralizes authentication state management
- * for all routes under `/(main)`.
+ * Wraps child pages/components within the `(main)` route group.
+ * Note: AuthProvider is already provided by the RootLayout.
  *
  * @param {Object} props - Component props.
  * @param {React.ReactNode} props.children - The child elements (pages or nested layouts)
  *        to be rendered within this layout.
- * @returns {JSX.Element} A React element providing the `AuthProvider` context.
+ * @returns {JSX.Element} A React element.
  */
 export default function MainLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return <AuthProvider>{children}</AuthProvider>;
+  return <>{children}</>;
 }

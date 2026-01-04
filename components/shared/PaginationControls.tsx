@@ -31,9 +31,7 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
     return (
         <div className={cn("flex items-center justify-between pt-4 border-t border-border/50 mt-2", className)}>
             <span className="text-xs text-muted-foreground">
-                Showing <span className="font-medium text-foreground">{startItem}</span> to{' '}
-                <span className="font-medium text-foreground">{endItem}</span>{' '}
-                of <span className="font-medium text-foreground">{totalItems}</span> results
+                Showing <span className="font-medium text-foreground">{startItem}</span> - <span className="font-medium text-foreground">{endItem}</span> of <span className="font-medium text-foreground">{totalItems}</span> results
             </span>
 
             <div className="flex gap-2">

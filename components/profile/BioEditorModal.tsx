@@ -3,6 +3,8 @@
 import React from 'react';
 import {Dialog, DialogContent, DialogHeader, DialogTitle} from '@/components/ui/dialog';
 import {EditorWithControls} from '@/components/shared/EditorWithControls';
+import {cn} from '@/lib/utils';
+import {Globe} from 'lucide-react';
 
 interface BioEditorModalProps {
     isOpen: boolean;
@@ -26,7 +28,16 @@ export const BioEditorModal: React.FC<BioEditorModalProps> = ({isOpen, onClose, 
                     <DialogTitle className="text-2xl font-bold text-primary">Edit Bio</DialogTitle>
                 </DialogHeader>
 
-                <div className="flex-grow overflow-hidden border rounded-md">
+                <div 
+                    className={cn(
+                        "flex-grow overflow-hidden rounded-md border transition-all duration-500",
+                        "bg-accent/[0.05] border-accent/20"
+                    )}
+                    style={{
+                        backgroundImage: `linear-gradient(to right, hsl(var(--foreground) / 0.07) 1px, transparent 1px), linear-gradient(to bottom, hsl(var(--foreground) / 0.07) 1px, transparent 1px)`,
+                        backgroundSize: '24px 24px'
+                    }}
+                >
                     <EditorWithControls
                         initialContent={initialBio || ''}
                         onSave={handleSave}
@@ -34,6 +45,11 @@ export const BioEditorModal: React.FC<BioEditorModalProps> = ({isOpen, onClose, 
                         isOwner={true} // Bio is always editable by owner in this modal
                         uploadIsPublic={true}
                         placeholder="Tell your story..."
+                        watermark={
+                            <div className="opacity-[0.05] dark:opacity-[0.08] flex items-center justify-center w-full h-full">
+                                <Globe className="w-1/3 h-auto max-w-[12rem] min-w-[4rem] text-accent" />
+                            </div>
+                        }
                     />
                 </div>
             </DialogContent>

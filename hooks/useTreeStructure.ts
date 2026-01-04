@@ -56,6 +56,12 @@ export const useTreeStructure = ({
   const [tree, setTree] = useState<ActionNode[]>(initialData || []);
   const [loading, setLoading] = useState(!initialData && isOwner);
   const [lastDeletedContext, setLastDeletedContext] = useState<DeletedNodeContext | null>(null);
+  
+  // Ref to track the latest tree state for async callbacks (like toast undo)
+  const treeRef = useRef(tree);
+  useEffect(() => {
+    treeRef.current = tree;
+  }, [tree]);
 
   const supabase = createClient();
   const journalActivityService = new JournalActivityService(supabase);
@@ -245,12 +251,20 @@ export const useTreeStructure = ({
     toast.success(`${toastPrefix} deleted.`, {
         action: {
             label: "Undo",
-            onClick: () => undoDeleteNode(),
+            onClick: () => {
+              if (deletedContext) {
+                const currentTree = treeRef.current;
+                const restoredTree = restoreActionInTree(currentTree, deletedContext);
+                save(restoredTree);
+                setLastDeletedContext(null);
+                toast.success(`${toastPrefix} restored!`);
+              }
+            },
         },
         duration: 5000,
     });
     return deletedContext;
-  }, [tree, save, undoDeleteNode, toastPrefix]); // Add undoDeleteNode to dependencies
+  }, [tree, save, toastPrefix]); // Removed undoDeleteNode from deps
 
   const indentNode = useCallback(async (id: string) => {
     setLastDeletedContext(null);

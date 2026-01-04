@@ -18,7 +18,8 @@ export async function fetchPublicHabitsServer(userId: string): Promise<Habit[]> 
       habit_identities (
         identities (
           id,
-          color
+          color,
+          title
         )
       )
     `)
