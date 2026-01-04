@@ -1,14 +1,7 @@
 'use client';
 
 import React, {useState} from 'react';
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle
-} from '@/components/ui/dialog';
+import BaseModal from '@/components/shared/BaseModal';
 import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
 import {Label} from '@/components/ui/label';
@@ -88,86 +81,82 @@ export const CreateIdentityModal: React.FC<CreateIdentityModalProps> = ({isOpen,
         }
     };
 
-    const handleOpenChange = (open: boolean) => {
-        if (!open) {
-            onClose();
-        }
-    };
+    const footerContent = (
+        <>
+            <Button variant="outline" onClick={onClose} disabled={isCreating}>
+                Cancel
+            </Button>
+            <Button onClick={handleCreate} disabled={isCreating || !title.trim()}>
+                {isCreating && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
+                Create
+            </Button>
+        </>
+    );
 
-    return (<Dialog open={isOpen} onOpenChange={handleOpenChange}>
-            <DialogContent className="sm:max-w-[500px]">
-                <DialogHeader>
-                    <DialogTitle>Define New Identity</DialogTitle>
-                    <DialogDescription>
-                        Who do you want to become?
-                    </DialogDescription>
-                </DialogHeader>
-
-                <div className="grid gap-4 py-4">
-                    <div className="grid gap-2">
-                        <Label htmlFor="identity-title">Identity Statement</Label>
-                        <div className="flex gap-3 items-center">
-                            <span className="text-lg font-medium whitespace-nowrap text-muted-foreground">{IDENTITY_START_PHRASE}</span>
-                            <Select value={prefix} onValueChange={handlePrefixChange}>
-                                <SelectTrigger className="w-[70px] shrink-0">
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="a">a</SelectItem>
-                                    <SelectItem value="an">an</SelectItem>
-                                    <SelectItem value="-">-</SelectItem>
-                                </SelectContent>
-                            </Select>
-                            <Input
-                                id="identity-title"
-                                value={title}
-                                onChange={handleTitleChange}
-                                placeholder="Runner, Entrepreneur..."
-                                className="flex-1"
-                                autoFocus
-                            />
-                        </div>
-                    </div>
-
-                    <div className="grid gap-2">
-                        <Label>Color Code</Label>
-                        <div className="flex flex-wrap gap-2">
-                            {IDENTITY_COLORS.map((color) => (
-                                <button
-                                    key={color}
-                                    type="button"
-                                    onClick={() => setSelectedColor(color)}
-                                    className={cn(
-                                        "w-6 h-6 rounded-full transition-all flex items-center justify-center",
-                                        color,
-                                        selectedColor === color ? "ring-2 ring-offset-2 ring-primary scale-110" : "hover:scale-110 opacity-70 hover:opacity-100"
-                                    )}
-                                >
-                                    {selectedColor === color && <Check className="w-3 h-3 text-white drop-shadow-md" strokeWidth={3} />}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-
-                    <div className="flex items-center justify-between mt-2">
-                        <Label htmlFor="public-mode">Public Identity</Label>
-                        <Switch
-                            id="public-mode"
-                            checked={isPublic}
-                            onCheckedChange={setIsPublic}
+    return (
+        <BaseModal
+            isOpen={isOpen}
+            onClose={onClose}
+            title="Define New Identity"
+            description="Who do you want to become?"
+            footerContent={footerContent}
+            className="sm:max-w-[500px]"
+        >
+            <div className="grid gap-4 py-4">
+                <div className="grid gap-2">
+                    <Label htmlFor="identity-title">Identity Statement</Label>
+                    <div className="flex flex-wrap gap-3 items-center">
+                        <span className="text-lg font-medium whitespace-nowrap text-muted-foreground">{IDENTITY_START_PHRASE}</span>
+                        <Select value={prefix} onValueChange={handlePrefixChange}>
+                            <SelectTrigger className="w-[70px] shrink-0">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="a">a</SelectItem>
+                                <SelectItem value="an">an</SelectItem>
+                                <SelectItem value="-">-</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <Input
+                            id="identity-title"
+                            value={title}
+                            onChange={handleTitleChange}
+                            placeholder="Runner, Entrepreneur..."
+                            className="flex-1 min-w-[150px]"
+                            autoFocus
                         />
                     </div>
                 </div>
 
-                <DialogFooter>
-                    <Button variant="outline" onClick={onClose} disabled={isCreating}>
-                        Cancel
-                    </Button>
-                    <Button onClick={handleCreate} disabled={isCreating || !title.trim()}>
-                        {isCreating && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
-                        Create
-                    </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>);
+                <div className="grid gap-2">
+                    <Label>Color Code</Label>
+                    <div className="flex flex-wrap gap-2">
+                        {IDENTITY_COLORS.map((color) => (
+                            <button
+                                key={color}
+                                type="button"
+                                onClick={() => setSelectedColor(color)}
+                                className={cn(
+                                    "w-6 h-6 rounded-full transition-all flex items-center justify-center",
+                                    color,
+                                    selectedColor === color ? "ring-2 ring-offset-2 ring-primary scale-110" : "hover:scale-110 opacity-70 hover:opacity-100"
+                                )}
+                            >
+                                {selectedColor === color && <Check className="w-3 h-3 text-white drop-shadow-md" strokeWidth={3} />}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                <div className="flex items-center justify-between mt-2">
+                    <Label htmlFor="public-mode">Public Identity</Label>
+                    <Switch
+                        id="public-mode"
+                        checked={isPublic}
+                        onCheckedChange={setIsPublic}
+                    />
+                </div>
+            </div>
+        </BaseModal>
+    );
 };

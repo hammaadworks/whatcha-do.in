@@ -305,10 +305,10 @@ export function CustomMarkdownEditor({
 
         {!readOnly && (
             <div className={cn(
-                "flex items-center justify-between p-2 shrink-0 sticky top-0 z-20 transition-all duration-200",
+                "flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between p-2 shrink-0 sticky top-0 z-20 transition-all duration-200",
                 isFullscreen ? "px-4 sm:px-8 bg-background/95 backdrop-blur-md border-b" : "bg-transparent"
             )}>
-                <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide pr-2">
+                <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide pr-2 w-full sm:w-auto">
                     <div className="flex items-center gap-0.5">
                         <ToolbarButton icon={Bold} label="Bold" onClick={() => insertText('**', '**')} />
                         <ToolbarButton icon={Italic} label="Italic" onClick={() => insertText('*', '*')} />
@@ -346,7 +346,7 @@ export function CustomMarkdownEditor({
                     </div>
                 </div>
 
-                <div className="flex items-center gap-2 ml-auto">
+                <div className="flex items-center justify-between sm:justify-end gap-2 sm:ml-auto w-full sm:w-auto pb-2 sm:pb-0">
                     <ToggleButtonGroup 
                         options={VIEW_OPTIONS}
                         selectedValue={viewMode}
@@ -354,16 +354,18 @@ export function CustomMarkdownEditor({
                         className="scale-90 origin-right" 
                     />
                     
-                    <Separator orientation="vertical" className="h-6 mx-1" />
+                    <div className="flex items-center gap-2">
+                        <Separator orientation="vertical" className="h-6 mx-1 hidden sm:block" />
 
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <button type="button" className={cn("h-8 w-8 rounded-md transition-colors flex items-center justify-center", isFullscreen ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:bg-accent/50 hover:text-foreground")} onClick={toggleFullscreen}>
-                                {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
-                            </button>
-                        </TooltipTrigger>
-                        <TooltipContent>{isFullscreen ? "Exit Focus Mode" : "Enter Focus Mode"}</TooltipContent>
-                    </Tooltip>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <button type="button" className={cn("h-8 w-8 rounded-md transition-colors flex items-center justify-center", isFullscreen ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:bg-accent/50 hover:text-foreground")} onClick={toggleFullscreen}>
+                                    {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+                                </button>
+                            </TooltipTrigger>
+                            <TooltipContent>{isFullscreen ? "Exit Focus Mode" : "Enter Focus Mode"}</TooltipContent>
+                        </Tooltip>
+                    </div>
                 </div>
             </div>
         )}
@@ -398,7 +400,7 @@ export function CustomMarkdownEditor({
                     textareaProps={{
                         placeholder: placeholder || "Start writing...",
                         className: cn(
-                            "focus:outline-none !font-sans !text-lg !leading-relaxed p-6 h-full !bg-card !text-foreground z-10 relative",
+                            "focus:outline-none !font-sans !text-lg !leading-relaxed p-6 h-full !bg-card !text-foreground z-10 relative !whitespace-pre-wrap break-words",
                             textareaClassName
                         )
                     }}

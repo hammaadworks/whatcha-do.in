@@ -2,7 +2,7 @@
 
 import React, {useEffect, useState} from "react";
 import {cn} from "@/lib/utils";
-import {Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle} from "@/components/ui/dialog";
+import BaseModal from "@/components/shared/BaseModal";
 import {Button} from "@/components/ui/button";
 import {Label} from "@/components/ui/label";
 import {Input} from "@/components/ui/input";
@@ -23,13 +23,14 @@ interface HabitCompletionsModalProps {
     onClose: () => void;
     habit: Habit;
     onConfirm: (data: CompletionsData) => Promise<void>;
+    isFromGrace?: boolean;
 }
 
 /**
  * Modal for logging the completion of a habit.
  * Collects metadata like mood, duration, and notes.
  */
-export const HabitCompletionsModal: React.FC<HabitCompletionsModalProps> = ({isOpen, onClose, habit, onConfirm}) => {
+export const HabitCompletionsModal: React.FC<HabitCompletionsModalProps> = ({isOpen, onClose, habit, onConfirm, isFromGrace=false}) => {
     const {simulatedDate} = useSimulatedTime();
     const refDate = getReferenceDateUI(simulatedDate);
 
@@ -87,23 +88,40 @@ export const HabitCompletionsModal: React.FC<HabitCompletionsModalProps> = ({isO
         }
     };
 
-    return (<Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-        <DialogContent
-            className="sm:max-w-[425px] max-h-[85vh] flex flex-col w-[95vw] p-0 gap-0 overflow-hidden rounded-xl">
-            <DialogHeader className="px-4 py-3 sm:px-6 sm:py-4 border-b shrink-0 bg-background/95 backdrop-blur z-10">
-                <DialogTitle className="flex items-center gap-2 text-xl leading-tight text-left">
-                    Complete: <span className="text-primary truncate">{habit.name}</span>
-                </DialogTitle>
-            </DialogHeader>
+    const titleContent = (
+        <div className="flex items-center gap-2 text-xl leading-tight text-left">
+            Complete: <span className="text-primary truncate">{habit.name}</span>
+        </div>
+    );
 
-            <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5">
+    const footerContent = (
+        <div className="flex flex-col-reverse sm:flex-row gap-4 sm:gap-3 w-full sm:justify-end">
+            <Button variant="outline" onClick={onClose} disabled={isSubmitting} className="h-11 w-full sm:w-auto">
+                Cancel
+            </Button>
+            <Button onClick={handleSubmit} disabled={isSubmitting}
+                    className="h-11 w-full sm:w-auto bg-primary text-primary-foreground font-semibold shadow-md hover:shadow-lg transition-all">
+                {isSubmitting ? "Logging..." : "Complete Habit"}
+            </Button>
+        </div>
+    );
+
+    return (
+        <BaseModal
+            isOpen={isOpen}
+            onClose={onClose}
+            title={titleContent}
+            footerContent={footerContent}
+            className="sm:max-w-[425px] max-h-[85vh] rounded-xl"
+        >
+            <div className="flex flex-col gap-5 py-4">
                 {/* Streak Preview */}
-                <div
+                {!isFromGrace && <div
                     className="flex justify-center items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-muted/30 rounded-xl border border-border/50 shrink-0">
                     <div className="text-center min-w-[60px]">
                         <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold mb-1">Current</p>
                         <Badge variant="secondary"
-                               className="text-base sm:text-lg px-3 py-1 bg-secondary text-secondary-foreground border shadow-sm">{habit.streak < 0 ? habit.streak + 1 : habit.streak}</Badge>
+                               className="text-base sm:text-lg px-3 py-1 bg-secondary text-secondary-foreground border shadow-sm">{habit.streak}</Badge>
                     </div>
                     <div className="text-muted-foreground/40 font-bold text-xl">→</div>
                     <div className="text-center min-w-[60px]">
@@ -116,7 +134,7 @@ export const HabitCompletionsModal: React.FC<HabitCompletionsModalProps> = ({isO
                             {habit.streak < 1 ? 1 : habit.streak + 1}
                         </Badge>
                     </div>
-                </div>
+                </div>}
 
                 {/* Mood Emoji Picker */}
                 <div className="space-y-3 shrink-0">
@@ -281,17 +299,6 @@ export const HabitCompletionsModal: React.FC<HabitCompletionsModalProps> = ({isO
                     />
                 </div>
             </div>
-
-            <DialogFooter
-                className="px-4 py-3 sm:px-6 sm:py-4 border-t gap-4 sm:gap-3 flex-col-reverse sm:flex-row bg-background/95 backdrop-blur z-10 shrink-0">
-                <Button variant="outline" onClick={onClose} disabled={isSubmitting} className="h-11 w-full sm:w-auto">
-                    Cancel
-                </Button>
-                <Button onClick={handleSubmit} disabled={isSubmitting}
-                        className="h-11 w-full sm:w-auto bg-primary text-primary-foreground font-semibold shadow-md hover:shadow-lg transition-all">
-                    {isSubmitting ? "Logging..." : "Complete Habit"}
-                </Button>
-            </DialogFooter>
-        </DialogContent>
-    </Dialog>);
+        </BaseModal>
+    );
 };
