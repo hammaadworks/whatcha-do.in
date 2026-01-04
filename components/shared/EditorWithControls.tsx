@@ -18,6 +18,8 @@ interface EditorWithControlsProps {
     uploadIsPublic: boolean;
     isLoading?: boolean;
     className?: string;
+    style?: React.CSSProperties;
+    watermark?: React.ReactNode;
     onDirtyChange?: (isDirty: boolean) => void;
 }
 
@@ -30,6 +32,8 @@ export function EditorWithControls({
     uploadIsPublic,
     isLoading = false,
     className,
+    style,
+    watermark,
     onDirtyChange
 }: EditorWithControlsProps) {
     const { user } = useAuth();
@@ -53,6 +57,8 @@ export function EditorWithControls({
             toast.success("Changes saved successfully");
         } catch (error) {
             console.error("Failed to save", error);
+            // Toast is handled by caller or default error toast if needed? 
+            // The original code had toast.error here, let's keep it.
             toast.error("Failed to save changes");
         } finally {
             setIsSaving(false);
@@ -90,7 +96,10 @@ export function EditorWithControls({
     }, [isDirty, onDirtyChange]);
 
     return (
-        <div className={`flex flex-col h-full overflow-hidden ${className || ''}`}>
+        <div 
+            className={`flex flex-col h-full overflow-hidden ${className || ''}`}
+            style={style}
+        >
             <div className="flex-grow overflow-hidden relative">
                 {isLoading ? (
                     <div className="flex h-full items-center justify-center text-muted-foreground bg-card rounded-md border border-dashed">
@@ -103,16 +112,17 @@ export function EditorWithControls({
                         onChange={setContent}
                         placeholder={placeholder}
                         readOnly={!isOwner}
-                        className="h-full border-0"
+                        className="h-full border-0 bg-transparent"
                         onUpload={handleUpload}
                         resolveImageUrl={resolveImage}
                         fullHeight
+                        watermark={watermark}
                     />
                 )}
             </div>
             
             {isOwner && (
-                <div className="flex justify-end gap-2 p-4 border-t bg-muted/20 shrink-0">
+                <div className="flex justify-end gap-2 p-4 border-t bg-muted/20 shrink-0 backdrop-blur-sm">
                     <Button variant="outline" onClick={handleCancel} disabled={!isDirty || isSaving}>
                         <X className="h-4 w-4 mr-1" /> Revert
                     </Button>

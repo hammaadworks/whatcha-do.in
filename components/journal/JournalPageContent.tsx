@@ -241,16 +241,38 @@ export function JournalPageContent({ profileUserId, isOwner }: JournalPageConten
         </div>
 
         {/* User Editable Journal Content */}
-        <div className="flex-1 bg-card rounded-lg border shadow-sm overflow-hidden">
+        <div 
+            className={cn(
+                "flex-1 rounded-lg border shadow-sm overflow-hidden transition-all duration-500",
+                activeTab === 'private' 
+                    ? "bg-primary/[0.03] dark:bg-primary/[0.1] border-primary/20 dark:border-primary/30" 
+                    : "bg-accent/[0.05] border-accent/20"
+            )}
+            style={{
+                backgroundImage: activeTab === 'private'
+                    ? `radial-gradient(hsl(var(--primary) / 0.15) 1px, transparent 1px)` 
+                    : `linear-gradient(to right, hsl(var(--foreground) / 0.07) 1px, transparent 1px), linear-gradient(to bottom, hsl(var(--foreground) / 0.07) 1px, transparent 1px)`,
+                backgroundSize: '24px 24px'
+            }}
+        >
              <EditorWithControls 
                 initialContent={loadedContent}
                 onSave={handleSaveEntry}
                 userId={profileUserId}
                 isOwner={isOwner}
-                placeholder={canEdit ? "Write your daily reflections here..." : "No entry for this day."}
+                placeholder={canEdit ? (activeTab === 'private' ? "Private thoughts..." : "Public thoughts...") : "No entry for this day."}
                 uploadIsPublic={isPublic}
                 isLoading={isLoading}
                 onDirtyChange={setIsDirty}
+                watermark={
+                    <div className="opacity-[0.05] dark:opacity-[0.08] flex items-center justify-center w-full h-full">
+                        {activeTab === 'private' ? (
+                            <Lock className="w-1/3 h-auto max-w-[12rem] min-w-[4rem] text-primary" />
+                        ) : (
+                            <Globe className="w-1/3 h-auto max-w-[12rem] min-w-[4rem] text-accent" />
+                        )}
+                    </div>
+                }
              />
         </div>
     </div>
