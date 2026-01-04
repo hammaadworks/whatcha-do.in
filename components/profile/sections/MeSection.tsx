@@ -4,7 +4,7 @@ import React from "react";
 import BioSection from "@/components/profile/sections/BioSection";
 import IdentitySection from "@/components/profile/sections/IdentitySection";
 import TargetsSection from "@/components/profile/sections/TargetsSection";
-import { Habit, PublicUserDisplay } from "@/lib/supabase/types";
+import { Habit, PublicUserDisplay, Identity } from "@/lib/supabase/types";
 import { User } from "@/packages/auth/hooks/useAuth";
 import { CollapsibleSectionWrapper } from "@/components/ui/collapsible-section-wrapper";
 import { MagicCard } from "@/components/ui/magic-card";
@@ -17,6 +17,7 @@ interface MeSectionProps {
   isOwner: boolean;
   profileToDisplay: PublicUserDisplay | User;
   ownerHabits: Habit[];
+  identities?: (Identity & { backingCount: number })[];
   onBioUpdate: (newBio: string) => Promise<void>;
   onActivityLogged: () => Promise<void>;
   timezone: string;
@@ -31,6 +32,7 @@ const MeSection: React.FC<MeSectionProps> = ({
                                                isOwner,
                                                profileToDisplay,
                                                ownerHabits,
+                                               identities,
                                                onBioUpdate,
                                                onActivityLogged,
                                                timezone,
@@ -70,7 +72,13 @@ const MeSection: React.FC<MeSectionProps> = ({
             className="p-6" 
             gradientColor={gradientColor}
         >
-            <IdentitySection isOwner={isOwner} isReadOnly={isReadOnly} ownerHabits={ownerHabits} onHabitUpdated={onActivityLogged} />
+            <IdentitySection 
+                isOwner={isOwner} 
+                isReadOnly={isReadOnly} 
+                ownerHabits={ownerHabits} 
+                identities={identities}
+                onHabitUpdated={onActivityLogged} 
+            />
         </MagicCard>
         
         <MagicCard 
