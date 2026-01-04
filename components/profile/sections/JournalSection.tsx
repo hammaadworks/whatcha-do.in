@@ -16,7 +16,9 @@ import {
     Smile,
     Briefcase,
     Timer,
-    StickyNote
+    StickyNote,
+    ChevronLeft,
+    ChevronRight
 } from 'lucide-react';
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,} from "@/components/ui/tooltip";
 import {Button} from '@/components/ui/button';
@@ -143,9 +145,16 @@ const JournalSection: React.FC<JournalSectionProps> = ({isOwner, isReadOnly = fa
     const debouncedSaving = useDebounce(entryContent, 5000);
     const mainDatePickerButtonRef = useRef<HTMLButtonElement>(null);
     const [isMainDatePickerOpen, setIsMainDatePickerOpen] = useState(false);
+    const [activityPage, setActivityPage] = useState(1);
+    const ACTIVITY_PAGE_SIZE = 5;
 
     // Track if content is user-edited or loaded
     const isUserTyping = useRef(false);
+
+    // Reset pagination when date or tab changes
+    useEffect(() => {
+        setActivityPage(1);
+    }, [selectedDate, activeTab]);
 
     // Update selectedDate when simulatedDate changes
     useEffect(() => {
@@ -271,6 +280,13 @@ const JournalSection: React.FC<JournalSectionProps> = ({isOwner, isReadOnly = fa
 
     // Sort logs by timestamp descending (newest first)
     const sortedLogs = [...activityLog].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
+    // Pagination Logic
+    const totalActivityPages = Math.ceil(sortedLogs.length / ACTIVITY_PAGE_SIZE);
+    const paginatedLogs = sortedLogs.slice((activityPage - 1) * ACTIVITY_PAGE_SIZE, activityPage * ACTIVITY_PAGE_SIZE);
+
+    const handlePrevPage = () => setActivityPage(p => Math.max(1, p - 1));
+    const handleNextPage = () => setActivityPage(p => Math.min(totalActivityPages, p + 1));
 
     const JOURNAL_VIEW_OPTIONS = [
         { id: 'public', label: 'Public Journal', icon: Globe },
@@ -451,10 +467,49 @@ const JournalSection: React.FC<JournalSectionProps> = ({isOwner, isReadOnly = fa
                     {sortedLogs.length === 0 ? (
                         <p className="text-muted-foreground text-sm">No activities logged for this day yet.</p>
                     ) : (
-                        <div className="grid grid-cols-1 gap-2">
-                           {sortedLogs.map((entry, index) => (
-                               <ActivityItem key={entry.id + index} entry={entry} />
-                           ))}
+                        <div className="flex flex-col gap-2">
+                            <div className="grid grid-cols-1 gap-2">
+                               {paginatedLogs.map((entry, index) => (
+                                   <ActivityItem key={entry.id + index} entry={entry} />
+                               ))}
+                            </div>
+
+                            {/* Pagination Controls */}
+                            {totalActivityPages > 1 && (
+                                <div className="flex items-center justify-between pt-4 border-t border-border/50 mt-2">
+                                    <span className="text-xs text-muted-foreground">
+                                        Showing <span className="font-medium text-foreground">{(activityPage - 1) * ACTIVITY_PAGE_SIZE + 1}</span> to{' '}
+                                        <span className="font-medium text-foreground">
+                                            {Math.min(activityPage * ACTIVITY_PAGE_SIZE, sortedLogs.length)}
+                                        </span>{' '}
+                                        of <span className="font-medium text-foreground">{sortedLogs.length}</span> results
+                                    </span>
+
+                                    <div className="flex gap-2">
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={handlePrevPage}
+                                            disabled={activityPage === 1}
+                                            className="h-8 px-2 gap-1 text-xs"
+                                        >
+                                            <ChevronLeft className="h-3 w-3" />
+                                            Prev
+                                        </Button>
+                                        
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={handleNextPage}
+                                            disabled={activityPage === totalActivityPages}
+                                            className="h-8 px-2 gap-1 text-xs"
+                                        >
+                                            Next
+                                            <ChevronRight className="h-3 w-3" />
+                                        </Button>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>

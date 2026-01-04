@@ -286,7 +286,8 @@ export function CustomMarkdownEditor({
   ];
 
   return (
-    <TooltipProvider>
+    <>
+      {isMobile ? (
         <div 
             ref={editorRef} 
             className={cn(
@@ -308,8 +309,9 @@ export function CustomMarkdownEditor({
                 "flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between p-2 shrink-0 sticky top-0 z-20 transition-all duration-200",
                 isFullscreen ? "px-4 sm:px-8 bg-background/95 backdrop-blur-md border-b" : "bg-transparent"
             )}>
+                {/* Formatting Tools - Left */}
                 <div className="flex flex-col gap-2 w-full sm:w-auto">
-                    {/* Formatting Tools - Two Rows on Mobile, One on Desktop */}
+                    {/* ... (Existing Formatting Tools) ... */}
                     <div className="flex flex-wrap items-center gap-1 sm:gap-0.5">
                         <div className="flex items-center gap-0.5">
                             <ToolbarButton icon={Bold} label="Bold" onClick={() => insertText('**', '**')} />
@@ -345,7 +347,22 @@ export function CustomMarkdownEditor({
                     </div>
                 </div>
 
-                <div className="flex items-center justify-between sm:justify-between gap-2 sm:ml-auto w-full sm:w-auto pb-2 sm:pb-0">
+                {/* Spacer to push ToggleButtonGroup to center */}
+                <div className="flex-1 hidden sm:block" /> 
+
+                {/* Centered ToggleButtonGroup */}
+                <ToggleButtonGroup 
+                    options={VIEW_OPTIONS}
+                    selectedValue={viewMode}
+                    onValueChange={(val) => setViewMode(val as ViewMode)}
+                    className="scale-90 origin-center" 
+                />
+                
+                {/* Spacer to push right-most controls to far right */}
+                <div className="flex-1 hidden sm:block" />
+
+                {/* Right-most controls: Desktop "Add Media" Button and Fullscreen */}
+                <div className="flex items-center gap-2 pb-2 sm:pb-0 sm:ml-auto"> {/* sm:ml-auto ensures it's on the far right on desktop */}
                     {/* Desktop "Add Media" Button */}
                      <div className="hidden sm:block">
                         <Tooltip>
@@ -366,16 +383,7 @@ export function CustomMarkdownEditor({
                             </TooltipContent>
                         </Tooltip>
                      </div>
-                    {/* New div to center ToggleButtonGroup */}
-                    <div className="flex-1 flex justify-center">
-                        <ToggleButtonGroup 
-                            options={VIEW_OPTIONS}
-                            selectedValue={viewMode}
-                            onValueChange={(val) => setViewMode(val as ViewMode)}
-                            className="scale-90 origin-center" 
-                        />
-                    </div>
-                    
+
                     <div className="flex items-center gap-2">
                         <Separator orientation="vertical" className="h-6 mx-1 hidden sm:block" />
 
@@ -422,7 +430,7 @@ export function CustomMarkdownEditor({
                     textareaProps={{
                         placeholder: placeholder || "Start writing...",
                         className: cn(
-                            "focus:outline-none !font-sans !text-lg !leading-relaxed p-6 h-full !bg-card !text-foreground z-10 relative !whitespace-pre-wrap break-words",
+                            "focus:outline-none !font-sans !text-lg !leading-relaxed p-6 h-full !bg-card !text-foreground z-10 relative !whitespace-pre-wrap break-words overflow-y-auto",
                             textareaClassName
                         )
                     }}
@@ -447,6 +455,177 @@ export function CustomMarkdownEditor({
             </div>
         )}
         </div>
-    </TooltipProvider>
+      ) : (
+        <TooltipProvider>
+          <div 
+              ref={editorRef} 
+              className={cn(
+                  "group flex flex-col w-full rounded-xl overflow-hidden transition-all duration-300", 
+                  fullHeight || isFullscreen ? "h-full" : undefined,
+                  isFullscreen && "fixed inset-0 z-[100] h-[100dvh] w-screen bg-background rounded-none",
+                  className
+              )} 
+              style={!fullHeight && !readOnly && viewMode !== 'preview' && !isFullscreen ? { height: editorHeight + 50 } : undefined} 
+              data-color-mode={theme}
+              onDrop={handleDrop}
+              onDragOver={handleDragOver}
+          >
+          
+          <input type="file" ref={fileInputRef} className="hidden" accept="image/*,video/*" onChange={handleFileChange} />
+
+          {!readOnly && (
+              <div className={cn(
+                  "flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between p-2 shrink-0 sticky top-0 z-20 transition-all duration-200",
+                  isFullscreen ? "px-4 sm:px-8 bg-background/95 backdrop-blur-md border-b" : "bg-transparent"
+              )}>
+                  {/* Formatting Tools - Left */}
+                  <div className="flex flex-col gap-2 w-full sm:w-auto">
+                      {/* ... (Existing Formatting Tools) ... */}
+                      <div className="flex flex-wrap items-center gap-1 sm:gap-0.5">
+                          <div className="flex items-center gap-0.5">
+                              <ToolbarButton icon={Bold} label="Bold" onClick={() => insertText('**', '**')} />
+                              <ToolbarButton icon={Italic} label="Italic" onClick={() => insertText('*', '*')} />
+                              <ToolbarButton icon={Strikethrough} label="Strikethrough" onClick={() => insertText('~~', '~~')} />
+                          </div>
+                          <Separator orientation="vertical" className="h-6 mx-1 hidden sm:block" />
+                          <div className="flex items-center gap-0.5">
+                              <ToolbarButton icon={Heading1} label="Heading" onClick={() => insertBlock('# ')} />
+                              <ToolbarButton icon={Quote} label="Quote" onClick={() => insertBlock('> ')} />
+                              <ToolbarButton icon={Code} label="Code Block" onClick={() => insertText('```\n', '\n```')} />
+                          </div>
+                          <Separator orientation="vertical" className="h-6 mx-1 hidden sm:block" />
+                          <div className="flex items-center gap-0.5">
+                              <ToolbarButton icon={List} label="Bullet List" onClick={() => insertBlock('- ')} />
+                              <ToolbarButton icon={ListOrdered} label="Numbered List" onClick={() => insertBlock('1. ')} />
+                              <ToolbarButton icon={LinkIcon} label="Link" onClick={() => insertText('[', '](url)')} />
+                          </div>
+                      </div>
+                      
+                      {/* Add Media - Full width on mobile for easier access */}
+                      <div className="flex sm:hidden w-full">
+                          <Button
+                              variant="outline"
+                              size="sm"
+                              className="w-full h-9 gap-2 text-primary hover:text-primary-foreground hover:bg-primary border-primary/20 bg-primary/5 transition-all shadow-sm group"
+                              onClick={handleImageClick}
+                              type="button"
+                          >
+                              <ImageIcon className="h-4 w-4 transition-transform group-hover:scale-110" />
+                              <span className="font-medium text-xs">Add Media</span>
+                          </Button>
+                      </div>
+                  </div>
+
+                  {/* Spacer to push ToggleButtonGroup to center */}
+                  <div className="flex-1 hidden sm:block" /> 
+
+                  {/* Centered ToggleButtonGroup */}
+                  <ToggleButtonGroup 
+                      options={VIEW_OPTIONS}
+                      selectedValue={viewMode}
+                      onValueChange={(val) => setViewMode(val as ViewMode)}
+                      className="scale-90 origin-center" 
+                  />
+                  
+                  {/* Spacer to push right-most controls to far right */}
+                  <div className="flex-1 hidden sm:block" />
+
+                  {/* Right-most controls: Desktop "Add Media" Button and Fullscreen */}
+                  <div className="flex items-center gap-2 pb-2 sm:pb-0 sm:ml-auto">
+                      {/* Desktop "Add Media" Button */}
+                       <div className="hidden sm:block">
+                          <Tooltip>
+                              <TooltipTrigger asChild>
+                                  <Button
+                                      variant="outline"
+                                      size="sm"
+                                      className="h-8 gap-2 ml-1 text-primary hover:text-primary-foreground hover:bg-primary border-primary/20 bg-primary/5 transition-all shadow-sm group"
+                                      onClick={handleImageClick}
+                                      type="button"
+                                  >
+                                      <ImageIcon className="h-4 w-4 transition-transform group-hover:scale-110" />
+                                      <span className="hidden sm:inline font-medium text-xs">Add Media</span>
+                                  </Button>
+                              </TooltipTrigger>
+                              <TooltipContent side="bottom">
+                                  <p>Upload Images or Video</p>
+                              </TooltipContent>
+                          </Tooltip>
+                       </div>
+
+                      <div className="flex items-center gap-2">
+                          <Separator orientation="vertical" className="h-6 mx-1 hidden sm:block" />
+
+                          <Tooltip>
+                              <TooltipTrigger asChild>
+                                  <button type="button" className={cn("h-8 w-8 rounded-md transition-colors flex items-center justify-center", isFullscreen ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:bg-accent/50 hover:text-foreground")} onClick={toggleFullscreen}>
+                                      {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+                                  </button>
+                              </TooltipTrigger>
+                              <TooltipContent>{isFullscreen ? "Exit Focus Mode" : "Enter Focus Mode"}</TooltipContent>
+                          </Tooltip>
+                      </div>
+                  </div>
+              </div>
+          )}
+
+          <div className={cn(
+              "flex-1 overflow-hidden relative grid bg-card transition-all duration-300",
+              viewMode === 'split' ? "grid-cols-2 divide-x" : "col-span-1",
+              fullHeight || isFullscreen ? "h-full" : "min-h-[200px]"
+          )}>
+              <div className={cn(
+                  "relative h-full flex flex-col",
+                  viewMode === 'preview' ? "hidden" : "block",
+                  isFullscreen && "items-center bg-background" 
+              )}>
+                   {watermark && !value && (
+                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-0 overflow-hidden p-10">
+                          {watermark}
+                      </div>
+                   )}
+                   <MDEditor
+                      value={value}
+                      onChange={(val) => onChange(val || '')}
+                      className={cn(
+                          "w-full h-full border-none !shadow-none !bg-transparent",
+                          isFullscreen && "max-w-3xl"
+                      )}
+                      visibleDragbar={false}
+                      hideToolbar={true}
+                      height="100%"
+                      preview="edit"
+                      style={{ backgroundColor: 'transparent' }}
+                      textareaProps={{
+                          placeholder: placeholder || "Start writing...",
+                          className: cn(
+                              "focus:outline-none !font-sans !text-lg !leading-relaxed p-6 h-full !bg-card !text-foreground z-10 relative !whitespace-pre-wrap break-words overflow-y-auto",
+                              textareaClassName
+                          )
+                      }}
+                   />
+              </div>
+
+              <div className={cn(
+                  "relative h-full overflow-hidden bg-muted/10",
+                  viewMode === 'edit' ? "hidden" : "block",
+                  viewMode === 'preview' && "col-span-1"
+              )}>
+                  {renderMarkdownPreview(value)}
+              </div>
+          </div>
+
+          {!readOnly && (
+              <div className={cn(
+                  "flex items-center justify-end px-4 py-1 text-xs text-muted-foreground bg-muted/20 border-t",
+                  isFullscreen && "fixed bottom-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-sm"
+              )}>
+                  <span className="font-mono">{wordCount} words</span>
+              </div>
+          )}
+          </div>
+        </TooltipProvider>
+      )}
+    </>
   );
 }
