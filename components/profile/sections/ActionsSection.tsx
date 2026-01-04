@@ -105,25 +105,7 @@ const ActionsSection: React.FC<ActionsSectionProps> = ({
   // Handle delete action and show undo toast
   const handleDeleteAction = async (id: string) => {
     if (!onActionDeleted) return;
-
-    const deleted = await onActionDeleted(id);
-    if (deleted && undoDeleteAction) {
-      const isMac = typeof navigator !== "undefined" && navigator.platform.toUpperCase().indexOf("MAC") >= 0;
-      const shortcutKey = isMac ? "⌘Z" : "Ctrl+Z";
-
-      toast("Action deleted.", {
-        description: (<div className="flex flex-col gap-1">
-          <span>{deleted.node.description}</span>
-          <span className="text-xs text-muted-foreground flex items-center gap-1">
-                             Press <kbd
-            className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">{shortcutKey}</kbd> to undo
-                        </span>
-        </div>), action: {
-          label: "Undo", onClick: () => undoDeleteAction()
-        }, duration: 5000, // Show toast for 5 seconds
-        icon: <Undo2 className="h-4 w-4" />
-      });
-    }
+    await onActionDeleted(id);
   };
 
 

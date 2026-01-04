@@ -1,12 +1,11 @@
 'use client';
 
-import React, {createContext, useCallback, useContext, useEffect, useRef, useState} from 'react';
+import React, {createContext, useCallback, useContext, useEffect, useState} from 'react';
 import {useRouter, useSearchParams} from 'next/navigation'; // Import useRouter, useSearchParams
 import {useAuth} from '@/packages/auth/hooks/useAuth'; // Import useAuth
 import KeyboardShortcutsModal from './KeyboardShortcutsModal';
 import {useTheme} from 'next-themes'; // New import for theme management
-import {AnimatedThemeTogglerRef} from '@/components/ui/animated-theme-toggler'; // New import for the ref type
-import { useUiStore } from "@/lib/store/uiStore";
+import {useUiStore} from "@/lib/store/uiStore";
 import {
     LOCAL_STORAGE_ACTIONS_FOLDED_KEY,
     LOCAL_STORAGE_JOURNAL_FOLDED_KEY,
@@ -25,8 +24,6 @@ interface KeyboardShortcutsContextType {
     toggleActionsFold: () => void; // New toggler for 'Actions' section folding
     isJournalFolded: boolean; // New state for 'Journal' section folding
     toggleJournalFold: () => void; // New toggler for 'Journal' section folding
-    isInsightsOpen: boolean;
-    toggleInsightsModal: () => void;
 }
 
 const KeyboardShortcutsContext = createContext<KeyboardShortcutsContextType | undefined>(undefined);
@@ -34,7 +31,6 @@ const KeyboardShortcutsContext = createContext<KeyboardShortcutsContextType | un
 export const KeyboardShortcutsProvider: React.FC<{ children: React.ReactNode }> = ({children}) => {
     const [isOpen, setIsOpen] = useState(false);
     const [isSettingsOpen, setSettingsOpen] = useState(false); // New state for Settings
-    const [isInsightsOpen, setIsInsightsOpen] = useState(false);
 
     const [isMeFolded, setIsMeFolded] = useState(() => {
         if (typeof window !== 'undefined') {
@@ -58,13 +54,11 @@ export const KeyboardShortcutsProvider: React.FC<{ children: React.ReactNode }> 
         return true;
     });
 
-    const [isMac, setIsMac] = useState(false);
     const router = useRouter(); // Initialize useRouter
     const searchParams = useSearchParams();
     const {user} = useAuth(); // Get user from useAuth
     const {theme} = useTheme(); // Use the theme hook (setTheme is no longer needed directly here)
-    const { layoutMode, setLayoutMode } = useUiStore();
-    const themeTogglerRef = useRef<AnimatedThemeTogglerRef>(null); // Create ref for AnimatedThemeToggler
+    const {layoutMode, setLayoutMode} = useUiStore();
 
     const toggleShortcutsModal = useCallback(() => {
         setIsOpen((prev) => !prev);
@@ -72,10 +66,6 @@ export const KeyboardShortcutsProvider: React.FC<{ children: React.ReactNode }> 
 
     const toggleSettingsModal = useCallback(() => { // New toggler for Settings
         setSettingsOpen((prev) => !prev);
-    }, []);
-
-    const toggleInsightsModal = useCallback(() => {
-        setIsInsightsOpen((prev) => !prev);
     }, []);
 
     const toggleMeFold = useCallback(() => { // New toggler for 'Me' section folding
@@ -94,57 +84,54 @@ export const KeyboardShortcutsProvider: React.FC<{ children: React.ReactNode }> 
         console.log('KeyboardShortcutsProvider useEffect running: Attaching keydown listener'); // Added log
 
         const handleKeyPress = (event: KeyboardEvent) => {
-            const isShiftPressed = event.shiftKey; // New check for Shift
+            const isAltPressed = event.altKey; // New check for Alt
             const isSlashPressed = event.code === 'Slash'; // Use event.code for physical key detection
             const isPeriodPressed = event.code === 'Period'; // Profile
             const isCommaPressed = event.code === 'Comma'; // Settings
             const isSemicolonPressed = event.code === 'Semicolon'; // Vibe
             const isQuotePressed = event.code === "Quote"; // View
-            const isBracketRightPressed = event.code === "BracketRight"; // Fold
-            const is1Pressed = event.code === 'Key1'; // Me
-            const is2Pressed = event.code === 'Key2'; // Actions
-            const is3Pressed = event.code === 'Key3'; // Journal
+            const is1Pressed = event.code === 'Digit1'; // Me
+            const is2Pressed = event.code === 'Digit2'; // Actions
+            const is3Pressed = event.code === 'Digit3'; // Journal
 
-            if (isShiftPressed && isSlashPressed) {
+            if (isAltPressed && isSlashPressed) {
                 event.preventDefault();
                 setIsOpen((prev) => !prev);
-            } else if (isShiftPressed && isPeriodPressed) {
+            } else if (isAltPressed && isPeriodPressed) {
                 event.preventDefault();
                 if (user?.username) {
                     router.push(`/${user.username}`);
                 }
-            } else if (isShiftPressed && isCommaPressed) {
+            } else if (isAltPressed && isCommaPressed) {
                 event.preventDefault();
                 if (user?.username) { // Only open if user is logged in
                     setSettingsOpen((prev) => !prev);
                 }
-            } else if (isShiftPressed && isSemicolonPressed) {
+            } else if (isAltPressed && isSemicolonPressed) {
                 event.preventDefault();
                 // vibe selector toggle
                 const currentVibe = searchParams?.get('vibe') || 'edit';
-                let nextVibe = 'edit';
+                let nextVibe;
                 // Cycle: edit -> public -> private -> edit
-                if (currentVibe === 'edit') nextVibe = 'public';
-                else if (currentVibe === 'public') nextVibe = 'private';
-                else nextVibe = 'edit';
+                if (currentVibe === 'edit') nextVibe = 'public'; else if (currentVibe === 'public') nextVibe = 'private'; else nextVibe = 'edit';
 
                 const params = new URLSearchParams(searchParams ? searchParams.toString() : "");
                 params.set('vibe', nextVibe);
                 router.push(`?${params.toString()}`);
 
-            } else if (isShiftPressed && isQuotePressed) {
+            } else if (isAltPressed && isQuotePressed) {
                 event.preventDefault();
                 // view selector toggle
                 const newMode = layoutMode === 'card' ? 'section' : 'card';
                 setLayoutMode(newMode);
 
-            } else if (isShiftPressed && isBracketRightPressed && is1Pressed) {
+            } else if (isAltPressed && is1Pressed) {
                 event.preventDefault();
                 toggleMeFold();
-            } else if (isShiftPressed && isBracketRightPressed && is2Pressed) {
+            } else if (isAltPressed && is2Pressed) {
                 event.preventDefault();
                 toggleActionsFold();
-            } else if (isShiftPressed && isBracketRightPressed && is3Pressed) {
+            } else if (isAltPressed && is3Pressed) {
                 event.preventDefault();
                 toggleJournalFold();
             }
@@ -184,8 +171,6 @@ export const KeyboardShortcutsProvider: React.FC<{ children: React.ReactNode }> 
         toggleActionsFold, // Provide 'Actions' section folding toggler
         isJournalFolded, // Provide 'Journal' section folding state
         toggleJournalFold, // Provide 'Journal' section folding toggler
-        isInsightsOpen,
-        toggleInsightsModal,
     }}>
         {children}
         <KeyboardShortcutsModal open={isOpen} onOpenChange={setIsOpen}/>

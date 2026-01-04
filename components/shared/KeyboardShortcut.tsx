@@ -35,7 +35,7 @@ const KeyboardShortcut: React.FC<KeyboardShortcutProps> = ({ keys, showModifier 
 
   if (isMobile) return null;
 
-  const modifier = isMac ? "⌘" : "Alt"; // Command for Mac, Alt for others
+  const AltKey = isMac ? '⌥' : 'Alt';
   const plusSign = <span className="text-muted-foreground/50 mx-0.5">+</span>;
 
   const kbdClass = "pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100";
@@ -45,7 +45,7 @@ const KeyboardShortcut: React.FC<KeyboardShortcutProps> = ({ keys, showModifier 
       {showModifier && (
         <>
           <kbd className={kbdClass}>
-            {modifier}
+            {AltKey}
           </kbd>
           {plusSign}
         </>

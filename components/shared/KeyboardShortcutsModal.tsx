@@ -2,94 +2,100 @@
 
 import React from 'react';
 import BaseModal from './BaseModal';
-import { Button } from '@/components/ui/button';
 import KeyboardShortcut from './KeyboardShortcut';
-import { Globe, ListTodo, ChevronsUpDown } from 'lucide-react'; // Import ChevronsUpDown
-import { cn } from '@/lib/utils';
+import {Globe, Layers, Layout, ListTodo, Move} from 'lucide-react';
+import {cn} from '@/lib/utils';
 
 interface KeyboardShortcutsModalProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
 }
 
-const ShortcutRow: React.FC<{ label: string; keys: string[]; showModifier?: boolean }> = ({ 
-  label, 
-  keys, 
-  showModifier = true 
-}) => (
-  <div className="flex items-center justify-between py-2 border-b border-border/40 last:border-0 group hover:bg-muted/30 rounded-md px-2 transition-colors">
-    <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">{label}</span>
-    <KeyboardShortcut keys={keys} showModifier={showModifier} />
-  </div>
-);
+const isMac = typeof navigator !== "undefined" && navigator.platform.toUpperCase().indexOf("MAC") >= 0;
+const AltKey = isMac ? '⌥' : 'Alt';
 
-const KeyboardShortcutsModal: React.FC<KeyboardShortcutsModalProps> = ({ open, onOpenChange }) => {
-  return (
-    <BaseModal
-      isOpen={open}
-      onClose={() => onOpenChange(false)}
-      title="Keyboard Shortcuts"
-      description="Navigate and interact with the application using these shortcuts."
-      footerContent={<Button type="button" onClick={() => onOpenChange(false)}>Got it!</Button>}
-      className="max-w-4xl" // Make modal wider
-    >
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-1">
-        {/* Global Section */}
-        <div className="space-y-4">
-          <div className="flex items-center gap-2 text-primary border-b border-border pb-2">
-            <Globe className="w-4 h-4" />
-            <h4 className="font-semibold text-sm uppercase tracking-wider">Global Navigation</h4>
-          </div>
-          <div className="space-y-1">
-            <ShortcutRow label="Open Shortcuts" keys={["Shift", "/"]} />
-            <ShortcutRow label="View Profile" keys={["Shift", "."]} />
-            <ShortcutRow label="Open Settings" keys={["Shift", ","]} />
-            <ShortcutRow label="Toggle Vibe (Mode)" keys={["Shift", ";"]} />
-            <ShortcutRow label="Toggle View (Layout)" keys={["Shift", "'"]} />
-          </div>
-        </div>
+const ShortcutRow: React.FC<{ label: string; keys: string[]; showModifier?: boolean; className?: string }> = ({
+                                                                                                                  label,
+                                                                                                                  keys,
+                                                                                                                  showModifier = false,
+                                                                                                                  className
+                                                                                                              }) => (
+    <div className={cn("flex items-center justify-between py-2 group", className)}>
+        <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">{label}</span>
+        <KeyboardShortcut keys={keys} showModifier={showModifier}/>
+    </div>);
 
-        {/* Folding Sections */}
-        <div className="space-y-4">
-          <div className="flex items-center gap-2 text-primary border-b border-border pb-2">
-            <ChevronsUpDown className="w-4 h-4" />
-            <h4 className="font-semibold text-sm uppercase tracking-wider">Folding Sections <span className="text-xs text-muted-foreground normal-case font-normal">(Shift + ])</span></h4>
-          </div>
-          <div className="space-y-1">
-            <ShortcutRow label="Toggle 'Me' Section" keys={["Shift", "]", "1"]} />
-            <ShortcutRow label="Toggle 'Actions' Section" keys={["Shift", "]", "2"]} />
-            <ShortcutRow label="Toggle 'Journal' Section" keys={["Shift", "]", "3"]} />
-          </div>
-        </div>
+const SectionHeader: React.FC<{ icon: React.ElementType; title: string }> = ({icon: Icon, title}) => (
+    <div className="flex items-center gap-2 mb-3 pb-2 border-b border-border/40">
+        <Icon className="w-4 h-4 text-primary"/>
+        <h4 className="font-semibold text-sm text-foreground">{title}</h4>
+    </div>);
 
-        {/* Items Section */}
-        <div className="space-y-4">
-          <div className="flex items-center gap-2 text-primary border-b border-border pb-2">
-            <ListTodo className="w-4 h-4" /> {/* Revert to ListTodo for Action & Target Items */}
-            <h4 className="font-semibold text-sm uppercase tracking-wider">Action & Target Items <span className="text-xs text-muted-foreground normal-case font-normal">(when focused)</span></h4>
-          </div>
-          <div className="space-y-1">
-            <ShortcutRow label="Toggle Completion" keys={["Enter"]} showModifier={false} />
-            <ShortcutRow label="Edit Content" keys={["Space"]} showModifier={false} />
-            <ShortcutRow label="Add Below (Edit)" keys={["Shift", "Enter"]} showModifier={false} />
-            <ShortcutRow label="Toggle Public/Private" keys={["P"]} showModifier={false} />
-            <ShortcutRow label="Delete Item" keys={["Del"]} showModifier={false} />
-            
-            {/* Grouping Navigation */}
-            <div className="pt-2 mt-2 border-t border-border/40">
-               <p className="text-xs font-medium text-muted-foreground mb-2 px-2">Hierarchy & Movement</p>
-               <ShortcutRow label="Indent Item" keys={["Tab"]} showModifier={false} />
-               <ShortcutRow label="Outdent Item" keys={["Shift", "Tab"]} showModifier={false} />
-               <ShortcutRow label="Move Item Up" keys={["↑"]} />
-               <ShortcutRow label="Move Item Down" keys={["↓"]} />
-               <ShortcutRow label="Navigate Up" keys={["↑"]} showModifier={false} />
-               <ShortcutRow label="Navigate Down" keys={["↓"]} showModifier={false} />
+const KeyboardShortcutsModal: React.FC<KeyboardShortcutsModalProps> = ({open, onOpenChange}) => {
+    return (<BaseModal
+            isOpen={open}
+            onClose={() => onOpenChange(false)}
+            title="Keyboard Shortcuts"
+            description="Streamline your workflow with these hotkeys."
+            className="max-w-3xl"
+        >
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-1">
+
+                {/* Left Column: Navigation & View */}
+                <div className="space-y-8">
+                    <section>
+                        <SectionHeader icon={Globe} title="Global Navigation"/>
+                        <div className="space-y-1">
+                            <ShortcutRow label="Shortcuts Menu" keys={[AltKey, "/"]}/>
+                            <ShortcutRow label="User Profile" keys={[AltKey, "."]}/>
+                            <ShortcutRow label="Settings" keys={[AltKey, ","]}/>
+                        </div>
+                    </section>
+
+                    <section>
+                        <SectionHeader icon={Layout} title="Interface Modes"/>
+                        <div className="space-y-1">
+                            <ShortcutRow label="Toggle Mode" keys={[AltKey, ";"]}/>
+                            <ShortcutRow label="Toggle View" keys={[AltKey, "'"]}/>
+                        </div>
+                    </section>
+
+                    <section>
+                        <SectionHeader icon={Layers} title="Section Visibility"/>
+                        <div className="space-y-1">
+                            <ShortcutRow label="Toggle Me Section" keys={[AltKey, "1"]}/>
+                            <ShortcutRow label="Toggle Actions Section" keys={[AltKey, "2"]}/>
+                            <ShortcutRow label="Toggle Journal Section" keys={[AltKey, "3"]}/>
+                        </div>
+                    </section>
+                </div>
+
+                {/* Right Column: Item Actions */}
+                <div className="space-y-8">
+                    <section>
+                        <SectionHeader icon={ListTodo} title="Item Actions"/>
+                        <div className="space-y-1">
+                            <ShortcutRow label="Complete Item" keys={["Enter"]}/>
+                            <ShortcutRow label="Edit Text" keys={["Space"]}/>
+                            <ShortcutRow label="Create New" keys={["Shift", "Enter"]}/>
+                            <ShortcutRow label="Toggle Privacy" keys={["P"]}/>
+                            <ShortcutRow label="Delete" keys={["Del"]}/>
+                        </div>
+                    </section>
+
+                    <section>
+                        <SectionHeader icon={Move} title="Organization"/>
+                        <div className="space-y-1">
+                            <ShortcutRow label="Indent (Nest)" keys={["Tab"]}/>
+                            <ShortcutRow label="Outdent (Un-nest)" keys={["Shift", "Tab"]}/>
+                            <ShortcutRow label="Move Item Up" keys={[AltKey, "↑"]}/>
+                            <ShortcutRow label="Move Item Down" keys={[AltKey, "↓"]}/>
+                        </div>
+                    </section>
+                </div>
+
             </div>
-          </div>
-        </div>
-      </div>
-    </BaseModal>
-  );
+        </BaseModal>);
 };
 
 export default KeyboardShortcutsModal;
