@@ -8,8 +8,7 @@ import { cn } from '@/lib/utils';
 import { 
     Bold, Italic, Strikethrough, Code, Link as LinkIcon, 
     List, ListOrdered, Quote, Heading1, Image as ImageIcon, 
-    Columns, Eye, EyeOff, Maximize2, Minimize2, Sparkles, FileText,
-    Type
+    Columns, Eye, Sparkles, FileText
 } from 'lucide-react';
 import MDEditor from '@uiw/react-md-editor';
 import { useTheme } from 'next-themes';
@@ -73,7 +72,6 @@ export function CustomMarkdownEditor({
 }: CustomMarkdownEditorProps) {
   const isMobile = useMediaQuery('(max-width: 768px)');
   const [viewMode, setViewMode] = useState<ViewMode>(readOnly ? 'preview' : 'edit');
-  const [isFullscreen, setIsFullscreen] = useState(false);
   const { theme } = useTheme();
   const editorRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -86,28 +84,7 @@ export function CustomMarkdownEditor({
   }, [readOnly]);
 
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-        if (e.key === 'Escape' && isFullscreen) {
-            setIsFullscreen(false);
-        }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isFullscreen]);
-
-  useEffect(() => {
-    if (isFullscreen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [isFullscreen]);
-
-  useEffect(() => {
-    if (fullHeight || readOnly || viewMode === 'preview' || isFullscreen) return;
+    if (fullHeight || readOnly || viewMode === 'preview') return;
 
     const adjustHeight = () => {
       if (editorRef.current) {
@@ -131,11 +108,7 @@ export function CustomMarkdownEditor({
       window.removeEventListener('resize', adjustHeight);
       observer.disconnect();
     };
-  }, [value, minHeight, fullHeight, readOnly, viewMode, isFullscreen]);
-
-  const toggleFullscreen = useCallback(() => {
-    setIsFullscreen(prev => !prev);
-  }, []);
+  }, [value, minHeight, fullHeight, readOnly, viewMode]);
 
   const insertText = useCallback((before: string, after: string = '') => {
     if (!editorRef.current) return;
@@ -239,8 +212,7 @@ export function CustomMarkdownEditor({
   const renderMarkdownPreview = (content: string) => (
     <div className={cn(
         "w-full h-full overflow-auto p-6 prose dark:prose-invert max-w-none bg-card/50",
-        fullHeight ? "min-h-full" : "min-h-[200px]",
-        isFullscreen && "max-w-3xl mx-auto"
+        fullHeight ? "min-h-full" : "min-h-[200px]"
     )}>
       {content ? (
           <ReactMarkdown
@@ -292,11 +264,10 @@ export function CustomMarkdownEditor({
             ref={editorRef} 
             className={cn(
                 "group flex flex-col w-full rounded-xl overflow-hidden transition-all duration-300", 
-                fullHeight || isFullscreen ? "h-full" : undefined,
-                isFullscreen && "fixed inset-0 z-[100] h-[100dvh] w-screen bg-background rounded-none",
+                fullHeight ? "h-full" : undefined,
                 className
             )} 
-            style={!fullHeight && !readOnly && viewMode !== 'preview' && !isFullscreen ? { height: editorHeight + 50 } : undefined} 
+            style={!fullHeight && !readOnly && viewMode !== 'preview' ? { height: editorHeight + 50 } : undefined} 
             data-color-mode={theme}
             onDrop={handleDrop}
             onDragOver={handleDragOver}
@@ -306,8 +277,7 @@ export function CustomMarkdownEditor({
 
         {!readOnly && (
             <div className={cn(
-                "flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between p-2 shrink-0 sticky top-0 z-20 transition-all duration-200",
-                isFullscreen ? "px-4 sm:px-8 bg-background/95 backdrop-blur-md border-b" : "bg-transparent"
+                "flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between p-2 shrink-0 sticky top-0 z-20 transition-all duration-200 bg-transparent"
             )}>
                 {/* Formatting Tools - Left */}
                 <div className="flex flex-col gap-2 w-full sm:w-auto">
@@ -361,8 +331,8 @@ export function CustomMarkdownEditor({
                 {/* Spacer to push right-most controls to far right */}
                 <div className="flex-1 hidden sm:block" />
 
-                {/* Right-most controls: Desktop "Add Media" Button and Fullscreen */}
-                <div className="flex items-center gap-2 pb-2 sm:pb-0 sm:ml-auto"> {/* sm:ml-auto ensures it's on the far right on desktop */}
+                {/* Right-most controls: Desktop "Add Media" Button */}
+                <div className="flex items-center gap-2 pb-2 sm:pb-0 sm:ml-auto">
                     {/* Desktop "Add Media" Button */}
                      <div className="hidden sm:block">
                         <Tooltip>
@@ -383,19 +353,6 @@ export function CustomMarkdownEditor({
                             </TooltipContent>
                         </Tooltip>
                      </div>
-
-                    <div className="flex items-center gap-2">
-                        <Separator orientation="vertical" className="h-6 mx-1 hidden sm:block" />
-
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <button type="button" className={cn("h-8 w-8 rounded-md transition-colors flex items-center justify-center", isFullscreen ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:bg-accent/50 hover:text-foreground")} onClick={toggleFullscreen}>
-                                    {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
-                                </button>
-                            </TooltipTrigger>
-                            <TooltipContent>{isFullscreen ? "Exit Focus Mode" : "Enter Focus Mode"}</TooltipContent>
-                        </Tooltip>
-                    </div>
                 </div>
             </div>
         )}
@@ -403,12 +360,11 @@ export function CustomMarkdownEditor({
         <div className={cn(
             "flex-1 overflow-hidden relative grid bg-card transition-all duration-300",
             viewMode === 'split' ? "grid-cols-2 divide-x" : "grid-cols-1",
-            fullHeight || isFullscreen ? "h-full" : "min-h-[200px]"
+            fullHeight ? "h-full" : "min-h-[200px]"
         )}>
             <div className={cn(
                 "relative h-full flex flex-col",
                 viewMode === 'preview' ? "hidden" : "block",
-                isFullscreen && "items-center bg-background" 
             )}>
                  {watermark && !value && (
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-0 overflow-hidden p-10">
@@ -420,7 +376,6 @@ export function CustomMarkdownEditor({
                     onChange={(val) => onChange(val || '')}
                     className={cn(
                         "w-full h-full border-none !shadow-none !bg-transparent",
-                        isFullscreen && "max-w-3xl"
                     )}
                     visibleDragbar={false}
                     hideToolbar={true}
@@ -449,7 +404,6 @@ export function CustomMarkdownEditor({
         {!readOnly && (
             <div className={cn(
                 "flex items-center justify-end px-4 py-1 text-xs text-muted-foreground bg-muted/20 border-t",
-                isFullscreen && "fixed bottom-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-sm"
             )}>
                 <span className="font-mono">{wordCount} words</span>
             </div>
@@ -461,11 +415,10 @@ export function CustomMarkdownEditor({
               ref={editorRef} 
               className={cn(
                   "group flex flex-col w-full rounded-xl overflow-hidden transition-all duration-300", 
-                  fullHeight || isFullscreen ? "h-full" : undefined,
-                  isFullscreen && "fixed inset-0 z-[100] h-[100dvh] w-screen bg-background rounded-none",
+                  fullHeight ? "h-full" : undefined,
                   className
               )} 
-              style={!fullHeight && !readOnly && viewMode !== 'preview' && !isFullscreen ? { height: editorHeight + 50 } : undefined} 
+              style={!fullHeight && !readOnly && viewMode !== 'preview' ? { height: editorHeight + 50 } : undefined} 
               data-color-mode={theme}
               onDrop={handleDrop}
               onDragOver={handleDragOver}
@@ -475,8 +428,7 @@ export function CustomMarkdownEditor({
 
           {!readOnly && (
               <div className={cn(
-                  "flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between p-2 shrink-0 sticky top-0 z-20 transition-all duration-200",
-                  isFullscreen ? "px-4 sm:px-8 bg-background/95 backdrop-blur-md border-b" : "bg-transparent"
+                  "flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between p-2 shrink-0 sticky top-0 z-20 transition-all duration-200 bg-transparent"
               )}>
                   {/* Formatting Tools - Left */}
                   <div className="flex flex-col gap-2 w-full sm:w-auto">
@@ -530,7 +482,7 @@ export function CustomMarkdownEditor({
                   {/* Spacer to push right-most controls to far right */}
                   <div className="flex-1 hidden sm:block" />
 
-                  {/* Right-most controls: Desktop "Add Media" Button and Fullscreen */}
+                  {/* Right-most controls: Desktop "Add Media" Button */}
                   <div className="flex items-center gap-2 pb-2 sm:pb-0 sm:ml-auto">
                       {/* Desktop "Add Media" Button */}
                        <div className="hidden sm:block">
@@ -552,19 +504,6 @@ export function CustomMarkdownEditor({
                               </TooltipContent>
                           </Tooltip>
                        </div>
-
-                      <div className="flex items-center gap-2">
-                          <Separator orientation="vertical" className="h-6 mx-1 hidden sm:block" />
-
-                          <Tooltip>
-                              <TooltipTrigger asChild>
-                                  <button type="button" className={cn("h-8 w-8 rounded-md transition-colors flex items-center justify-center", isFullscreen ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:bg-accent/50 hover:text-foreground")} onClick={toggleFullscreen}>
-                                      {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
-                                  </button>
-                              </TooltipTrigger>
-                              <TooltipContent>{isFullscreen ? "Exit Focus Mode" : "Enter Focus Mode"}</TooltipContent>
-                          </Tooltip>
-                      </div>
                   </div>
               </div>
           )}
@@ -572,12 +511,11 @@ export function CustomMarkdownEditor({
           <div className={cn(
               "flex-1 overflow-hidden relative grid bg-card transition-all duration-300",
               viewMode === 'split' ? "grid-cols-2 divide-x" : "col-span-1",
-              fullHeight || isFullscreen ? "h-full" : "min-h-[200px]"
+              fullHeight ? "h-full" : "min-h-[200px]"
           )}>
               <div className={cn(
                   "relative h-full flex flex-col",
                   viewMode === 'preview' ? "hidden" : "block",
-                  isFullscreen && "items-center bg-background" 
               )}>
                    {watermark && !value && (
                       <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-0 overflow-hidden p-10">
@@ -589,7 +527,6 @@ export function CustomMarkdownEditor({
                       onChange={(val) => onChange(val || '')}
                       className={cn(
                           "w-full h-full border-none !shadow-none !bg-transparent",
-                          isFullscreen && "max-w-3xl"
                       )}
                       visibleDragbar={false}
                       hideToolbar={true}
@@ -618,7 +555,6 @@ export function CustomMarkdownEditor({
           {!readOnly && (
               <div className={cn(
                   "flex items-center justify-end px-4 py-1 text-xs text-muted-foreground bg-muted/20 border-t",
-                  isFullscreen && "fixed bottom-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-sm"
               )}>
                   <span className="font-mono">{wordCount} words</span>
               </div>

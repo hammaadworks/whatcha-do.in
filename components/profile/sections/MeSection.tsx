@@ -7,8 +7,8 @@ import TargetsSection from "@/components/profile/sections/TargetsSection";
 import { Habit, PublicUserDisplay } from "@/lib/supabase/types";
 import { User } from "@/packages/auth/hooks/useAuth";
 import { CollapsibleSectionWrapper } from "@/components/ui/collapsible-section-wrapper";
-import { MagicCard } from "@/components/ui/magic-card"; // Import MagicCard
-import { useTheme } from "next-themes"; // Import useTheme
+import { MagicCard } from "@/components/ui/magic-card";
+import { useTheme } from "next-themes";
 
 interface MeSectionProps {
   isCollapsible: boolean;
@@ -37,9 +37,6 @@ const MeSection: React.FC<MeSectionProps> = ({
                                              }) => {
   const { resolvedTheme } = useTheme();
   const gradientColor = resolvedTheme === "dark" ? "#262626" : "#D9D9D955";
-  const primaryGradientFrom = `hsl(var(--primary))`;
-  const accentGradientTo = `hsl(var(--accent))`;
-
 
   return (<CollapsibleSectionWrapper
     title="Me"
@@ -48,26 +45,43 @@ const MeSection: React.FC<MeSectionProps> = ({
     toggleFold={toggleFold}
   >
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      {/* Bio Section */}
+      {/* Bio Section - Takes full height of the first column */}
       <div className="lg:col-span-1 h-full">
-        <BioSection
-          userId={profileToDisplay.id}
-          username={username}
-          bio={profileToDisplay.bio ?? null}
-          isOwner={true}
-          isReadOnly={isReadOnly}
-          onBioUpdate={onBioUpdate}
-        />
+        <MagicCard 
+            className="h-full flex flex-col p-6" 
+            gradientColor={gradientColor}
+        >
+          <BioSection
+            userId={profileToDisplay.id}
+            username={username}
+            bio={profileToDisplay.bio ?? null}
+            isOwner={true}
+            isReadOnly={isReadOnly}
+            onBioUpdate={onBioUpdate}
+          />
+        </MagicCard>
       </div>
 
+      {/* Right Column: Identity and Targets */}
       <div className="lg:col-span-1 flex flex-col gap-6">
-        <IdentitySection isOwner={true} isReadOnly={isReadOnly} ownerHabits={ownerHabits} onHabitUpdated={onActivityLogged} />
-        <TargetsSection
-          isOwner={true}
-          isReadOnly={isReadOnly}
-          timezone={timezone}
-          onActivityLogged={onActivityLogged}
-        />
+        <MagicCard 
+            className="p-6" 
+            gradientColor={gradientColor}
+        >
+            <IdentitySection isOwner={true} isReadOnly={isReadOnly} ownerHabits={ownerHabits} onHabitUpdated={onActivityLogged} />
+        </MagicCard>
+        
+        <MagicCard 
+            className="p-6" 
+            gradientColor={gradientColor}
+        >
+            <TargetsSection
+              isOwner={true}
+              isReadOnly={isReadOnly}
+              timezone={timezone}
+              onActivityLogged={onActivityLogged}
+            />
+        </MagicCard>
       </div>
     </div>
   </CollapsibleSectionWrapper>);
