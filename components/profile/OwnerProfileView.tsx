@@ -285,6 +285,7 @@ export default function OwnerProfileView({
         isCollapsible={isCollapsible}
         isReadOnly={isReadOnly}
         username={username}
+        isOwner={true}
         profileToDisplay={profileToDisplay}
         ownerHabits={ownerHabits}
         onBioUpdate={handleBioUpdate}

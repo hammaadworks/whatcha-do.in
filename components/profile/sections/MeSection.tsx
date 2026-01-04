@@ -14,6 +14,7 @@ interface MeSectionProps {
   isCollapsible: boolean;
   isReadOnly: boolean;
   username: string;
+  isOwner: boolean;
   profileToDisplay: PublicUserDisplay | User;
   ownerHabits: Habit[];
   onBioUpdate: (newBio: string) => Promise<void>;
@@ -27,6 +28,7 @@ const MeSection: React.FC<MeSectionProps> = ({
                                                isCollapsible,
                                                isReadOnly,
                                                username,
+                                               isOwner,
                                                profileToDisplay,
                                                ownerHabits,
                                                onBioUpdate,
@@ -55,7 +57,7 @@ const MeSection: React.FC<MeSectionProps> = ({
             userId={profileToDisplay.id}
             username={username}
             bio={profileToDisplay.bio ?? null}
-            isOwner={true}
+            isOwner={isOwner}
             isReadOnly={isReadOnly}
             onBioUpdate={onBioUpdate}
           />
@@ -68,7 +70,7 @@ const MeSection: React.FC<MeSectionProps> = ({
             className="p-6" 
             gradientColor={gradientColor}
         >
-            <IdentitySection isOwner={true} isReadOnly={isReadOnly} ownerHabits={ownerHabits} onHabitUpdated={onActivityLogged} />
+            <IdentitySection isOwner={isOwner} isReadOnly={isReadOnly} ownerHabits={ownerHabits} onHabitUpdated={onActivityLogged} />
         </MagicCard>
         
         <MagicCard 
@@ -76,7 +78,7 @@ const MeSection: React.FC<MeSectionProps> = ({
             gradientColor={gradientColor}
         >
             <TargetsSection
-              isOwner={true}
+              isOwner={isOwner}
               isReadOnly={isReadOnly}
               timezone={timezone}
               onActivityLogged={onActivityLogged}

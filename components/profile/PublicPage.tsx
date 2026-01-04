@@ -87,6 +87,7 @@ export function PublicPage({
             isCollapsible={false}
             isReadOnly={true}
             username={user.username || ""}
+            isOwner={false}
             profileToDisplay={user}
             ownerHabits={publicHabits}
             onBioUpdate={async () => {}}
