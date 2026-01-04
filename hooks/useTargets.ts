@@ -21,7 +21,7 @@ const saveTargetData = async (userId: string, dateContext: string | null, newTre
   await updateTargets(userId, dateContext, newTree);
 };
 
-export const useTargets = (isOwner: boolean, timezone: string = 'UTC', initialTargets?: ActionNode[]) => {
+export const useTargets = (isOwner: boolean, timezone: string = 'UTC', initialTargets?: ActionNode[] | Partial<Record<TargetBucket, ActionNode[]>>) => {
   const { user } = useAuth();
   const { simulatedDate } = useSimulatedTime();
   const refDate = getReferenceDateUI(simulatedDate);
@@ -34,6 +34,14 @@ export const useTargets = (isOwner: boolean, timezone: string = 'UTC', initialTa
   const prevMonthDate = useMemo(() => getCurrentMonthStartISO(timezone, refDate, -1), [timezone, refDate]);
   const prev1MonthDate = useMemo(() => getCurrentMonthStartISO(timezone, refDate, -2), [timezone, refDate]);
 
+  const getInitialData = (bucket: TargetBucket, filterFn: (t: ActionNode) => boolean) => {
+      if (!initialTargets) return undefined;
+      if (Array.isArray(initialTargets)) {
+          return initialTargets.filter(filterFn);
+      }
+      return initialTargets[bucket];
+  };
+
   // Use useTreeStructure for each bucket
   const future = useTreeStructure({
     fetchData: (userId) => fetchTargets(userId, null),
@@ -45,7 +53,7 @@ export const useTargets = (isOwner: boolean, timezone: string = 'UTC', initialTa
     toastPrefix: 'Target',
     ownerId: user?.id || '',
     dateContext: null,
-    initialData: initialTargets?.filter(t => t.completed_at == null)
+    initialData: getInitialData('future', t => t.completed_at == null)
   });
 
   const current = useTreeStructure({
@@ -58,7 +66,7 @@ export const useTargets = (isOwner: boolean, timezone: string = 'UTC', initialTa
     toastPrefix: 'Target',
     ownerId: user?.id || '',
     dateContext: currentMonthDate,
-    initialData: initialTargets?.filter(t => {
+    initialData: getInitialData('current', t => {
         if (!t.completed_at) return false;
         const completedDate = parseISO(t.completed_at);
         const monthDate = parseISO(currentMonthDate);
@@ -76,7 +84,7 @@ export const useTargets = (isOwner: boolean, timezone: string = 'UTC', initialTa
     toastPrefix: 'Target',
     ownerId: user?.id || '',
     dateContext: prevMonthDate,
-    initialData: initialTargets?.filter(t => {
+    initialData: getInitialData('prev', t => {
         if (!t.completed_at) return false;
         const completedDate = parseISO(t.completed_at);
         const thisMonthDate = parseISO(prevMonthDate);
@@ -95,7 +103,7 @@ export const useTargets = (isOwner: boolean, timezone: string = 'UTC', initialTa
     toastPrefix: 'Target',
     ownerId: user?.id || '',
     dateContext: prev1MonthDate,
-    initialData: initialTargets?.filter(t => {
+    initialData: getInitialData('prev1', t => {
         if (!t.completed_at) return false;
         const completedDate = parseISO(t.completed_at);
         const thisMonthDate = parseISO(prev1MonthDate);

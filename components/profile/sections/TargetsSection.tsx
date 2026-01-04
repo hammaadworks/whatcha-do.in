@@ -55,7 +55,7 @@ export default function TargetsSection({
     lastDeletedTargetContext,
     indentTarget, outdentTarget, moveTargetUp, moveTargetDown, toggleTargetPrivacy,
     moveTargetToBucket
-  } = useTargets(isOwner, timezone, propTargets);
+  } = useTargets(isOwner, timezone, propTargets ? { current: propTargets } : undefined);
 
   const { simulatedDate } = useSimulatedTime();
   const refDate = getReferenceDateUI(simulatedDate);

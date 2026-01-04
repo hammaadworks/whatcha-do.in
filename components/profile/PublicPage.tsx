@@ -91,6 +91,7 @@ export function PublicPage({
             profileToDisplay={user}
             ownerHabits={publicHabits}
             identities={publicIdentities}
+            targets={publicTargets}
             onBioUpdate={async () => {}}
             onActivityLogged={async () => {}}
             timezone={user.timezone || "UTC"}

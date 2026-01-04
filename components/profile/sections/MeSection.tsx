@@ -4,7 +4,7 @@ import React from "react";
 import BioSection from "@/components/profile/sections/BioSection";
 import IdentitySection from "@/components/profile/sections/IdentitySection";
 import TargetsSection from "@/components/profile/sections/TargetsSection";
-import { Habit, PublicUserDisplay, Identity } from "@/lib/supabase/types";
+import { Habit, PublicUserDisplay, Identity, ActionNode } from "@/lib/supabase/types";
 import { User } from "@/packages/auth/hooks/useAuth";
 import { CollapsibleSectionWrapper } from "@/components/ui/collapsible-section-wrapper";
 import { MagicCard } from "@/components/ui/magic-card";
@@ -18,6 +18,7 @@ interface MeSectionProps {
   profileToDisplay: PublicUserDisplay | User;
   ownerHabits: Habit[];
   identities?: (Identity & { backingCount: number })[];
+  targets?: ActionNode[]; // Add targets prop
   onBioUpdate: (newBio: string) => Promise<void>;
   onActivityLogged: () => Promise<void>;
   timezone: string;
@@ -33,6 +34,7 @@ const MeSection: React.FC<MeSectionProps> = ({
                                                profileToDisplay,
                                                ownerHabits,
                                                identities,
+                                               targets,
                                                onBioUpdate,
                                                onActivityLogged,
                                                timezone,
@@ -89,6 +91,7 @@ const MeSection: React.FC<MeSectionProps> = ({
               isOwner={isOwner}
               isReadOnly={isReadOnly}
               timezone={timezone}
+              targets={targets}
               onActivityLogged={onActivityLogged}
             />
         </MagicCard>
