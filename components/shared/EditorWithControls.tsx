@@ -127,7 +127,7 @@ export function EditorWithControls({
                         resolveImageUrl={resolveImage}
                         fullHeight
                         watermark={watermark}
-                        isPro={user?.is_pro}
+                        isPro={!!user?.is_pro}
                         onProAlert={() => setIsProModalOpen(true)}
                     />
                 )}

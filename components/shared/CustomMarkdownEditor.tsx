@@ -59,6 +59,25 @@ const AsyncImage = ({ src, alt, resolve }: { src: string, alt?: string, resolve?
     return <img src={resolvedSrc} alt={alt} className="rounded-md max-w-full h-auto my-4 border bg-card shadow-sm" loading="lazy" />;
 }
 
+const ToolbarButton = ({ icon: Icon, label, onClick, active = false }: { icon: any, label: string, onClick: () => void, active?: boolean }) => (
+    <Tooltip>
+        <TooltipTrigger asChild>
+            <Button
+                variant={active ? "secondary" : "ghost"}
+                size="icon"
+                className={cn("h-8 w-8", active && "bg-muted text-foreground")}
+                onClick={onClick}
+                type="button"
+            >
+                <Icon className="h-4 w-4" />
+            </Button>
+        </TooltipTrigger>
+        <TooltipContent side="bottom">
+            <p>{label}</p>
+        </TooltipContent>
+    </Tooltip>
+);
+
 export function CustomMarkdownEditor({
     value, 
     onChange, 
@@ -149,7 +168,7 @@ export function CustomMarkdownEditor({
     }, 0);
   }, [onChange]);
 
-  const handleImageClick = () => {
+  const handleImageClick = useCallback(() => {
       if (!isPro && onProAlert) {
           onProAlert();
           return;
@@ -160,7 +179,7 @@ export function CustomMarkdownEditor({
       } else {
           insertText('![alt text](', ')');
       }
-  };
+  }, [isPro, onProAlert, onUpload, insertText]);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
@@ -198,25 +217,6 @@ export function CustomMarkdownEditor({
   };
 
   const wordCount = value.trim().split(/\s+/).filter(Boolean).length;
-
-  const ToolbarButton = ({ icon: Icon, label, onClick, active = false }: { icon: any, label: string, onClick: () => void, active?: boolean }) => (
-    <Tooltip>
-        <TooltipTrigger asChild>
-            <Button
-                variant={active ? "secondary" : "ghost"}
-                size="icon"
-                className={cn("h-8 w-8", active && "bg-muted text-foreground")}
-                onClick={onClick}
-                type="button"
-            >
-                <Icon className="h-4 w-4" />
-            </Button>
-        </TooltipTrigger>
-        <TooltipContent side="bottom">
-            <p>{label}</p>
-        </TooltipContent>
-    </Tooltip>
-  );
 
   const renderMarkdownPreview = (content: string) => (
     <div className={cn(
