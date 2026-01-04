@@ -322,7 +322,7 @@ export function ThemeSelector(props: ThemeSelectorProps) {
         </DialogTrigger>
       )}
 
-      <DialogContent className="w-full max-w-[95vw] sm:max-w-xl h-[85vh] sm:h-auto sm:max-h-[85vh] flex flex-col gap-0 p-0 overflow-hidden">
+      <DialogContent className="w-full max-w-[95vw] sm:max-w-xl max-h-[85vh] flex flex-col gap-0 p-0 overflow-hidden z-[100]">
         <DialogHeader className="p-6 pb-4 text-center shrink-0">
           <DialogTitle>Customize Appearance</DialogTitle>
           <DialogDescription className="max-w-prose mx-auto">
