@@ -165,8 +165,8 @@ export const CreateIdentityModal: React.FC<CreateIdentityModalProps> = ({isOpen,
                     </div>
                 </div>
 
-                <div className="flex items-center justify-between mt-2">
-                    <Label htmlFor="public-mode">Public Identity</Label>
+                <div className="flex items-center justify-between py-2">
+                    <Label htmlFor="public-mode" className="cursor-pointer font-normal">Publicly Visible</Label>
                     <Switch
                         id="public-mode"
                         checked={isPublic}

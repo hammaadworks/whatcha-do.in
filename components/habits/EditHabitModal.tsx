@@ -147,18 +147,14 @@ const EditHabitModal: React.FC<EditHabitModalProps> = ({ isOpen, onClose, habit,
             />
         </div>
 
-        {/* Name and Public Row */}
-        <div className="flex gap-4 items-start">
-          <div className="grid gap-2">
-            <div className="flex items-center gap-2">
-              <Switch
+        {/* Public Visibility Toggle */}
+        <div className="flex items-center justify-between py-2">
+            <Label htmlFor="isPublic" className="cursor-pointer font-normal">Publicly Visible</Label>
+            <Switch
                 id="isPublic"
                 checked={isPublic}
                 onCheckedChange={setIsPublic}
-              />
-              <Label htmlFor="isPublic">Public</Label>
-            </div>
-          </div>
+            />
         </div>
 
         {/* Goal Settings */}

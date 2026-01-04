@@ -245,8 +245,8 @@ export const IdentityDetailsModal: React.FC<IdentityDetailsModalProps> = ({
                         />
                     </div>
 
-                    <div className="flex items-center justify-between">
-                        <Label htmlFor="edit-public">Publicly Visible</Label>
+                    <div className="flex items-center justify-between py-2">
+                        <Label htmlFor="edit-public" className="cursor-pointer font-normal">Publicly Visible</Label>
                         <Switch
                             id="edit-public"
                             checked={isPublic}

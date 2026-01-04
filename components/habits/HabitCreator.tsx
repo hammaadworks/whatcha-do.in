@@ -210,18 +210,19 @@ export function HabitCreator({onHabitCreated}: Readonly<HabitCreatorProps>) {
                 />
             </div>
 
-            {/* Footer Actions */}
-            <div className="flex flex-col-reverse sm:flex-row sm:justify-between sm:items-center gap-4 mt-2">
-                <div className="flex items-center space-x-2">
-                    <Switch
-                        id="is-public-switch"
-                        checked={isPublic}
-                        onCheckedChange={setIsPublic}
-                        disabled={loading}
-                    />
-                    <Label htmlFor="is-public-switch" className="cursor-pointer">Public Visibility</Label>
-                </div>
+            {/* Visibility Toggle */}
+            <div className="flex items-center justify-between py-2">
+                <Label htmlFor="is-public-switch" className="cursor-pointer font-normal">Publicly Visible</Label>
+                <Switch
+                    id="is-public-switch"
+                    checked={isPublic}
+                    onCheckedChange={setIsPublic}
+                    disabled={loading}
+                />
+            </div>
 
+            {/* Footer Actions */}
+            <div className="flex justify-end mt-2">
                 <Button
                     onClick={handleCreate}
                     disabled={loading || !habitName.trim()}

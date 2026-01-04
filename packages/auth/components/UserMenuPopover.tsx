@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { User, Smartphone, BarChart3, LogOut, Keyboard } from 'lucide-react';
+import { User, Smartphone, BarChart3, LogOut, Keyboard, ChevronRight } from 'lucide-react';
 import InsightsTrigger from '@/components/shared/InsightsTrigger';
 import { User as AuthUser } from '@/packages/auth/hooks/useAuth';
 import { useKeyboardShortcuts } from '@/components/shared/KeyboardShortcutsProvider';
@@ -79,6 +79,7 @@ const UserMenuPopover: React.FC<UserMenuPopoverProps> = ({ user }) => {
                         <span>Profile</span>
                     </div>
                     <KeyboardShortcut keys={["."]} />
+                    <ChevronRight className="h-4 w-4 text-muted-foreground/50 md:hidden" />
                   </div>
                 </Link>
 
@@ -94,6 +95,7 @@ const UserMenuPopover: React.FC<UserMenuPopoverProps> = ({ user }) => {
                         <span>Shortcuts</span>
                     </div>
                     <KeyboardShortcut keys={["/"]} />
+                    <ChevronRight className="h-4 w-4 text-muted-foreground/50 md:hidden" />
                 </div>
 
                 <div 
@@ -107,6 +109,7 @@ const UserMenuPopover: React.FC<UserMenuPopoverProps> = ({ user }) => {
                         <Smartphone className="mr-2 h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
                         <span>Mobile Login</span>
                     </div>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground/50 md:hidden" />
                 </div>
                 
                  {user?.username && (
@@ -116,6 +119,7 @@ const UserMenuPopover: React.FC<UserMenuPopoverProps> = ({ user }) => {
                             <BarChart3 className="mr-2 h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
                             <span>Insights</span>
                         </div>
+                        <ChevronRight className="h-4 w-4 text-muted-foreground/50 md:hidden" />
                     </div>
                   </InsightsTrigger>
                 )}
