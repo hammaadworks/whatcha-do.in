@@ -18,8 +18,7 @@ import { IDENTITY_START_PHRASE, IDENTITY_COLORS } from '@/lib/constants';
 import { cn } from '@/lib/utils';
 import { Habit } from '@/lib/supabase/types';
 import { Badge } from '@/components/ui/badge';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { SearchableDropdown } from '@/components/shared/SearchableDropdown';
 
 interface CreateIdentityModalProps {
     isOpen: boolean;
@@ -36,7 +35,6 @@ export const CreateIdentityModal: React.FC<CreateIdentityModalProps> = ({isOpen,
     const [isCreating, setIsCreating] = useState(false);
     const [selectedColor, setSelectedColor] = useState(IDENTITY_COLORS[0]);
     const [selectedHabitIds, setSelectedHabitIds] = useState<string[]>([]);
-    const [openCombobox, setOpenCombobox] = useState(false);
 
     const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const newVal = e.target.value;
@@ -95,7 +93,6 @@ export const CreateIdentityModal: React.FC<CreateIdentityModalProps> = ({isOpen,
                 ? prev.filter(id => id !== habitId)
                 : [...prev, habitId]
         );
-        setOpenCombobox(false);
     };
 
     const footerContent = (
@@ -199,33 +196,14 @@ export const CreateIdentityModal: React.FC<CreateIdentityModalProps> = ({isOpen,
                         )}
                     </div>
 
-                    <Popover open={openCombobox} onOpenChange={setOpenCombobox}>
-                        <PopoverTrigger asChild>
-                            <Button variant="outline" role="combobox" className="w-full justify-between">
-                                Link a Habit...
-                                <Plus className="ml-2 h-4 w-4 shrink-0 opacity-50"/>
-                            </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-[300px] p-0">
-                            <Command>
-                                <CommandInput placeholder="Search habits..."/>
-                                <CommandList>
-                                    <CommandEmpty>No habits found.</CommandEmpty>
-                                    <CommandGroup heading="Available Habits">
-                                        {availableHabits.map(habit => (
-                                            <CommandItem
-                                                key={habit.id}
-                                                value={habit.name}
-                                                onSelect={() => toggleHabit(habit.id)}
-                                            >
-                                                {habit.name}
-                                            </CommandItem>
-                                        ))}
-                                    </CommandGroup>
-                                </CommandList>
-                            </Command>
-                        </PopoverContent>
-                    </Popover>
+                    <SearchableDropdown 
+                        options={availableHabits.map(h => ({ id: h.id, label: h.name }))}
+                        onSelect={toggleHabit}
+                        placeholder="Link a Habit..."
+                        searchPlaceholder="Search habits..."
+                        emptyMessage="No available habits found."
+                        className="w-full"
+                    />
                 </div>
             </div>
         </BaseModal>

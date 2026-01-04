@@ -21,6 +21,7 @@ import {
 } from '@/components/ui/select';
 import { IDENTITY_START_PHRASE, IDENTITY_COLORS } from '@/lib/constants';
 import { cn } from '@/lib/utils';
+import { SearchableDropdown } from '@/components/shared/SearchableDropdown';
 
 interface IdentityDetailsModalProps {
     identity: Identity;
@@ -277,34 +278,16 @@ export const IdentityDetailsModal: React.FC<IdentityDetailsModalProps> = ({
                         </div>
 
                         {!isReadOnly && ( // Only show link habit button if not read-only
-                            <Popover open={openCombobox} onOpenChange={setOpenCombobox}>
-                                <PopoverTrigger asChild>
-                                    <Button variant="outline" role="combobox" className="w-full justify-between">
-                                        {isLinking ? "Linking..." : "Link a Habit..."}
-                                        <Plus className="ml-2 h-4 w-4 shrink-0 opacity-50"/>
-                                    </Button>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-[400px] p-0">
-                                    <Command>
-                                        <CommandInput placeholder="Search habits..."/>
-                                        <CommandList>
-                                            <CommandEmpty>No habits found.</CommandEmpty>
-                                            <CommandGroup heading="Available Habits">
-                                                {availableHabits.map(habit => (
-                                            <CommandItem
-                                                key={habit.id}
-                                                value={habit.name}
-                                                onSelect={() => handleLink(habit.id)}
-                                                className="cursor-pointer"
-                                            >
-                                                {habit.name}
-                                            </CommandItem>
-                                        ))}
-                                            </CommandGroup>
-                                        </CommandList>
-                                    </Command>
-                                </PopoverContent>
-                            </Popover>)}
+                            <SearchableDropdown 
+                                options={availableHabits.map(h => ({ id: h.id, label: h.name }))}
+                                onSelect={handleLink}
+                                placeholder={isLinking ? "Linking..." : "Link a Habit..."}
+                                searchPlaceholder="Search habits..."
+                                emptyMessage="No available habits found."
+                                className="w-full"
+                                disabled={isLinking}
+                            />
+                        )}
                     </div>
                 </div>
 
