@@ -134,19 +134,15 @@ export function AuthProvider({ children, initialUser }: AuthProviderProps) {
       };
 
       // 2. Save to cache (for offline fallback)
+      // We ONLY cache safe, cosmetic fields. Entitlements (is_pro, purchased_themes) 
+      // are excluded so they cannot be spoofed via local storage manipulation.
       localStorage.setItem(
         CACHE_KEY,
         JSON.stringify({
           id: authUser.id,
           username: data?.username,
           timezone: data?.timezone,
-          bio: data?.bio,
-          // We cache is_pro but only use it for display if needed? 
-          // Actually, in the fallback above, I force is_pro: false.
-          // So caching it is fine, but we ignore it on fallback.
-          // Wait, if I force false on fallback, legitimate pro users lose pro when offline.
-          // This is a trade-off. "Fail Closed". This is safer.
-          is_pro: data?.is_pro ?? false
+          bio: data?.bio
         })
       );
 
