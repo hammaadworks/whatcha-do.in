@@ -107,32 +107,24 @@ const ProfileLayout: React.FC<ProfileLayoutProps> = ({
                         : "mt-0 mb-0 max-w-none"
                 )}
             >
-                            {/* Top Right Controls (Owner Only) */}
-                
-                            {isOwner && (
-                                <div
-                                    className={cn(
-                                        "absolute z-30 flex items-center gap-3",
-                                        isCardMode
-                                            ? "top-4 sm:top-8 right-4 md:top-14 md:right-6"
-                                            : "hidden" // Hide in section mode (fixed positioning removed)
-                                    )}
-                                >
-                                    {/* LayoutToggleSettings is in Drawer, but we can keep a quick toggle here if desired,
-                
-                                           or rely on the drawer. The plan said Drawer for Owner.
-                
-                                           Let's keep the clock here only for card mode. */}
-                
-                                    {timezone && isCardMode && ( // Double check condition
-                                        <UserClock
-                                            timezone={timezone}
-                                            isOwner={isOwner}
-                                            viewerTimezone={viewer?.timezone}
-                                        />
-                                    )}
-                                </div>
-                            )}
+                            {/* Top Right Controls (Owner & Guest) */}
+                            <div
+                                className={cn(
+                                    "absolute z-30 flex items-center gap-3",
+                                    isCardMode
+                                        ? "top-4 sm:top-8 right-4 md:top-14 md:right-6"
+                                        : "hidden" // Hide in section mode (fixed positioning removed)
+                                )}
+                            >
+                                {timezone && isCardMode && (
+                                    <UserClock
+                                        timezone={timezone}
+                                        isOwner={isOwner}
+                                        viewerTimezone={viewer?.timezone}
+                                    />
+                                )}
+                            </div>
+
             {/* Main card content with its own padding and z-index */}
 
             <div
@@ -141,17 +133,6 @@ const ProfileLayout: React.FC<ProfileLayoutProps> = ({
                     isCardMode ? "p-6 pt-8 sm:p-8 md:p-10 lg:p-12" : "p-0"
                 )}
             >
-                {/* Guest Clock - Positioned Above Username */}
-                {!isOwner && timezone && isCardMode && (
-                    <div className="flex justify-center mb-4">
-                        <UserClock
-                            timezone={timezone}
-                            isOwner={isOwner}
-                            viewerTimezone={viewer?.timezone}
-                        />
-                    </div>
-                )}
-
                 {isCardMode && (
                     <h1
                         ref={usernameRef} // Attach ref
