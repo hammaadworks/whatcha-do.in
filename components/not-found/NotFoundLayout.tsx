@@ -4,7 +4,7 @@ import React, {useEffect, useState} from 'react';
 import Link from 'next/link';
 import {Button} from '@/components/ui/button';
 import {Home, Layers, LogIn} from 'lucide-react';
-import {useAuth} from '@/hooks/useAuth'; // Import useAuth hook
+import {useAuth} from '@/packages/auth/hooks/useAuth'; // Import useAuth hook
 
 const MID_CHARSET = ['0', 'x', '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', 'X', '?', '/', '|', '{', '}', '[', ']', '<', '>', '~', '`', '+', '-', '=', ';', ':', ',', '.', '<', '>'];
 

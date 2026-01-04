@@ -195,7 +195,7 @@ const CustomQuotesModal: React.FC<CustomQuotesModalProps> = ({
                                     </div>
 
                                     {/* Actions */}
-                                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                                    <div className="flex items-center gap-1 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity shrink-0">
                                         {editingId === quote.id ? (
                                             <>
                                                 <Button size="icon" variant="ghost" className="h-7 w-7 text-green-500 hover:text-green-600 hover:bg-green-500/10" onClick={saveEdit}>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+import { createClient } from "@/packages/auth/lib/supabase/client";
 import { LogOut } from 'lucide-react'; // Import LogOut icon
 
 export default function LogoutButton() {

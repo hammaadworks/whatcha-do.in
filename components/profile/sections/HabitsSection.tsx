@@ -204,10 +204,22 @@ export const HabitsSection: React.FC<HabitsSectionProps> = ({
         </Tooltip>
       </TooltipProvider>)}
     </div>
-    <p className="text-sm text-muted-foreground mb-4">
-      Drag habits across boxes to mark or long tap for options.
-    </p>
+    
+    {isOwner && !isReadOnly && (
+      <p className="text-sm text-muted-foreground mb-4">
+        Drag habits across boxes to mark or long tap for options.
+      </p>
+    )}
 
+    {habits.length === 0 ? (
+       <div className="flex flex-col items-center justify-center p-8 text-center border rounded-lg bg-muted/20 border-border/50 border-dashed">
+         <p className="text-muted-foreground italic">
+           {isOwner && !isReadOnly 
+             ? "You haven't created any habits yet. Click the + button to start!" 
+             : "No habits to show yet."}
+         </p>
+       </div>
+    ) : (
     <DndContext
       sensors={sensors}
       collisionDetection={closestCenter}
@@ -237,13 +249,19 @@ export const HabitsSection: React.FC<HabitsSectionProps> = ({
       </>) : (<div className="habit-grid flex flex-wrap gap-4">
         {habits
           .filter((h) => h.is_public)
-          .map((habit) => (<HabitChip
-            key={habit.id}
-            habit={habit}
-            isOwner={false}
-            disableClick={false}
-            box={HabitBoxType.PILE}
-          />))}
+          .length > 0 ? (
+            habits.filter((h) => h.is_public).map((habit) => (<HabitChip
+              key={habit.id}
+              habit={habit}
+              isOwner={false}
+              disableClick={false}
+              box={HabitBoxType.PILE}
+            />))
+          ) : (
+             <div className="w-full flex flex-col items-center justify-center p-8 text-center border rounded-lg bg-muted/20 border-border/50 border-dashed">
+               <p className="text-muted-foreground italic">No public habits visible.</p>
+             </div>
+          )}
       </div>)}
 
       <DragOverlay>
@@ -257,6 +275,7 @@ export const HabitsSection: React.FC<HabitsSectionProps> = ({
         />) : null}
       </DragOverlay>
     </DndContext>
+    )}
 
     {isOwner && !isReadOnly && (<>
       <HabitCreatorModal

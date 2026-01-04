@@ -6,7 +6,7 @@ import ContactSupportModal from '@/components/shared/ContactSupportModal';
 import FeedbackModal from '@/components/shared/FeedbackModal';
 import { PWAInstallModal } from '@/components/shared/PWAInstallModal';
 import { LifeBuoy, Bug, Download } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/packages/auth/hooks/useAuth';
 
 interface RelatedApplication {
     platform: string;

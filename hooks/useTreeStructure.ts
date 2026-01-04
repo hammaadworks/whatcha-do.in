@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useAuth } from './useAuth';
+import { useAuth } from '@/packages/auth/hooks/useAuth';
 import { toast } from 'sonner';
 import {
   ActionNode

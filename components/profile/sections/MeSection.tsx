@@ -5,7 +5,7 @@ import BioSection from "@/components/profile/sections/BioSection";
 import IdentitySection from "@/components/profile/sections/IdentitySection";
 import TargetsSection from "@/components/profile/sections/TargetsSection";
 import { Habit, PublicUserDisplay } from "@/lib/supabase/types";
-import { User } from "@/hooks/useAuth";
+import { User } from "@/packages/auth/hooks/useAuth";
 import { CollapsibleSectionWrapper } from "@/components/ui/collapsible-section-wrapper";
 import { MagicCard } from "@/components/ui/magic-card"; // Import MagicCard
 import { useTheme } from "next-themes"; // Import useTheme
@@ -48,17 +48,17 @@ const MeSection: React.FC<MeSectionProps> = ({
     toggleFold={toggleFold}
   >
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      {/* Bio Section with MagicCard */}
-      <MagicCard className="lg:col-span-1 h-full p-0" gradientColor={gradientColor} gradientFrom={primaryGradientFrom}
-                 gradientTo={accentGradientTo}>
+      {/* Bio Section */}
+      <div className="lg:col-span-1 h-full">
         <BioSection
+          userId={profileToDisplay.id}
           username={username}
           bio={profileToDisplay.bio ?? null}
           isOwner={true}
           isReadOnly={isReadOnly}
           onBioUpdate={onBioUpdate}
         />
-      </MagicCard>
+      </div>
 
       <div className="lg:col-span-1 flex flex-col gap-6">
         <IdentitySection isOwner={true} isReadOnly={isReadOnly} ownerHabits={ownerHabits} onHabitUpdated={onActivityLogged} />

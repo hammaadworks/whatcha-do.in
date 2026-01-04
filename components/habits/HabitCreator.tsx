@@ -1,21 +1,21 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { createHabit } from "@/lib/supabase/habit"; // Import createHabit
-import { useAuth } from "@/hooks/useAuth";
-import { Switch } from "@/components/ui/switch"; // Import Switch
-import { Label } from "@/components/ui/label"; // Import Label
-import { Habit } from "@/lib/supabase/types";
-import { formatISO, getReferenceDateUI } from "@/lib/date.ts";
-import { useSimulatedTime } from "@/components/layout/SimulatedTimeProvider.tsx";
-import { X } from "lucide-react"; // Import X icon for clear button
-import TimeDropdown from '@/components/shared/TimeDropdown'; // Import the new TimeDropdown component
+import React, {useState} from "react";
+import {Input} from "@/components/ui/input";
+import {Textarea} from "@/components/ui/textarea";
+import {Button} from "@/components/ui/button";
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
+import {createHabit} from "@/lib/supabase/habit"; // Import createHabit
+import {useAuth} from "@/packages/auth/hooks/useAuth";
+import {Switch} from "@/components/ui/switch"; // Import Switch
+import {Label} from "@/components/ui/label"; // Import Label
+import {Habit} from "@/lib/supabase/types";
+import {formatISO, getReferenceDateUI} from "@/lib/date.ts";
+import {useSimulatedTime} from "@/components/layout/SimulatedTimeProvider.tsx";
+import TimeDropdown from "@/components/shared/TimeDropdown"; // Import the new TimeDropdown component
 
 interface HabitCreatorProps {
-  onHabitCreated: (habit: Habit) => void; // Updated to pass back the created habit
+    onHabitCreated: (habit: Habit) => void; // Updated to pass back the created habit
 }
 
 const predefinedUnits = ["minutes", "hours", "pages", "reps", "sets", "questions", "Custom..."];
@@ -25,169 +25,210 @@ const predefinedUnits = ["minutes", "hours", "pages", "reps", "sets", "questions
  * A form component for creating new habits.
  * Includes fields for name, goal tracking (value/unit), and visibility.
  */
-export function HabitCreator({ onHabitCreated }: Readonly<HabitCreatorProps>) {
-  const { user } = useAuth();
-  const [habitName, setHabitName] = useState("");
-  const [showGoalInput, setShowGoalInput] = useState(false);
-  const [goalValue, setGoalValue] = useState<number | undefined>(undefined);
-  const [goalUnit, setGoalUnit] = useState<string>(predefinedUnits[0]);
-  const [customUnit, setCustomUnit] = useState("");
-  const [targetTime, setTargetTime] = useState<string | null>(null); // Stores HH:mm string or null
-  const [isPublic, setIsPublic] = useState(true); // New state for public/private
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+export function HabitCreator({onHabitCreated}: Readonly<HabitCreatorProps>) {
+    const {user} = useAuth();
+    const [habitName, setHabitName] = useState("");
+    const [description, setDescription] = useState("");
+    // Removed showGoalInput state - options are always visible
+    const [goalValue, setGoalValue] = useState<number | undefined>(undefined);
+    const [goalUnit, setGoalUnit] = useState<string>(predefinedUnits[0]);
+    const [customUnit, setCustomUnit] = useState("");
+    const [targetTime, setTargetTime] = useState<string | null>("23:45");
+    const [isPublic, setIsPublic] = useState(true);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
-// Canonical Time Logic
-  const { simulatedDate } = useSimulatedTime();
-  const refDate = getReferenceDateUI(simulatedDate);
+    const {simulatedDate} = useSimulatedTime();
+    const refDate = getReferenceDateUI(simulatedDate);
 
+    const handleCreate = async () => {
+        if (!user?.id) {
+            setError("User not authenticated.");
+            return;
+        }
+        if (!habitName.trim()) {
+            setError("Habit name cannot be empty.");
+            return;
+        }
 
+        setLoading(true);
+        setError(null);
 
-  const handleCreate = async () => {
-    if (!user?.id) {
-      setError("User not authenticated.");
-      return;
-    }
-    if (!habitName.trim()) {
-      setError("Habit name cannot be empty.");
-      return;
-    }
+        let finalGoalUnit = goalUnit;
+        if (goalUnit === "Custom...") { // Fixed string check to match "Custom..."
+            finalGoalUnit = customUnit.trim();
+            if (!finalGoalUnit) {
+                setError("Please specify a custom unit.");
+                setLoading(false);
+                return;
+            }
+        }
 
-    setLoading(true);
-    setError(null);
+        // Logic for goal validation remains
+        if (goalValue !== undefined && goalValue <= 0) {
+            setError("Goal value must be a positive number.");
+            setLoading(false);
+            return;
+        }
+        if (goalValue !== undefined && !finalGoalUnit) {
+            setError("Unit cannot be empty if value is set.");
+            setLoading(false);
+            return;
+        }
 
-    let finalGoalUnit = goalUnit;
-    if (goalUnit === "Custom...") {
-      finalGoalUnit = customUnit.trim();
-      if (!finalGoalUnit) {
-        setError("Please specify a custom unit.");
-        setLoading(false);
-        return;
-      }
-    }
+        const newHabitPayload: Partial<Habit> = {
+            user_id: user.id,
+            name: habitName.trim(),
+            descriptions: description.trim() || null,
+            is_public: isPublic,
+            goal_value: goalValue ?? undefined,
+            goal_unit: finalGoalUnit || undefined,
+            processed_date: formatISO(refDate),
+            target_time: targetTime || undefined
+        };
+        console.log("[HabitCreator] Submitting new habit:", newHabitPayload);
 
-    if (showGoalInput) {
-      if (goalValue !== undefined && goalValue <= 0) {
-        setError("Goal value must be a positive number.");
-        setLoading(false);
-        return;
-      }
-      if (goalValue !== undefined && !finalGoalUnit) {
-        setError("Unit cannot be empty if value is set.");
-        setLoading(false);
-        return;
-      }
-    }
+        try {
+            const {data, error} = await createHabit(newHabitPayload);
+            if (error || !data) throw error || new Error("Failed to return habit data");
 
+            onHabitCreated(data);
 
-    const newHabitPayload: Partial<Habit> = {
-      user_id: user.id,
-      name: habitName.trim(),
-      is_public: isPublic,
-      goal_value: showGoalInput && goalValue !== undefined ? goalValue : undefined,
-      goal_unit: showGoalInput && finalGoalUnit ? finalGoalUnit : undefined,
-      processed_date: formatISO(refDate),
-      target_time: targetTime || undefined // Add target_time
+            setHabitName("");
+            setGoalValue(undefined);
+            setGoalUnit(predefinedUnits[0]);
+            setCustomUnit("");
+            setTargetTime("23:45");
+            setIsPublic(true);
+            setDescription("");
+        } catch (err: unknown) {
+            setError((err instanceof Error) ? err.message : "Failed to create habit.");
+        } finally {
+            setLoading(false);
+        }
     };
-    console.log("[HabitCreator] Submitting new habit:", newHabitPayload);
 
-    try {
-      const { data, error } = await createHabit(newHabitPayload);
-      if (error || !data) throw error || new Error("Failed to return habit data");
+    const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        if (event.key === "Enter" && !event.shiftKey && !loading) {
+            event.preventDefault();
+            handleCreate();
+        }
+    };
 
-      onHabitCreated(data); // Notify parent with the new habit object
+    return (<div className="flex flex-col gap-4 p-1"> {/* Clean container */}
 
-      // Reset form
-      setHabitName("");
-      setShowGoalInput(false);
-      setGoalValue(undefined);
-      setGoalUnit(predefinedUnits[0]);
-      setCustomUnit("");
-      setTargetTime(null); // Reset targetTime to null
-      setIsPublic(true); // Reset isPublic to default
-    } catch (err: unknown) {
-      setError((err instanceof Error) ? err.message : "Failed to create habit.");
-    } finally {
-      setLoading(false);
-    }
-  };
+            {/* Name Input */}
+            <div>
+                <Input
+                    type="text"
+                    placeholder="Habit Name (e.g., Drink Water)"
+                    value={habitName}
+                    onChange={(e) => setHabitName(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    className="w-full text-lg font-medium"
+                    disabled={loading}
+                    autoFocus
+                />
+            </div>
 
-  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === "Enter" && !loading) {
-      handleCreate();
-    }
-  };
+            {/* Goal Inputs */}
+            <div className="flex flex-col sm:flex-row gap-2">
+                <div className="flex items-center gap-2 flex-1">
+                    <Input
+                        type="number"
+                        placeholder="Goal e.g. 10"
+                        min="1" // 1. Browser standard: prevents arrow buttons from going below 1
+                        inputMode="numeric" // 2. Mobile UX: forces the number-only keypad (no symbols)
+                        onKeyDown={(e) => {
+                            // 3. Prevent typing symbols like '-', '+', and scientific 'e'
+                            if (["-", "+", "e", "E"].includes(e.key)) {
+                                e.preventDefault();
+                            }
+                        }}
+                        onPaste={(e) => {
+                            // 4. Prevent pasting negative values
+                            const pasteData = e.clipboardData.getData("text");
+                            if (Number(pasteData) < 0) {
+                                e.preventDefault();
+                            }
+                        }}
+                        value={goalValue ?? ""}
+                        onChange={(e) => {
+                            const val = Number.parseFloat(e.target.value);
+                            // 5. Final state check: only allow positive numbers or empty input
+                            if (val > 0 || isNaN(val)) {
+                                setGoalValue(isNaN(val) ? undefined : val);
+                            }
+                        }}
+                        className="w-30 shrink-0"
+                        disabled={loading}
+                    />
 
-  return (<div className="flex flex-col space-y-2 p-4 border rounded-lg shadow-sm">
-    <div className="flex items-center space-x-2">
-      <Input
-        type="text"
-        placeholder="Add a new habit..."
-        value={habitName}
-        onChange={(e) => setHabitName(e.target.value)}
-        onKeyDown={handleKeyDown}
-        className="flex-grow"
-        disabled={loading}
-      />
-      {habitName.trim() && !showGoalInput && (
-        <Button variant="outline" onClick={() => setShowGoalInput(true)} disabled={loading}>
-          + Add Goal/Time
-        </Button>)}
-      <Button onClick={handleCreate} disabled={loading || !habitName.trim()}>
-        {loading ? "Adding..." : "Add Habit"}
-      </Button>
-    </div>
+                    <Select value={goalUnit} onValueChange={setGoalUnit} disabled={loading}>
+                        <SelectTrigger className="flex-1 min-w-[100px]">
+                            <SelectValue placeholder="Unit"/>
+                        </SelectTrigger>
+                        <SelectContent>
+                            {predefinedUnits.map((unit) => (<SelectItem key={unit} value={unit}>
+                                    {unit}
+                                </SelectItem>))}
+                        </SelectContent>
+                    </Select>
+                </div>
 
-    <div className="flex items-center space-x-2 justify-end">
-      <Label htmlFor="is-public-switch">Public</Label>
-      <Switch
-        id="is-public-switch"
-        checked={isPublic}
-        onCheckedChange={setIsPublic}
-        disabled={loading}
-      />
-    </div>
+                {goalUnit === "Custom..." && (<Input
+                        type="text"
+                        placeholder="Custom unit name"
+                        value={customUnit}
+                        onChange={(e) => setCustomUnit(e.target.value)}
+                        className="flex-1"
+                        disabled={loading}
+                    />)}
+            </div>
 
-    {showGoalInput && (
-      <div className="grid gap-4">
-        <div className="flex items-center gap-2 flex-wrap">
-          <Input
-            type="number"
-            placeholder="Goal value"
-            value={goalValue ?? ""}
-            onChange={(e) => setGoalValue(Number.parseFloat(e.target.value) || undefined)}
-            className="w-full sm:w-32"
-            disabled={loading}
-          />
-          <Select value={goalUnit} onValueChange={setGoalUnit} disabled={loading}>
-            <SelectTrigger className="w-full sm:w-[176px]">
-              <SelectValue placeholder="Select a unit" />
-            </SelectTrigger>
-            <SelectContent>
-              {predefinedUnits.map((unit) => (<SelectItem key={unit} value={unit}>
-                {unit}
-              </SelectItem>))}
-            </SelectContent>
-          </Select>
-          {goalUnit === "Custom..." && (<Input
-            type="text"
-            placeholder="Enter custom unit"
-            value={customUnit}
-            onChange={(e) => setCustomUnit(e.target.value)}
-            className="w-full sm:flex-grow"
-            disabled={loading}
-          />)}
-        </div>
-        <div className="flex items-center gap-2">
-          <Label htmlFor="target-time" className="shrink-0">Target Time:</Label>
-          <TimeDropdown
-            value={targetTime}
-            onChange={setTargetTime}
-            disabled={loading}
-          />
-        </div>
-      </div>
-    )}
-    {error && <p className="text-destructive-foreground mt-2">{error}</p>}
-  </div>);
+            {/* Target Time */}
+            <div className="flex items-center gap-2">
+                <Label htmlFor="target-time" className="shrink-0 text-muted-foreground w-20">Target Time</Label>
+                <TimeDropdown
+                    value={targetTime}
+                    onChange={setTargetTime}
+                    disabled={loading}
+                />
+            </div>
+
+            {/* Description */}
+            <div>
+                <Textarea
+                    placeholder="Description or motivation (optional)..."
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    className="resize-none min-h-[80px]"
+                    disabled={loading}
+                />
+            </div>
+
+            {/* Footer Actions */}
+            <div className="flex flex-col-reverse sm:flex-row sm:justify-between sm:items-center gap-4 mt-2">
+                <div className="flex items-center space-x-2">
+                    <Switch
+                        id="is-public-switch"
+                        checked={isPublic}
+                        onCheckedChange={setIsPublic}
+                        disabled={loading}
+                    />
+                    <Label htmlFor="is-public-switch" className="cursor-pointer">Public Visibility</Label>
+                </div>
+
+                <Button
+                    onClick={handleCreate}
+                    disabled={loading || !habitName.trim()}
+                    className="w-full sm:w-auto"
+                >
+                    {loading ? "Creating..." : "Create Habit"}
+                </Button>
+            </div>
+
+            {error && <p className="text-destructive text-sm text-center">{error}</p>}
+        </div>);
 }

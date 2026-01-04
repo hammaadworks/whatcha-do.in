@@ -9,7 +9,7 @@
 // which likely depends on browser APIs or client-side React hooks for auth state management.
 "use client";
 
-import { AuthProvider } from "@/components/auth/AuthProvider";
+import { AuthProvider } from "@/packages/auth/components/AuthProvider";
 
 /**
  * MainLayout Component

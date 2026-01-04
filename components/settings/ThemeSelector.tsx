@@ -21,7 +21,7 @@ import { cn } from "@/lib/utils";
 import { MagicCard } from "@/components/ui/magic-card";
 import { useTheme } from "next-themes";
 import { ThemeOption, THEMES } from "@/lib/themes";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/packages/auth/hooks/useAuth";
 import { toast } from "sonner";
 import { purchaseTheme, verifySocialUnlock } from "@/lib/actions/theme";
 import { fetchUserPurchasedThemes } from "@/lib/supabase/user.client";
@@ -123,22 +123,27 @@ export function ThemeSelector(props: ThemeSelectorProps) {
     return true;
   }, [currentPreviewThemeDef, user, localPurchasedThemes]);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (isLocked) {
       toast.error("Unlock this theme first to catch the vibe.");
       return;
     }
     isSavingRef.current = true;
-    setTheme(theme); // Commit the current preview (which is 'theme')
+    await setTheme(theme); // Commit the current preview (which is 'theme')
     setOpen(false);
 
     toast.success("Theme applied! Workspace looking fresh. ✨", {
       action: {
-        label: "Refresh",
+        label: "Refresh Now",
         onClick: () => window.location.reload()
       },
-      duration: 5000
+      duration: 3000
     });
+
+    // Auto refresh after short delay
+    setTimeout(() => {
+      window.location.reload();
+    }, 1500);
   };
 
   const getSocialAction = () => {
@@ -316,10 +321,10 @@ export function ThemeSelector(props: ThemeSelectorProps) {
         </DialogTrigger>
       )}
 
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
+      <DialogContent className="max-w-xl px-6 py-6 overflow-hidden">
+        <DialogHeader className="pb-6 text-center">
           <DialogTitle>Customize Appearance</DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="max-w-prose mx-auto">
             {verificationStep === "awaiting_proof"
               ? "Vibe check! Verify your action to unlock."
               : "Choose a theme to personalize your experience."}
@@ -355,7 +360,7 @@ export function ThemeSelector(props: ThemeSelectorProps) {
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-2 gap-4 py-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 py-4">
             {THEMES.map((t) => {
               const isActive = theme === t.id;
               const isItemLocked = t.isPro && !user?.is_pro && !localPurchasedThemes.includes(t.id);
@@ -442,7 +447,7 @@ export function ThemeSelector(props: ThemeSelectorProps) {
           </div>
         )}
 
-        <DialogFooter className="gap-2 sm:gap-0">
+        <DialogFooter className="pt-4 flex-col sm:flex-row sm:justify-end gap-2">
           {verificationStep === "awaiting_proof" ? (
             <>
               <Button variant="ghost" onClick={() => setVerificationStep("idle")} disabled={isUnlocking}>

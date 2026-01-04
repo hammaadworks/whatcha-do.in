@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/packages/auth/hooks/useAuth';
 import { usePWAInstall } from '@/hooks/usePWAInstall';
 import { MagicCard } from '@/components/ui/magic-card';
 import { Button } from '@/components/ui/button';

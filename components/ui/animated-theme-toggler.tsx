@@ -3,8 +3,9 @@
 import {useCallback, useEffect, useRef, useState, forwardRef, useImperativeHandle} from "react"
 import {Moon, Sun} from "lucide-react"
 import {flushSync} from "react-dom"
+import {useTheme} from "next-themes"
 
-import {cn} from "@/lib/utils" // Assuming cn utility is at this path
+import {cn} from "@/lib/utils"
 
 interface AnimatedThemeTogglerProps extends React.ComponentPropsWithoutRef<"button"> {
     duration?: number
@@ -17,36 +18,30 @@ export interface AnimatedThemeTogglerRef {
 export const AnimatedThemeToggler = forwardRef<AnimatedThemeTogglerRef, AnimatedThemeTogglerProps>(({
                                          className, duration = 400, ...props
                                      }, ref) => {
-    const [isDark, setIsDark] = useState(false)
+    const { setTheme, resolvedTheme } = useTheme()
+    const [mounted, setMounted] = useState(false)
     const buttonRef = useRef<HTMLButtonElement>(null)
 
     useEffect(() => {
-        const updateTheme = () => {
-            setIsDark(document.documentElement.classList.contains("dark"))
-        }
-
-        // Initial theme check
-        updateTheme()
-
-        // Listen for changes in the 'class' attribute of the html element
-        const observer = new MutationObserver(updateTheme)
-        observer.observe(document.documentElement, {
-            attributes: true, attributeFilter: ["class"],
-        })
-
-        return () => observer.disconnect()
+        setMounted(true)
     }, [])
 
     const toggleTheme = useCallback(async () => {
         if (!buttonRef.current) return
+        
+        const isDark = resolvedTheme === "dark"
+        const newTheme = isDark ? "light" : "dark"
+
+        // Fallback for browsers without View Transitions
+        if (!document.startViewTransition) {
+            setTheme(newTheme)
+            return
+        }
 
         // Use View Transitions API for a smoother animation
         await document.startViewTransition(() => {
             flushSync(() => {
-                const newTheme = !isDark
-                setIsDark(newTheme)
-                document.documentElement.classList.toggle("dark")
-                localStorage.setItem("theme", newTheme ? "dark" : "light")
+                setTheme(newTheme)
             })
         }).ready
 
@@ -62,11 +57,25 @@ export const AnimatedThemeToggler = forwardRef<AnimatedThemeTogglerRef, Animated
         }, {
             duration, easing: "ease-in-out", pseudoElement: "::view-transition-new(root)",
         })
-    }, [isDark, duration])
+    }, [resolvedTheme, setTheme, duration])
 
     useImperativeHandle(ref, () => ({
         toggle: toggleTheme,
     }));
+
+    // Prevent hydration mismatch
+    if (!mounted) {
+        return (
+            <button
+                className={cn("relative inline-flex h-10 w-10 items-center justify-center rounded-full bg-background text-foreground flex-shrink-0", className)}
+                {...props}
+            >
+                <span className="sr-only">Toggle theme</span>
+            </button>
+        )
+    }
+
+    const isDark = resolvedTheme === "dark"
 
     return (<button
             ref={buttonRef}

@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { InsightsBentoGrid } from '@/components/shared/InsightsBentoGrid';
 import { BarChart3 } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth'; // Import useAuth hook
+import { useAuth } from '@/packages/auth/hooks/useAuth'; // Import useAuth hook
 
 interface InsightsTriggerProps {
   username: string; // Keep username for title, but we'll get userId for data fetching

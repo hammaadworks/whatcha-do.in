@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo } from 'react';
 import { fetchTargets, updateTargets } from '@/lib/supabase/targets';
 import { ActionNode } from '@/lib/supabase/types';
-import { useAuth } from './useAuth';
+import { useAuth } from '@/packages/auth/hooks/useAuth';
 import { toast } from 'sonner';
 import { getCurrentMonthStartISO, getReferenceDateUI } from '@/lib/date';
 import { useSimulatedTime } from '@/components/layout/SimulatedTimeProvider';

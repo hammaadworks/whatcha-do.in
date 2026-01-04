@@ -1,13 +1,13 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import AppHeader from '@/components/layout/AppHeader';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/packages/auth/hooks/useAuth';
 import { User } from '@supabase/supabase-js';
 import { AnimatedThemeTogglerRef } from '@/components/ui/animated-theme-toggler'; // Import the ref type
 import { useKeyboardShortcuts } from '@/components/shared/KeyboardShortcutsProvider'; // Import the hook
 
 // Mock the useAuth hook
-jest.mock('@/hooks/useAuth', () => ({
+jest.mock('@/packages/auth/hooks/useAuth', () => ({
   useAuth: jest.fn(),
 }));
 

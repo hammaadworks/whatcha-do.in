@@ -2,7 +2,7 @@
 
 import React, {createContext, useCallback, useContext, useEffect, useRef, useState} from 'react';
 import {useRouter} from 'next/navigation'; // Import useRouter
-import {useAuth} from '@/hooks/useAuth'; // Import useAuth
+import {useAuth} from '@/packages/auth/hooks/useAuth'; // Import useAuth
 import KeyboardShortcutsModal from './KeyboardShortcutsModal';
 import {useTheme} from 'next-themes'; // New import for theme management
 import {AnimatedThemeTogglerRef} from '@/components/ui/animated-theme-toggler'; // New import for the ref type

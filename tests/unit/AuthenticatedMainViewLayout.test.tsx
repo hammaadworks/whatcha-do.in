@@ -13,7 +13,7 @@ import { PublicUserDisplay, ActionNode, Habit } from '@/lib/supabase/types'; // 
 const mockAuthContextValue: { user: User | null; loading: boolean } = { user: null, loading: false };
 const mockUseAuth = jest.fn(() => mockAuthContextValue);
 
-jest.mock('@/hooks/useAuth', () => ({
+jest.mock('@/packages/auth/hooks/useAuth', () => ({
   useAuth: () => mockUseAuth(),
   AuthContext: {
     Provider: ({ children, value }: { children: React.ReactNode, value: { user: User | null; loading: boolean } }) => {

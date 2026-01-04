@@ -14,13 +14,17 @@ const minutesProgression = ["00", "15", "30", "45"];
 const ampmOptions = ["AM", "PM"];
 
 const TimeDropdown: React.FC<TimeDropdownProps> = ({ value, onChange, disabled }) => {
-  const [selectedHour, setSelectedHour] = useState<string | null>(null); // 1-12
-  const [selectedMinute, setSelectedMinute] = useState<string | null>(null); // 00, 15, 30, 45
-  const [selectedAmPm, setSelectedAmPm] = useState<"AM" | "PM">("AM"); // AM or PM
+  // Default to 11:59 PM if no value is set
+  const [selectedHour, setSelectedHour] = useState<string | null>(value ? null : "11"); // 1-12
+  const [selectedMinute, setSelectedMinute] = useState<string | null>(value ? null : "45"); // 00, 15, 30, 45
+  const [selectedAmPm, setSelectedAmPm] = useState<"AM" | "PM">(value ? "AM" : "PM"); // AM or PM
 
   // Helper to convert 12-hour (with AM/PM) to 24-hour format
   const get24HourTime = (hour12: string | null, minute: string | null, ampm: "AM" | "PM") => {
-    if (hour12 === null || minute === null) return null;
+    if (hour12 === null || minute === null) {
+      // If any part is null, it means no selection, so return null for the whole time.
+      return null;
+    }
 
     let h = parseInt(hour12, 10);
     if (ampm === "PM" && h !== 12) {
@@ -50,9 +54,10 @@ const TimeDropdown: React.FC<TimeDropdownProps> = ({ value, onChange, disabled }
       setSelectedMinute(m);
       setSelectedAmPm(ampm);
     } else {
-      setSelectedHour(null);
-      setSelectedMinute(null);
-      setSelectedAmPm("AM"); // Default to AM when cleared
+      // When value is null (cleared or initially null), default to 11:59 PM
+      setSelectedHour("11");
+      setSelectedMinute("45");
+      setSelectedAmPm("PM"); 
     }
   }, [value]);
 
@@ -84,10 +89,10 @@ const TimeDropdown: React.FC<TimeDropdownProps> = ({ value, onChange, disabled }
   };
 
   const handleClear = () => {
-    setSelectedHour(null);
-    setSelectedMinute(null);
-    setSelectedAmPm("AM"); // Reset to default AM
-    onChange(null);
+    setSelectedHour("11");
+    setSelectedMinute("45");
+    setSelectedAmPm("PM");
+    onChange(null); // Explicitly set the onChange to null, as it's intended to clear the selection.
   };
 
   return (

@@ -11,7 +11,7 @@ jest.mock('@/lib/supabase/actions', () => ({
 }));
 
 // Mock useAuth
-jest.mock('@/hooks/useAuth', () => ({
+jest.mock('@/packages/auth/hooks/useAuth', () => ({
   useAuth: () => ({ user: { id: 'test-user' }, loading: false }),
 }));
 

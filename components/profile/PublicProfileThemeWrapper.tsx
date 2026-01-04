@@ -2,8 +2,7 @@
 
 import React from "react";
 import { BrandThemeProvider } from "@/components/theme/BrandThemeProvider";
-import { BrandTheme, THEME_IDS } from "@/lib/themes";
-import { useAuth } from "@/hooks/useAuth";
+import { THEME_IDS, THEMES } from "@/lib/themes";
 
 interface PublicProfileThemeWrapperProps {
   initialTheme: string | undefined;
@@ -11,21 +10,14 @@ interface PublicProfileThemeWrapperProps {
   children: React.ReactNode;
 }
 
-export function PublicProfileThemeWrapper({ initialTheme, username, children }: PublicProfileThemeWrapperProps) {
-  const { user } = useAuth();
-  
-  // If the viewer is the owner, use their live active_theme from context/auth
-  // This ensures immediate updates without page reload when changing themes in settings
-  const isOwner = user?.username && username && user.username === username;
-  const effectiveThemeString = isOwner ? user?.active_theme : initialTheme;
-
+export function PublicProfileThemeWrapper({ initialTheme, children }: Readonly<PublicProfileThemeWrapperProps>) {
   // Validate theme string or fallback to default
-  const validTheme = (effectiveThemeString && THEME_IDS.includes(effectiveThemeString as any)) 
-    ? effectiveThemeString as BrandTheme 
-    : undefined;
+  const validTheme = (initialTheme && THEME_IDS.includes(initialTheme as any))
+    ? (initialTheme as any)
+    : THEMES[0].id;
 
   return (
-    <BrandThemeProvider initialTheme={validTheme} scoped={true}>
+    <BrandThemeProvider activeTheme={validTheme} disableAuthSync={true}>
       {children}
     </BrandThemeProvider>
   );

@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useCallback } from "react";
 import { useMediaQuery } from "@/hooks/useMediaQuery"; // Import useMediaQuery
 import { MovingBorder } from "@/components/ui/moving-border";
 import { UserClock } from "./UserClock";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/packages/auth/hooks/useAuth";
 import { useUiStore } from "@/lib/store/uiStore"; // Import the Zustand store
 import { toast } from "sonner"; // Import toast for user feedback
 import { SectionViewLayout } from "./SectionViewLayout";
@@ -15,6 +15,7 @@ interface ProfileLayoutProps {
     timezone?: string | null;
     onTimezoneChange?: (newTimezone: string) => Promise<void>;
     children: React.ReactNode;
+    headerContent?: React.ReactNode;
 }
 
 const ProfileLayout: React.FC<ProfileLayoutProps> = ({
@@ -24,6 +25,7 @@ const ProfileLayout: React.FC<ProfileLayoutProps> = ({
                                                          timezone,
                                                          onTimezoneChange,
                                                          children,
+                                                         headerContent,
                                                      }) => {
     const { user: viewer } = useAuth();
     const usernameRef = useRef<HTMLHeadingElement>(null); // Ref for the username heading
@@ -79,7 +81,7 @@ const ProfileLayout: React.FC<ProfileLayoutProps> = ({
 
     const renderContent = () => {
         if (layoutMode === "section") {
-            return <SectionViewLayout>{children}</SectionViewLayout>;
+            return <SectionViewLayout headerContent={headerContent}>{children}</SectionViewLayout>;
         }
 
         return <div className="main-content-column">{children}</div>;
@@ -88,78 +90,72 @@ const ProfileLayout: React.FC<ProfileLayoutProps> = ({
     const isCardMode = layoutMode === "card";
 
     return (
-        <div
-            className={cn(
-                "profile-container w-full mx-auto relative transition-all duration-300",
-
-                isCardMode
-                    ? "bg-card border border-primary shadow-lg rounded-3xl mt-8 mb-8"
-                    : "mt-0 mb-0 max-w-none"
-            )}
-        >
-            {/* Top Right Controls (Owner Only) */}
-
-            {isOwner && (
-                <div
-                    className={cn(
-                        "absolute z-30 flex items-center gap-3",
-                        isCardMode
-                            ? "top-4 sm:top-8 right-4 md:top-14 md:right-6"
-                            : "hidden" // Hide in section mode (fixed positioning removed)
-                    )}
-                >
-                    {/* LayoutToggleSettings is in Drawer, but we can keep a quick toggle here if desired,
-
-                           or rely on the drawer. The plan said Drawer for Owner.
-
-                           Let's keep the clock here only for card mode. */}
-
-                    {timezone && isCardMode && ( // Double check condition
-                        <UserClock
-                            timezone={timezone}
-                            isOwner={isOwner}
-                            viewerTimezone={viewer?.timezone}
-                        />
-                    )}
+        <div className="w-full">
+            {/* Render Header in Card Mode (positioned normally above the card) */}
+            {isCardMode && headerContent && (
+                <div className="mb-6">
+                    {headerContent}
                 </div>
             )}
 
-            {/* Top Right Controls (Guest Only - Clock) */}
+            <div
+                className={cn(
+                    "profile-container w-full mx-auto relative transition-all duration-300",
 
-            {!isOwner && timezone && (
-                <div
-                    className={cn(
-                        "absolute z-30",
-                        isCardMode
-                            ? "top-12 right-4 md:top-14 md:right-6"
-                            : "top-4 right-4 fixed" // Guest view might still want it fixed?
-                            // User request was specific to "focus view" (Edit Mode / Owner View).
-                            // Guest view typically doesn't have "Focus View" in the same way, or uses Card Mode.
-                            // If Guest View uses Section Mode, we might want it fixed.
-                            // But for now, let's leave Guest as is, or hide it if consistent.
-                            // Let's assume this change is for Owner Edit Mode.
-                    )}
-                >
-                    <UserClock
-                        timezone={timezone}
-                        isOwner={isOwner}
-                        viewerTimezone={viewer?.timezone}
-                    />
-                </div>
-            )}
-
+                    isCardMode
+                        ? "bg-card border border-primary shadow-lg rounded-3xl mt-2 mb-8"
+                        : "mt-0 mb-0 max-w-none"
+                )}
+            >
+                            {/* Top Right Controls (Owner Only) */}
+                
+                            {isOwner && (
+                                <div
+                                    className={cn(
+                                        "absolute z-30 flex items-center gap-3",
+                                        isCardMode
+                                            ? "top-4 sm:top-8 right-4 md:top-14 md:right-6"
+                                            : "hidden" // Hide in section mode (fixed positioning removed)
+                                    )}
+                                >
+                                    {/* LayoutToggleSettings is in Drawer, but we can keep a quick toggle here if desired,
+                
+                                           or rely on the drawer. The plan said Drawer for Owner.
+                
+                                           Let's keep the clock here only for card mode. */}
+                
+                                    {timezone && isCardMode && ( // Double check condition
+                                        <UserClock
+                                            timezone={timezone}
+                                            isOwner={isOwner}
+                                            viewerTimezone={viewer?.timezone}
+                                        />
+                                    )}
+                                </div>
+                            )}
             {/* Main card content with its own padding and z-index */}
 
             <div
                 className={cn(
                     "relative z-10",
-                    isCardMode ? "p-6 pt-12 sm:p-8 md:p-10 lg:p-12" : "p-0"
+                    isCardMode ? "p-6 pt-8 sm:p-8 md:p-10 lg:p-12" : "p-0"
                 )}
             >
+                {/* Guest Clock - Positioned Above Username */}
+                {!isOwner && timezone && isCardMode && (
+                    <div className="flex justify-center mb-4">
+                        <UserClock
+                            timezone={timezone}
+                            isOwner={isOwner}
+                            viewerTimezone={viewer?.timezone}
+                        />
+                    </div>
+                )}
+
                 {isCardMode && (
                     <h1
                         ref={usernameRef} // Attach ref
-                        className="text-4xl font-extrabold text-center text-primary mb-8 mt-4 cursor-pointer" // Add cursor-pointer
+                        className="text-4xl font-extrabold text-center text-ring mb-8 mt-2 cursor-pointer" // Add cursor-pointer
                         onClick={handleCopyProfileLink} // Attach onClick handler
                     >
                         {isOwner ? `Welcome, ${username}!` : username}
@@ -187,6 +183,7 @@ const ProfileLayout: React.FC<ProfileLayoutProps> = ({
                     </MovingBorder>
                 </div>
             )}
+        </div>
         </div>
     );
 };

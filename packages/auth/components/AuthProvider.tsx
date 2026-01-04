@@ -2,9 +2,10 @@
 
 import React, { createContext, useEffect, useState } from "react";
 import { User as SupabaseUser } from "@supabase/supabase-js";
-import { createClient } from "@/lib/supabase/client";
+import { createClient } from "@/packages/auth/lib/supabase/client";
 import { LOCAL_STORAGE_USER_PROFILE_CACHE_KEY } from "@/lib/constants";
 import { User } from "@/lib/supabase/types";
+import { THEMES } from "@/lib/themes.ts";
 
 // Re-export User type for consumers
 export type { User };
@@ -131,7 +132,7 @@ export function AuthProvider({ children, initialUser }: AuthProviderProps) {
         bio: data?.bio,
         purchased_themes: data?.purchased_themes ?? [],
         is_pro: data?.is_pro ?? false,
-        active_theme: data?.active_theme ?? "zenith" // Default fallback
+        active_theme: data?.active_theme ?? THEMES[0].id // Default fallback
       };
 
       // 3. Save to cache
@@ -179,6 +180,9 @@ export function AuthProvider({ children, initialUser }: AuthProviderProps) {
     }
   };
 
+  // Use a ref to track the current user ID to avoid stale closures in the event listener
+  const userIdRef = React.useRef<string | null>(null);
+
   useEffect(() => {
     let mounted = true;
 
@@ -201,11 +205,13 @@ export function AuthProvider({ children, initialUser }: AuthProviderProps) {
         const userWithProfile = await fetchUserProfile(currentUser);
         if (mounted) {
           setUser(userWithProfile);
+          userIdRef.current = userWithProfile.id;
           setLoading(false);
         }
       } else {
         if (mounted) {
           setUser(null);
+          userIdRef.current = null;
           setLoading(false);
         }
       }
@@ -219,8 +225,6 @@ export function AuthProvider({ children, initialUser }: AuthProviderProps) {
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (_event === "SIGNED_OUT") {
         // Clear any cached user profiles on logout
-        // Iterate backwards to safely remove items while looping if needed, 
-        // though localStorage.length is dynamic.
         Object.keys(localStorage).forEach((key) => {
           if (key.startsWith(LOCAL_STORAGE_USER_PROFILE_CACHE_KEY)) {
             localStorage.removeItem(key);
@@ -229,22 +233,25 @@ export function AuthProvider({ children, initialUser }: AuthProviderProps) {
 
         if (mounted) {
           setUser(null);
+          userIdRef.current = null;
           setLoading(false);
         }
       } else if (session?.user) {
         // If we have a session, ensure we have the profile data too
-        // We only update if the user ID has changed or we don't have a user yet
-        // to avoid unnecessary re-fetches on token refreshes that fire onAuthStateChange
-        if (!user || user.id !== session.user.id) {
+        // We only update if the user ID has changed to avoid unnecessary re-fetches
+        if (userIdRef.current !== session.user.id) {
           const userWithProfile = await fetchUserProfile(session.user);
           if (mounted) {
             setUser(userWithProfile);
+            userIdRef.current = userWithProfile.id;
             setLoading(false);
           }
         }
       } else {
-        if (mounted) {
+        // Case where session is null but not explicitly SIGNED_OUT event (e.g. unexpected state)
+        if (mounted && userIdRef.current !== null) {
           setUser(null);
+          userIdRef.current = null;
           setLoading(false);
         }
       }
@@ -254,9 +261,7 @@ export function AuthProvider({ children, initialUser }: AuthProviderProps) {
       mounted = false;
       subscription.unsubscribe();
     };
-    // We intentionally exclude 'user' from deps to avoid loops, but we need it for the check inside onAuthStateChange.
-    // However, onAuthStateChange callback captures the scope. 
-    // Best practice is to rely on the 'session' arg from the callback.
+    // We intentionally exclude 'user' from deps.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialUser]);
 

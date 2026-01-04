@@ -1,6 +1,6 @@
 import { renderHook, waitFor, act } from '@testing-library/react';
-import { AuthProvider } from '@/components/auth/AuthProvider';
-import { useAuth } from '@/hooks/useAuth';
+import { AuthProvider } from '@/packages/auth/components/AuthProvider';
+import { useAuth } from '@/packages/auth/hooks/useAuth';
 import { createClient } from '@/lib/supabase/client';
 
 // Mock the Supabase client

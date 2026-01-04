@@ -1,21 +1,20 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useDebounce } from '@/hooks/useDebounce';
 import { format } from 'date-fns';
-import { Calendar as CalendarIcon, Lock, Globe, Loader2 } from 'lucide-react';
+import { Calendar as CalendarIcon, Lock, Globe } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { cn } from '@/lib/utils';
 import { fetchJournalEntryByDate, upsertJournalEntry } from '@/lib/supabase/journal';
-import { CustomMarkdownEditor as MarkdownEditor } from '@/components/shared/CustomMarkdownEditor';
+import { EditorWithControls } from '@/components/shared/EditorWithControls';
 import { Calendar } from '@/components/shared/Calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Button } from '@/components/ui/button';
-import { JournalEntry, ActivityLogEntry } from '@/lib/supabase/types'; // Import JournalEntry and ActivityLogEntry
+import { JournalEntry, ActivityLogEntry } from '@/lib/supabase/types';
 import { useSimulatedTime } from '@/components/layout/SimulatedTimeProvider';
-
+import { ToggleButtonGroup } from '@/components/shared/ToggleButtonGroup';
+import { useAuth } from '@/packages/auth/hooks/useAuth';
 
 
 interface JournalPageContentProps {
@@ -29,7 +28,6 @@ const formatActivityLogEntry = (entry: ActivityLogEntry): string => {
   const details = entry.details ? Object.entries(entry.details)
     .filter(([, value]) => value !== undefined && value !== null)
     .map(([key, value]) => {
-        // Custom formatting for mood_score and work_value/duration_value to make it more readable
         if (key === 'mood_score') return `Mood: ${value}/100`;
         if (key === 'work_value' && entry.details?.duration_unit) return `${value} ${entry.details.duration_unit}`;
         if (key === 'duration_value' && entry.details?.duration_unit) return `${value} ${entry.details.duration_unit}`;
@@ -43,18 +41,16 @@ const formatActivityLogEntry = (entry: ActivityLogEntry): string => {
 
 
 export function JournalPageContent({ profileUserId, isOwner }: JournalPageContentProps) {
-      const { simulatedDate } = useSimulatedTime();
+  const { simulatedDate } = useSimulatedTime();
+  const { user } = useAuth();
   
   const [date, setDate] = useState<Date>(simulatedDate || new Date());
   const [activeTab, setActiveTab] = useState<'public' | 'private'>('public'); // Default to public
-  const [content, setContent] = useState('');
-  const [activityLog, setActivityLog] = useState<ActivityLogEntry[]>([]); // New state for activity log
+  const [loadedContent, setLoadedContent] = useState('');
+  const [activityLog, setActivityLog] = useState<ActivityLogEntry[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [autosaveStatus, setAutosaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
-  const lastSavedContentRef = useRef('');
+  const [isDirty, setIsDirty] = useState(false);
   
-  const debouncedContent = useDebounce(content, 1000); // Debounce content for 1 second
-
   // Update date when simulatedDate changes (e.g. time travel)
   useEffect(() => {
     if (simulatedDate) {
@@ -65,17 +61,13 @@ export function JournalPageContent({ profileUserId, isOwner }: JournalPageConten
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
-  const [activitiesPerPage, setActivitiesPerPage] = useState(10); // Default for small screens
+  const [activitiesPerPage, setActivitiesPerPage] = useState(10); 
 
-  // Effect to determine activitiesPerPage based on screen size
   useEffect(() => {
     const handleResize = () => {
-      setActivitiesPerPage(window.innerWidth >= 1024 ? 20 : 10); // 20 for lg and up, 10 for smaller
+      setActivitiesPerPage(window.innerWidth >= 1024 ? 20 : 10);
     };
-
-    // Set initial value
     handleResize();
-
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
@@ -88,13 +80,12 @@ export function JournalPageContent({ profileUserId, isOwner }: JournalPageConten
       setIsLoading(true);
       try {
         const dateStr = format(date, 'yyyy-MM-dd');
-        const entry: JournalEntry | null = await fetchJournalEntryByDate(profileUserId, dateStr, isPublic); // Cast to JournalEntry
+        const entry: JournalEntry | null = await fetchJournalEntryByDate(profileUserId, dateStr, isPublic);
         
         const newContent = entry?.content || '';
-        setContent(newContent);
-        lastSavedContentRef.current = newContent;
-        setActivityLog(entry?.activity_log || []); // Set the activity log
-        setCurrentPage(1); // Reset to first page on new entry load
+        setLoadedContent(newContent);
+        setActivityLog(entry?.activity_log || []);
+        setCurrentPage(1); 
       } catch (error) {
         console.error(error);
         toast.error('Failed to load journal entry');
@@ -105,9 +96,8 @@ export function JournalPageContent({ profileUserId, isOwner }: JournalPageConten
     loadEntry();
   }, [date, activeTab, profileUserId, isPublic]);
 
-  const saveEntry = useCallback(async (currentContent: string) => {
+  const handleSaveEntry = async (currentContent: string) => {
     if (!canEdit) return;
-    setAutosaveStatus('saving');
     try {
       const dateStr = format(date, 'yyyy-MM-dd');
       await upsertJournalEntry({
@@ -116,25 +106,34 @@ export function JournalPageContent({ profileUserId, isOwner }: JournalPageConten
         is_public: isPublic,
         content: currentContent,
       });
-      lastSavedContentRef.current = currentContent;
-      setAutosaveStatus('saved');
-      // Briefly show "Saved!" then revert to idle
-      setTimeout(() => setAutosaveStatus('idle'), 2000);
+      // Optionally update loadedContent to reflect the save, ensuring internal state remains consistent if we were to re-initialize
+      setLoadedContent(currentContent);
     } catch (error) {
-      console.error(error);
-      toast.error('Failed to autosave');
-      setAutosaveStatus('error');
+        // Error handling is managed by EditorWithControls for UI, but we re-throw to let it know save failed if needed.
+        // Actually EditorWithControls handles the toast.
+        throw error;
     }
-  }, [date, isPublic, profileUserId, canEdit]);
+  };
 
-  useEffect(() => {
-    // Only trigger autosave if content has changed due to user input
-    // (i.e., debouncedContent is different from the last saved content from the DB)
-    // and if the current user has edit permissions.
-    if (canEdit && debouncedContent !== lastSavedContentRef.current) {
-      saveEntry(debouncedContent);
-    }
-  }, [debouncedContent, canEdit, saveEntry]);
+  const handleTabChange = async (newTab: string) => {
+      const tab = newTab as 'public' | 'private';
+      if (tab === activeTab) return;
+
+      if (isDirty) {
+         const confirmSwitch = window.confirm("You have unsaved changes. Switch tabs anyway?");
+         if (!confirmSwitch) return;
+      }
+      setActiveTab(tab);
+  };
+
+  const handleDateSelect = async (newDate: Date | undefined) => {
+      if (!newDate) return;
+      if (isDirty) {
+          const confirmSwitch = window.confirm("You have unsaved changes. Switch date anyway?");
+          if (!confirmSwitch) return;
+      }
+      setDate(newDate);
+  };
 
   // Sort activities by timestamp in descending order (most recent on top)
   const sortedActivityLog = [...activityLog].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
@@ -148,8 +147,10 @@ export function JournalPageContent({ profileUserId, isOwner }: JournalPageConten
   const habits = paginatedActivityLog.filter(item => item.type === 'habit');
   const targets = paginatedActivityLog.filter(item => item.type === 'target');
   
-  const totalPages = Math.ceil(activityLog.length / activitiesPerPage);
-
+  const JOURNAL_VIEW_OPTIONS = [
+      { id: 'public', label: 'Public', icon: Globe },
+      { id: 'private', label: 'Private', icon: Lock },
+  ];
 
   return (
     <div className="flex flex-col h-[calc(100vh-10rem)] w-full max-w-5xl mx-auto space-y-4">
@@ -174,90 +175,20 @@ export function JournalPageContent({ profileUserId, isOwner }: JournalPageConten
                         <Calendar
                             mode="single"
                             selected={date}
-                            onSelect={(d: Date | undefined) => d && setDate(d)}
+                            onSelect={handleDateSelect}
                             initialFocus
                         />
                     </PopoverContent>
                 </Popover>
 
                 {isOwner && (
-                    <TooltipProvider>
-                        <div className="flex items-center bg-card rounded-full p-2 shadow-md border border-primary gap-x-4">
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <button
-                                        type="button"
-                                        onClick={() => setActiveTab('public')}
-                                        className={cn(
-                                            "px-3 py-1 text-xs sm:text-sm font-medium rounded-full whitespace-nowrap flex items-center justify-center transition-all",
-                                            activeTab === 'public'
-                                                ? "bg-primary text-primary-foreground hover:bg-primary/90" // Selected: dim hover
-                                                : "bg-background/80 text-muted-foreground hover:bg-accent/50" // Unselected: light hover
-                                        )}
-                                        disabled={!isOwner && activeTab === 'private'}
-                                    >
-                                        <Globe className="h-4 w-4" />
-                                        <span className={cn(
-                                            "ml-2",
-                                            activeTab === 'public' ? "inline-block" : "hidden",
-                                            "lg:inline-block"
-                                        )}>
-                                            Public
-                                        </span>
-                                    </button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    <p>Public Journal</p>
-                                </TooltipContent>
-                            </Tooltip>
-                            
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <button
-                                        type="button"
-                                        onClick={() => setActiveTab('private')}
-                                        className={cn(
-                                            "px-3 py-1 text-xs sm:text-sm font-medium rounded-full whitespace-nowrap flex items-center justify-center transition-all",
-                                            activeTab === 'private'
-                                                ? "bg-primary text-primary-foreground hover:bg-primary/90" // Selected: dim hover
-                                                : "bg-background/80 text-muted-foreground hover:bg-accent/50" // Unselected: light hover
-                                        )}
-                                        disabled={!isOwner}
-                                    >
-                                        <Lock className="h-4 w-4" />
-                                        <span className={cn(
-                                            "ml-2",
-                                            activeTab === 'private' ? "inline-block" : "hidden",
-                                            "lg:inline-block"
-                                        )}>
-                                            Private
-                                        </span>
-                                    </button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    <p>Private Journal</p>
-                                </TooltipContent>
-                            </Tooltip>
-
-                            {/* Autosave Status Feedback */}
-                            {canEdit && (
-                                <div className="flex items-center gap-2 text-sm text-muted-foreground ml-4">
-                                    {autosaveStatus === 'saving' && (
-                                        <>
-                                            <Loader2 className="h-4 w-4 animate-spin" />
-                                            <span>Saving...</span>
-                                        </>
-                                    )}
-                                    {autosaveStatus === 'saved' && (
-                                        <span>Saved!</span>
-                                    )}
-                                    {autosaveStatus === 'error' && (
-                                        <span className="text-destructive">Autosave Error</span>
-                                    )}
-                                </div>
-                            )}
-                        </div>
-                    </TooltipProvider>
+                    <div className="flex items-center gap-4">
+                        <ToggleButtonGroup
+                            options={JOURNAL_VIEW_OPTIONS}
+                            selectedValue={activeTab}
+                            onValueChange={handleTabChange}
+                        />
+                    </div>
                 )}
             </div>
         </div>
@@ -311,20 +242,16 @@ export function JournalPageContent({ profileUserId, isOwner }: JournalPageConten
 
         {/* User Editable Journal Content */}
         <div className="flex-1 bg-card rounded-lg border shadow-sm overflow-hidden">
-            {isLoading ? (
-                <div className="flex h-full items-center justify-center text-muted-foreground">
-                    <Loader2 className="h-8 w-8 animate-spin mr-2" />
-                    Loading entry...
-                </div>
-            ) : (
-                <MarkdownEditor
-                    value={content}
-                    onChange={setContent}
-                    placeholder={canEdit ? "Write your daily reflections here..." : "No entry for this day."}
-                    readOnly={!canEdit}
-                    className="h-full border-0"
-                />
-            )}
+             <EditorWithControls 
+                initialContent={loadedContent}
+                onSave={handleSaveEntry}
+                userId={profileUserId}
+                isOwner={isOwner}
+                placeholder={canEdit ? "Write your daily reflections here..." : "No entry for this day."}
+                uploadIsPublic={isPublic}
+                isLoading={isLoading}
+                onDirtyChange={setIsDirty}
+             />
         </div>
     </div>
   );

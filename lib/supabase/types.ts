@@ -24,6 +24,7 @@ export interface Habit {
   created_at: string;
   updated_at: string;
   target_time?: string | null; // Added target_time
+  descriptions?: string | null; // Added descriptions
   linked_identities?: { id: string; color?: string }[]; // Added linked_identities
 }
 
@@ -41,6 +42,7 @@ export interface CompletionsData {
   time_taken?: number;
   time_taken_unit?: string;
   notes?: string;
+  attributed_date?: Date; // Optional: Dedicate completion to a specific date
 }
 
 export type ActivityLogEntry = {
