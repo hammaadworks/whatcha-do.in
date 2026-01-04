@@ -25,7 +25,6 @@ import { useAuth } from "@/packages/auth/hooks/useAuth";
 import { toast } from "sonner";
 import { purchaseTheme, verifySocialUnlock } from "@/lib/actions/theme";
 import { fetchUserPurchasedThemes } from "@/lib/supabase/user.client";
-import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface ThemeSelectorProps {
   open?: boolean;
@@ -323,7 +322,7 @@ export function ThemeSelector(props: ThemeSelectorProps) {
       )}
 
       <DialogContent className="w-full max-w-[95vw] sm:max-w-xl max-h-[85vh] flex flex-col gap-0 p-0 overflow-hidden z-[100]">
-        <DialogHeader className="p-6 pb-4 text-center shrink-0">
+        <DialogHeader className="p-4 sm:p-6 pb-2 sm:pb-4 text-center shrink-0">
           <DialogTitle>Customize Appearance</DialogTitle>
           <DialogDescription className="max-w-prose mx-auto">
             {verificationStep === "awaiting_proof"
@@ -332,7 +331,7 @@ export function ThemeSelector(props: ThemeSelectorProps) {
           </DialogDescription>
         </DialogHeader>
 
-        <ScrollArea className="flex-1 px-6">
+        <div className="flex-1 overflow-y-auto px-4 sm:px-6">
           {verificationStep === "awaiting_proof" ? (
             <div className="py-2 space-y-6">
               <div className="bg-muted/50 p-4 rounded-lg border border-border/50 text-sm space-y-2">
@@ -448,9 +447,9 @@ export function ThemeSelector(props: ThemeSelectorProps) {
               })}
             </div>
           )}
-        </ScrollArea>
+        </div>
 
-        <DialogFooter className="p-6 pt-4 flex-col sm:flex-row sm:justify-end gap-2 shrink-0">
+        <DialogFooter className="p-4 sm:p-6 pt-2 sm:pt-4 flex-col sm:flex-row sm:justify-end gap-2 shrink-0">
           {verificationStep === "awaiting_proof" ? (
             <>
               <Button variant="ghost" onClick={() => setVerificationStep("idle")} disabled={isUnlocking}>
