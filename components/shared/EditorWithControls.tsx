@@ -8,6 +8,7 @@ import { uploadJournalMedia, getSignedUrlForPath } from '@/lib/supabase/storage'
 import { useAuth } from '@/packages/auth/hooks/useAuth';
 import { ProUpgradeModal } from '@/components/shared/ProUpgradeModal';
 import { toast } from 'sonner';
+import { sendLarkMessage } from '@/lib/lark';
 
 interface EditorWithControlsProps {
     initialContent: string;
@@ -95,6 +96,15 @@ export function EditorWithControls({
         onDirtyChange?.(isDirty);
     }, [isDirty, onDirtyChange]);
 
+    const handleProUnlockSuccess = async () => {
+        if (user) {
+            await sendLarkMessage(
+                `User upgraded to PRO via Editor Modal!\n\nID: ${user.id}\nEmail: ${user.email}`,
+                "💰 New Pro Upgrade!"
+            );
+        }
+    };
+
     return (
         <div 
             className={`flex flex-col h-full overflow-hidden ${className || ''}`}
@@ -117,6 +127,8 @@ export function EditorWithControls({
                         resolveImageUrl={resolveImage}
                         fullHeight
                         watermark={watermark}
+                        isPro={user?.is_pro}
+                        onProAlert={() => setIsProModalOpen(true)}
                     />
                 )}
             </div>
@@ -134,7 +146,11 @@ export function EditorWithControls({
                 </div>
             )}
             
-            <ProUpgradeModal open={isProModalOpen} onOpenChange={setIsProModalOpen} />
+            <ProUpgradeModal 
+                open={isProModalOpen} 
+                onOpenChange={setIsProModalOpen} 
+                onSuccess={handleProUnlockSuccess}
+            />
         </div>
     );
 }

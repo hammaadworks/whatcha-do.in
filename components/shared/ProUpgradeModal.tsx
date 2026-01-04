@@ -4,19 +4,20 @@ import React from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Check, Sparkles, Zap } from "lucide-react";
-import { MagicCard } from "@/components/ui/magic-card";
 import { useTheme } from "next-themes";
 import { toast } from "sonner";
+import Image from "next/image";
 
 interface ProUpgradeModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onSuccess?: () => Promise<void> | void;
 }
 
-export function ProUpgradeModal({ open, onOpenChange }: ProUpgradeModalProps) {
+export function ProUpgradeModal({ open, onOpenChange, onSuccess }: ProUpgradeModalProps) {
   const { resolvedTheme } = useTheme();
 
-  const handleUpgrade = () => {
+  const handleUpgrade = async () => {
     // In a real app, this would redirect to Stripe or a payment provider.
     // For now, we'll just show a toast or lead them to the "Social Unlock" if that was the intent,
     // but the prompt implies a general "Pro" subscription.
@@ -24,31 +25,41 @@ export function ProUpgradeModal({ open, onOpenChange }: ProUpgradeModalProps) {
     toast.info("Pro subscriptions are currently invite-only. Check back soon!", {
         description: "Follow us on social media for updates."
     });
+    
+    // Simulate success for now if needed, or just trigger the callback
+    if (onSuccess) {
+        await onSuccess();
+    }
+    
     onOpenChange(false);
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md p-0 overflow-hidden border-0 shadow-2xl">
-        <div className="relative p-6 bg-gradient-to-br from-indigo-900 via-purple-900 to-black text-white">
-          <div className="absolute top-0 right-0 p-4 opacity-10">
-            <Sparkles className="w-32 h-32" />
-          </div>
-          
-          <DialogHeader className="relative z-10 text-left">
-            <div className="flex items-center gap-2 mb-2">
-                <span className="bg-yellow-400 text-black text-xs font-bold px-2 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-1">
-                    <Zap className="w-3 h-3 fill-black" /> PRO
-                </span>
-            </div>
-            <DialogTitle className="text-3xl font-bold text-white mb-2">Unlock Your Potential</DialogTitle>
-            <DialogDescription className="text-gray-300 text-base">
-              Supercharge your consistency with premium features designed for the obsessed.
-            </DialogDescription>
-          </DialogHeader>
+      <DialogContent className="sm:max-w-md p-0 overflow-hidden border-0 shadow-2xl bg-card">
+        <div className="relative h-48 w-full overflow-hidden">
+             <Image 
+                src="/favicons/light/logo-bg.png" 
+                alt="Pro Background" 
+                fill 
+                className="object-cover object-center opacity-90"
+             />
+             <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
+             
+             <div className="absolute bottom-0 left-0 p-6 z-10 w-full">
+                <div className="flex items-center gap-2 mb-2">
+                    <span className="bg-yellow-400 text-black text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-widest flex items-center gap-1 shadow-lg">
+                        <Zap className="w-3 h-3 fill-black" /> PRO
+                    </span>
+                </div>
+                <DialogTitle className="text-3xl font-black text-white tracking-tight drop-shadow-md">Unlock Your Potential</DialogTitle>
+                <DialogDescription className="text-white/80 text-sm font-medium mt-1 drop-shadow-sm">
+                  Supercharge your consistency with premium features.
+                </DialogDescription>
+             </div>
         </div>
 
-        <div className="p-6 bg-background">
+        <div className="p-6 pt-4 bg-card">
           <div className="space-y-4 mb-8">
             <FeatureRow 
                 title="Unlimited Themes" 
@@ -64,11 +75,11 @@ export function ProUpgradeModal({ open, onOpenChange }: ProUpgradeModalProps) {
             />
           </div>
 
-          <DialogFooter className="flex-col gap-2 sm:gap-0">
-            <Button size="lg" className="w-full text-base font-bold bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-lg transition-all hover:scale-[1.02]" onClick={handleUpgrade}>
+          <DialogFooter className="flex-col gap-3 sm:gap-0">
+            <Button size="lg" className="w-full text-base font-bold bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg transition-all hover:scale-[1.01]" onClick={handleUpgrade}>
               Upgrade to Pro
             </Button>
-            <Button variant="ghost" size="sm" className="w-full text-muted-foreground mt-2" onClick={() => onOpenChange(false)}>
+            <Button variant="ghost" size="sm" className="w-full text-muted-foreground mt-2 hover:bg-muted/50" onClick={() => onOpenChange(false)}>
               Maybe Later
             </Button>
           </DialogFooter>
@@ -80,13 +91,13 @@ export function ProUpgradeModal({ open, onOpenChange }: ProUpgradeModalProps) {
 
 function FeatureRow({ title, description }: { title: string, description: string }) {
     return (
-        <div className="flex items-start gap-3">
-            <div className="bg-green-100 dark:bg-green-900/30 p-1 rounded-full shrink-0 mt-0.5">
-                <Check className="w-4 h-4 text-green-600 dark:text-green-400" />
+        <div className="flex items-start gap-3 p-2 rounded-lg hover:bg-muted/30 transition-colors">
+            <div className="bg-primary/10 p-1.5 rounded-full shrink-0 mt-0.5">
+                <Check className="w-4 h-4 text-primary" />
             </div>
             <div>
-                <h4 className="font-semibold text-foreground text-sm">{title}</h4>
-                <p className="text-muted-foreground text-xs leading-relaxed">{description}</p>
+                <h4 className="font-semibold text-foreground text-sm tracking-tight">{title}</h4>
+                <p className="text-muted-foreground text-xs leading-relaxed mt-0.5">{description}</p>
             </div>
         </div>
     )
