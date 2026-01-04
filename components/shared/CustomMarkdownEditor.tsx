@@ -10,7 +10,7 @@ import {
     List, ListOrdered, Quote, Heading1, Image as ImageIcon, 
     Columns, Eye, Sparkles, FileText
 } from 'lucide-react';
-import MDEditor from '@uiw/react-md-editor';
+// import MDEditor from '@uiw/react-md-editor';
 import { useTheme } from 'next-themes';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { Button } from '@/components/ui/button';
@@ -371,24 +371,16 @@ export function CustomMarkdownEditor({
                         {watermark}
                     </div>
                  )}
-                 <MDEditor
-                    value={value}
-                    onChange={(val) => onChange(val || '')}
+                 <textarea
                     className={cn(
-                        "w-full h-full border-none !shadow-none !bg-transparent",
+                        "w-full h-full resize-none border-none focus:outline-none p-6",
+                        "bg-transparent text-foreground placeholder:text-muted-foreground",
+                        "font-sans text-lg leading-relaxed whitespace-pre-wrap break-words overflow-y-auto",
+                        textareaClassName
                     )}
-                    visibleDragbar={false}
-                    hideToolbar={true}
-                    height="100%"
-                    preview="edit"
-                    style={{ backgroundColor: 'transparent' }}
-                    textareaProps={{
-                        placeholder: placeholder || "Start writing...",
-                        className: cn(
-                            "focus:outline-none !font-sans !text-lg !leading-relaxed p-6 h-full !bg-card !text-foreground z-10 relative !whitespace-pre-wrap break-words overflow-y-auto",
-                            textareaClassName
-                        )
-                    }}
+                    placeholder={placeholder || "Start writing..."}
+                    value={value}
+                    onChange={(e) => onChange(e.target.value)}
                  />
             </div>
 
@@ -522,25 +514,17 @@ export function CustomMarkdownEditor({
                           {watermark}
                       </div>
                    )}
-                   <MDEditor
-                      value={value}
-                      onChange={(val) => onChange(val || '')}
-                      className={cn(
-                          "w-full h-full border-none !shadow-none !bg-transparent",
-                      )}
-                      visibleDragbar={false}
-                      hideToolbar={true}
-                      height="100%"
-                      preview="edit"
-                      style={{ backgroundColor: 'transparent' }}
-                      textareaProps={{
-                          placeholder: placeholder || "Start writing...",
-                          className: cn(
-                              "focus:outline-none !font-sans !text-lg !leading-relaxed p-6 h-full !bg-card !text-foreground z-10 relative !whitespace-pre-wrap break-words overflow-y-auto",
-                              textareaClassName
-                          )
-                      }}
-                   />
+                 <textarea
+                    className={cn(
+                        "w-full h-full resize-none border-none focus:outline-none p-6",
+                        "bg-transparent text-foreground placeholder:text-muted-foreground",
+                        "font-sans text-lg leading-relaxed whitespace-pre-wrap break-words overflow-y-auto",
+                        textareaClassName
+                    )}
+                    placeholder={placeholder || "Start writing..."}
+                    value={value}
+                    onChange={(e) => onChange(e.target.value)}
+                 />
               </div>
 
               <div className={cn(
