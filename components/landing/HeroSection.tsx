@@ -2,6 +2,7 @@ import { HeroVisuals } from "@/components/landing/HeroVisuals";
 import { HeroVideoTriggerButton } from "@/components/shared/HeroVideoDialog"; // New Import
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { BlurFade } from "@/components/ui/blur-fade"; // Re-added import
+import { SparklesText } from "@/components/ui/sparkles-text"; // Add SparklesText import
 import { PrimaryCtaButton } from "@/components/ui/primary-cta-button"; // Changed to PrimaryCtaButton
 import { RetroGrid } from "@/components/ui/retro-grid.tsx";
 import { IDENTITY_COLORS, SEE_HOW_VID } from "@/lib/constants";
@@ -46,29 +47,31 @@ export function HeroSection() {
           bannerText={"Build Your Identity. One Day At A Time."}
           badgeText={"Alpha"} />
 
-          <BlurFade delay={0.2} inView>
-            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold font-mono tracking-tighter text-foreground leading-none">
-              Stop Dreaming. Start Doing.
-              <br />
-              <span className="text-4xl md:text-5xl lg:text-6xl font-sans text-muted-foreground/80">
-                So <span className="tracking-widest">...</span>
-              </span>{" "}
-              whatcha doin?
-            </h1>
+          <BlurFade delay={0.1} inView>
+            <SparklesText>
+              <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold font-mono tracking-tighter text-foreground leading-none">
+                Stop Dreaming. Start Doing.
+                <br />
+                <span className="text-4xl md:text-5xl lg:text-6xl font-mono text-muted-foreground/80">
+                  So <span className="tracking-widest">...</span>
+                </span>{" "}
+                whatcha doin?
+              </h1>
+            </SparklesText>
           </BlurFade>
 
-          <BlurFade delay={0.4} inView>
+          <BlurFade delay={0.2} inView>
             <p className="text-xl md:text-2xl font-mono text-muted-foreground max-w-xl leading-relaxed">
               Reclaim your narrative, build your empire. <br />
               <span className="font-bold text-foreground underline decoration-primary/50 decoration-4 underline-offset-4">
                 whatcha-do.in
               </span>{" "}
-              is the crucible for **unshakable discipline, consistent action**,
+              is the crucible for <b><u>unshakable discipline, consistent action</u></b> ,
               and transforming dreams into undeniable reality, even when your
               brain tries to ghost you.
             </p>
           </BlurFade>
-          <BlurFade delay={0.6} inView>
+          <BlurFade delay={0.3} inView>
             <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto pt-2">
             
               <HeroVideoTriggerButton
@@ -88,7 +91,7 @@ export function HeroSection() {
             </div>
           </BlurFade>
 
-          <BlurFade delay={0.8} inView>
+          <BlurFade delay={0.4} inView>
             <div className="flex items-center gap-4 text-sm text-muted-foreground font-mono opacity-90">
               <div className="flex -space-x-2">
                 {generateRandomAvatars(5).map((avatar, index) => (

@@ -2,6 +2,8 @@
 
 import { HeroVideoDialog } from "@/components/shared/HeroVideoDialog"; // Reusing the dialog component
 import { BlurFade } from "@/components/ui/blur-fade";
+import { SparklesText } from "@/components/ui/sparkles-text"; // Add SparklesText import
+import { PulseBadge } from "@/components/shared/PulseBadge"; // Add PulseBadge import
 import { AnimatedGridPattern } from "@/components/ui/animated-grid-pattern"; // Import AnimatedGridPattern
 import { cn } from "@/lib/utils";
 import { PlayCircle } from "lucide-react";
@@ -47,12 +49,14 @@ export function ShortVideosSection() {
       />
       <div className="relative z-10"> {/* Content wrapper for z-index */}
         <div className="mb-16">
-          <BlurFade delay={0.2} inView>
-            <h2 className="text-4xl md:text-5xl font-bold font-sans tracking-tight mb-4">
-              My Journey & Your Testimonials
-            </h2>
+          <BlurFade delay={0.1} inView>
+            <SparklesText>
+              <h2 className="text-4xl md:text-5xl font-bold font-mono tracking-tight mb-4">
+                My Journey & Your Testimonials
+              </h2>
+            </SparklesText>
           </BlurFade>
-          <BlurFade delay={0.4} inView>
+          <BlurFade delay={0.2} inView>
             <p className="text-lg md:text-xl text-muted-foreground font-mono max-w-2xl mx-auto">
               Discover the story behind whatcha-do.in, how I use it daily, and
               hear inspiring testimonials from our community.
@@ -62,7 +66,7 @@ export function ShortVideosSection() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {carousel_vids.map((video, index) => (
-            <BlurFade key={index} delay={0.1 * index} inView>
+            <BlurFade key={index} delay={0.05 * index} inView>
               <HeroVideoDialog
                 videoUrl={video.videoUrl}
                 title={video.title}
@@ -98,7 +102,7 @@ export function ShortVideosSection() {
           ))}
 
           {/* Playlist Link Card */}
-          <BlurFade delay={0.1 * carousel_vids.length} inView>
+          <BlurFade delay={0.05 * carousel_vids.length} inView>
             <Link href={playlist} target="_blank" rel="noopener noreferrer">
               <div
                 className={cn(
@@ -108,7 +112,7 @@ export function ShortVideosSection() {
                 )}
               >
                 <PlayCircle className="h-16 w-16 text-white mb-4 group-hover:scale-110 transition-transform duration-300" />
-                <span className="text-white text-lg md:text-xl font-bold font-sans">
+                <span className="text-white text-lg md:text-xl font-bold font-mono">
                   Watch the Full Playlist!
                 </span>
                 <p className="text-white/80 text-sm mt-1">
@@ -118,6 +122,13 @@ export function ShortVideosSection() {
             </Link>
           </BlurFade>
         </div>
+      </div>
+      <div className="mt-16 flex justify-center">
+        <PulseBadge
+          link={playlist}
+          bannerText="See all videos on YouTube"
+          badgeText="Full Playlist"
+        />
       </div>
     </section>
   );

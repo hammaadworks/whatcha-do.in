@@ -54,18 +54,18 @@ export function PsychologySection() {
   return (
     <section className="py-32 px-4 md:px-8 max-w-7xl mx-auto">
       <div className="mb-20 text-center max-w-3xl mx-auto space-y-4">
-        <BlurFade delay={0.2} inView>
-          <h2 className="text-4xl md:text-6xl font-bold font-sans tracking-tight">
+        <BlurFade delay={0.1} inView>
+          <h2 className="text-4xl md:text-6xl font-bold font-mono tracking-tight">
             The science behind why it works.
           </h2>
         </BlurFade>
-        <BlurFade delay={0.4} inView>
+        <BlurFade delay={0.2} inView>
           <p className="text-lg md:text-xl text-muted-foreground font-mono">
             "You are what you repeatedly do. We help you make that your superpower."
           </p>
         </BlurFade>
       </div>
-      <BlurFade delay={0.6} inView>
+      <BlurFade delay={0.3} inView>
         <BentoGrid>
           {features.map((feature) => (
             <BentoCard key={feature.name} {...feature} />

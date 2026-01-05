@@ -9,14 +9,14 @@ export function BackstorySection() {
         
         {/* Visual Content */}
         <div className="relative h-full min-h-[400px] flex items-center justify-center">
-           <BlurFade delay={0.2} inView className="w-full max-w-md">
+           <BlurFade delay={0.1} inView className="w-full max-w-md">
               <ConsistentIdentityMockup />
            </BlurFade>
         </div>
 
         {/* Text Content */}
         <div className="space-y-12">
-          <BlurFade delay={0.3} inView>
+          <BlurFade delay={0.2} inView>
             <div className="flex items-center gap-4 mb-4">
               <div className="p-3 bg-primary/10 rounded-full">
                 <Quote className="w-6 h-6 text-primary" />
@@ -28,7 +28,7 @@ export function BackstorySection() {
             </h2>
           </BlurFade>
 
-          <BlurFade delay={0.5} inView>
+          <BlurFade delay={0.3} inView>
             <div className="bg-card border border-border p-8 rounded-3xl shadow-xl relative overflow-hidden">
               <div className="relative z-10 space-y-8">
                 <p className="text-2xl md:text-3xl font-serif italic text-foreground leading-relaxed">
@@ -50,7 +50,7 @@ export function BackstorySection() {
             </div>
           </BlurFade>
 
-          <BlurFade delay={0.7} inView>
+          <BlurFade delay={0.4} inView>
             <blockquote className="text-xl font-sans font-medium text-foreground/80 border-l-2 border-primary/50 pl-6">
               "Your life is a series. Your habits are the episodes. <br className="hidden md:block" /> 
               <span className="text-primary">Your identity is the arc.</span>"

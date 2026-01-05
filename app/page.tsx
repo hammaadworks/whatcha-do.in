@@ -1,5 +1,5 @@
 import { CTASection } from "@/components/landing/CTASection";
-import { FeaturesShowcaseSection } from "@/components/landing/FeaturesShowcaseSection";
+import { JournalAndPublicProfileSection } from "@/components/landing/JournalAndPublicProfileSection";
 import { HeroSection } from "@/components/landing/HeroSection";
 import { ProblemSection } from "@/components/landing/ProblemSection";
 import { PWASection } from "@/components/landing/PWASection"; // Import PWASection
@@ -52,9 +52,9 @@ export default function LandingPage() {
           </div>
         </section>
         <TransformationSection />
-        <ProblemSection />
-        <FeaturesShowcaseSection />
         <PWASection /> 
+        <ProblemSection />
+        <JournalAndPublicProfileSection />
         <ShortVideosSection />
         <StillUnsureSection />
         <CTASection />

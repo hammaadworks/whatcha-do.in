@@ -1,5 +1,6 @@
 import { ActionChipsMockup } from "@/components/landing/ActionChipsMockup";
 import { BlurFade } from "@/components/ui/blur-fade";
+import { SparklesText } from "@/components/ui/sparkles-text"; // Add SparklesText import
 import { MagicCard } from "@/components/ui/magic-card"; // Import MagicCard
 import { PulseBadge } from "@/components/shared/PulseBadge"; // Import PulseBadge
 import { Target } from "lucide-react"; // For target icon
@@ -11,24 +12,26 @@ export function ProblemSection() {
       <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center">
         {/* Left Column - Text Content & ActionChipsMockup */}
         <div className="space-y-10 order-2 lg:order-1">
-          <BlurFade delay={0.2} inView>
-            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold font-sans tracking-tight leading-tight">
-              {"You have the potential... but can't channelize it?"}
-            </h2>
+          <BlurFade delay={0.1} inView>
+            <SparklesText>
+              <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold font-mono tracking-tight leading-tight">
+                {"You have the potential... but can't channelize it?"}
+              </h2>
+            </SparklesText>
           </BlurFade>
 
-          <BlurFade delay={0.4} inView>
+          <BlurFade delay={0.2} inView>
             <p className="text-xl font-mono text-muted-foreground leading-relaxed">
               That gnawing sensation. That you're meant for more. You're "The
               Ambitious Underachiever," brimming with potential, overflowing
               with grand ideas, but perpetually caught in the undertow of
               procrastination, overwhelmed by the sheer magnitude of your
               dreams, haunted by the ghosts of broken streaks, or just
-              struggling to *focus* amidst the noise.
+              struggling to <b><u>focus</u></b> amidst the noise.
             </p>
           </BlurFade>
 
-          <BlurFade delay={0.6} inView>
+          <BlurFade delay={0.3} inView>
             <ul className="space-y-6 font-mono text-lg">
               <li className="flex items-center gap-4 p-4 rounded-xl bg-background/50 border border-border hover:border-primary/50 transition-colors shadow-sm">
                 <span className="text-primary font-bold text-2xl">→</span> Need a system to break down dreams into{" "}
@@ -55,20 +58,20 @@ export function ProblemSection() {
             <ActionChipsMockup />
           </BlurFade>
 
-          <BlurFade delay={0.5} inView className="w-full max-w-sm">
+          <BlurFade delay={0.4} inView className="w-full max-w-sm">
             <MagicCard className="flex flex-col items-center p-6 text-center shadow-lg">
               <UserCircle2 className="h-16 w-16 text-primary mb-4" />
-              <h3 className="text-2xl font-bold font-sans mb-2">Define Your Identity</h3>
+              <h3 className="text-2xl font-bold font-mono mb-2">Define Your Identity</h3>
               <p className="text-muted-foreground">
-                Become the person who *does* the work. Shape your future self with purpose.
+                Become the person who <b><u>does</u></b> the work. Shape your future self with purpose.
               </p>
             </MagicCard>
           </BlurFade>
 
-          <BlurFade delay={0.7} inView className="w-full max-w-sm">
+          <BlurFade delay={0.3} inView className="w-full max-w-sm">
             <MagicCard className="flex flex-col items-center p-6 text-center shadow-lg">
               <Target className="h-16 w-16 text-primary mb-4" />
-              <h3 className="text-2xl font-bold font-sans mb-2">Conquer Monthly Targets</h3>
+              <h3 className="text-2xl font-bold font-mono mb-2">Conquer Monthly Targets</h3>
               <p className="text-muted-foreground">
                 Set clear, achievable goals and track your progress with precision.
               </p>
