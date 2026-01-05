@@ -28,7 +28,7 @@ export function HeroVideoDialog({
   const embedUrl = React.useMemo(() => {
     // Extract video ID from YouTube URL and construct embed URL
     const videoIdMatch = videoUrl.match(
-      /(?:https?:\/\/)?(?:www\.)?(?:m\.)?(?:youtube\.com|youtu\.be)\/(?:watch\?v=|embed\/|v\/|)([\w-]{11})(?:\S+)?/
+      /(?:https?:\/\/)?(?:www\.)?(?:m\.)?(?:youtube\.com|youtu\.be)\/(?:watch\?v=|embed\/|v\/|shorts\/)([\w-]{11})(?:\S+)?/
     );
     const videoId = videoIdMatch ? videoIdMatch[1] : null;
     return videoId ? `https://www.youtube.com/embed/${videoId}` : "";

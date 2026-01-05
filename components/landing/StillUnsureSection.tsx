@@ -1,11 +1,12 @@
 import { BlurFade } from "@/components/ui/blur-fade";
 import { CheckCircle, XCircle } from "lucide-react";
 import { BorderBeam } from "@/components/ui/border-beam";
+import { PulseBadge } from "../shared/PulseBadge";
 
 export function StillUnsureSection() {
   return (
-    <section className="py-32 px-4 md:px-8 max-w-5xl mx-auto">
-      <div className="text-center mb-20">
+    <section className="py-16 px-4 md:px-8 max-w-5xl mx-auto">
+      <div className="text-center mb-16">
         <BlurFade delay={0.2} inView>
           <h2 className="text-4xl md:text-6xl font-bold font-sans tracking-tight mb-6">
             <span className="text-primary">Still on the fence?</span> <br/> Good. Let's make this crystal clear.
@@ -65,6 +66,13 @@ export function StillUnsureSection() {
             </ul>
           </div>
         </BlurFade>
+      </div>
+      <div className="flex justify-center mt-8">
+        <PulseBadge
+          link={"/me"}
+          bannerText={"You got this."}
+          badgeText={"Let's go!"}
+        />
       </div>
     </section>
   );

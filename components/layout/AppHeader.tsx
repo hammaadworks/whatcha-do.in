@@ -69,7 +69,7 @@ const AppHeader = ({ themeTogglerRef }: AppHeaderProps) => {
         return null;
     }
 
-    const logoSrc = isDark ? '/favicons/dark/logo-bg.png' : '/favicons/light/logo-bg.png';
+    const logoSrc = '/favicons/light/logo-bg.png';
 
     return (<React.Fragment>
             <motion.header

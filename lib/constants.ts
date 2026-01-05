@@ -70,6 +70,9 @@ export const LINKEDIN_PROFILE_URL = "https://www.linkedin.com/in/hammaadworks";
 export const PRODUCTHUNT_PROFILE_URL = "https://www.producthunt.com/@hammaadworks";
 export const WEBSITE_URL = "https://www.hammaadworks.com";
 
+export const SEE_HOW_VID = "https://www.youtube.com/shorts/8LoehKZvbNc"
+export const TUTORIAL_VID = "https://www.youtube.com/watch?v=R-0aUl0iQBg&list=PLWI_DJgO8kW8xVD0N4LyAFd6kAzJEbacx"
+
 /** Custom protocol scheme for PWA deep linking. */
 export const PWA_PROTOCOL = "web+whadoin";
 
