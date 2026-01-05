@@ -34,7 +34,7 @@ function Calendar({
     return (
     <MagicCard 
         className={cn("rounded-xl border p-3 shadow-lg", className)} 
-        gradientColor={resolvedTheme === "dark" ? "#262626" : "#D9D9D955"}
+        gradientColor="var(--primary)"
     >
     <DayPicker
         showOutsideDays={showOutsideDays}

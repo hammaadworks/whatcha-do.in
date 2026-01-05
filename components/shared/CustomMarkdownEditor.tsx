@@ -10,7 +10,7 @@ import {
     List, ListOrdered, Quote, Heading1, Image as ImageIcon, 
     Columns, Eye, Sparkles, FileText
 } from 'lucide-react';
-import MDEditor from '@uiw/react-md-editor';
+// import MDEditor from '@uiw/react-md-editor';
 import { useTheme } from 'next-themes';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { Button } from '@/components/ui/button';
@@ -31,6 +31,8 @@ interface CustomMarkdownEditorProps {
   watermark?: React.ReactNode;
   onUpload?: (file: File) => Promise<string>;
   resolveImageUrl?: (src: string) => Promise<string | null>;
+  isPro?: boolean;
+  onProAlert?: () => void;
 }
 
 type ViewMode = 'edit' | 'split' | 'preview';
@@ -57,6 +59,25 @@ const AsyncImage = ({ src, alt, resolve }: { src: string, alt?: string, resolve?
     return <img src={resolvedSrc} alt={alt} className="rounded-md max-w-full h-auto my-4 border bg-card shadow-sm" loading="lazy" />;
 }
 
+const ToolbarButton = ({ icon: Icon, label, onClick, active = false }: { icon: any, label: string, onClick: () => void, active?: boolean }) => (
+    <Tooltip>
+        <TooltipTrigger asChild>
+            <Button
+                variant={active ? "secondary" : "ghost"}
+                size="icon"
+                className={cn("h-8 w-8", active && "bg-muted text-foreground")}
+                onClick={onClick}
+                type="button"
+            >
+                <Icon className="h-4 w-4" />
+            </Button>
+        </TooltipTrigger>
+        <TooltipContent side="bottom">
+            <p>{label}</p>
+        </TooltipContent>
+    </Tooltip>
+);
+
 export function CustomMarkdownEditor({
     value, 
     onChange, 
@@ -68,7 +89,9 @@ export function CustomMarkdownEditor({
     fullHeight = false,
     watermark,
     onUpload,
-    resolveImageUrl
+    resolveImageUrl,
+    isPro = false,
+    onProAlert
 }: CustomMarkdownEditorProps) {
   const isMobile = useMediaQuery('(max-width: 768px)');
   const [viewMode, setViewMode] = useState<ViewMode>(readOnly ? 'preview' : 'edit');
@@ -145,13 +168,18 @@ export function CustomMarkdownEditor({
     }, 0);
   }, [onChange]);
 
-  const handleImageClick = () => {
+  const handleImageClick = useCallback(() => {
+      if (!isPro && onProAlert) {
+          onProAlert();
+          return;
+      }
+
       if (onUpload) {
           fileInputRef.current?.click();
       } else {
           insertText('![alt text](', ')');
       }
-  };
+  }, [isPro, onProAlert, onUpload, insertText]);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
@@ -189,25 +217,6 @@ export function CustomMarkdownEditor({
   };
 
   const wordCount = value.trim().split(/\s+/).filter(Boolean).length;
-
-  const ToolbarButton = ({ icon: Icon, label, onClick, active = false }: { icon: any, label: string, onClick: () => void, active?: boolean }) => (
-    <Tooltip>
-        <TooltipTrigger asChild>
-            <Button
-                variant={active ? "secondary" : "ghost"}
-                size="icon"
-                className={cn("h-8 w-8", active && "bg-muted text-foreground")}
-                onClick={onClick}
-                type="button"
-            >
-                <Icon className="h-4 w-4" />
-            </Button>
-        </TooltipTrigger>
-        <TooltipContent side="bottom">
-            <p>{label}</p>
-        </TooltipContent>
-    </Tooltip>
-  );
 
   const renderMarkdownPreview = (content: string) => (
     <div className={cn(
@@ -277,83 +286,46 @@ export function CustomMarkdownEditor({
 
         {!readOnly && (
             <div className={cn(
-                "flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between p-2 shrink-0 sticky top-0 z-20 transition-all duration-200 bg-transparent"
+                "flex flex-col gap-2 p-2 shrink-0 sticky top-0 z-20 transition-all duration-200 bg-transparent"
             )}>
-                {/* Formatting Tools - Left */}
-                <div className="flex flex-col gap-2 w-full sm:w-auto">
-                    {/* ... (Existing Formatting Tools) ... */}
-                    <div className="flex flex-wrap items-center gap-1 sm:gap-0.5">
+                 {/* Top Row: Toolbar + View Toggle */}
+                <div className="flex items-center justify-between w-full">
+                     {/* Toggle Button Group - Centered */}
+                     <div className="flex-1 flex justify-center">
+                        <ToggleButtonGroup 
+                            options={VIEW_OPTIONS}
+                            selectedValue={viewMode}
+                            onValueChange={(val) => setViewMode(val as ViewMode)}
+                            className="origin-center" 
+                        />
+                     </div>
+                </div>
+
+                {/* Bottom Row: Formatting Tools */}
+                 <div className="flex flex-wrap items-center gap-1 sm:gap-0.5 justify-center bg-card/50 p-1 rounded-lg border border-border/40 backdrop-blur-sm">
                         <div className="flex items-center gap-0.5">
                             <ToolbarButton icon={Bold} label="Bold" onClick={() => insertText('**', '**')} />
                             <ToolbarButton icon={Italic} label="Italic" onClick={() => insertText('*', '*')} />
                             <ToolbarButton icon={Strikethrough} label="Strikethrough" onClick={() => insertText('~~', '~~')} />
                         </div>
-                        <Separator orientation="vertical" className="h-6 mx-1 hidden sm:block" />
+                        <Separator orientation="vertical" className="h-6 mx-1" />
                         <div className="flex items-center gap-0.5">
                             <ToolbarButton icon={Heading1} label="Heading" onClick={() => insertBlock('# ')} />
                             <ToolbarButton icon={Quote} label="Quote" onClick={() => insertBlock('> ')} />
                             <ToolbarButton icon={Code} label="Code Block" onClick={() => insertText('```\n', '\n```')} />
                         </div>
-                        <Separator orientation="vertical" className="h-6 mx-1 hidden sm:block" />
+                        <Separator orientation="vertical" className="h-6 mx-1" />
                         <div className="flex items-center gap-0.5">
                             <ToolbarButton icon={List} label="Bullet List" onClick={() => insertBlock('- ')} />
                             <ToolbarButton icon={ListOrdered} label="Numbered List" onClick={() => insertBlock('1. ')} />
                             <ToolbarButton icon={LinkIcon} label="Link" onClick={() => insertText('[', '](url)')} />
                         </div>
-                    </div>
-                    
-                    {/* Add Media - Full width on mobile for easier access */}
-                    <div className="flex sm:hidden w-full">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            className="w-full h-9 gap-2 text-primary hover:text-primary-foreground hover:bg-primary border-primary/20 bg-primary/5 transition-all shadow-sm group"
-                            onClick={handleImageClick}
-                            type="button"
-                        >
-                            <ImageIcon className="h-4 w-4 transition-transform group-hover:scale-110" />
-                            <span className="font-medium text-xs">Add Media</span>
-                        </Button>
-                    </div>
-                </div>
-
-                {/* Spacer to push ToggleButtonGroup to center */}
-                <div className="flex-1 hidden sm:block" /> 
-
-                {/* Centered ToggleButtonGroup */}
-                <ToggleButtonGroup 
-                    options={VIEW_OPTIONS}
-                    selectedValue={viewMode}
-                    onValueChange={(val) => setViewMode(val as ViewMode)}
-                    className="scale-90 origin-center" 
-                />
-                
-                {/* Spacer to push right-most controls to far right */}
-                <div className="flex-1 hidden sm:block" />
-
-                {/* Right-most controls: Desktop "Add Media" Button */}
-                <div className="flex items-center gap-2 pb-2 sm:pb-0 sm:ml-auto">
-                    {/* Desktop "Add Media" Button */}
-                     <div className="hidden sm:block">
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="h-8 gap-2 ml-1 text-primary hover:text-primary-foreground hover:bg-primary border-primary/20 bg-primary/5 transition-all shadow-sm group"
-                                    onClick={handleImageClick}
-                                    type="button"
-                                >
-                                    <ImageIcon className="h-4 w-4 transition-transform group-hover:scale-110" />
-                                    <span className="hidden sm:inline font-medium text-xs">Add Media</span>
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent side="bottom">
-                                <p>Upload Images or Video</p>
-                            </TooltipContent>
-                        </Tooltip>
-                     </div>
-                </div>
+                        <Separator orientation="vertical" className="h-6 mx-1" />
+                        {/* Mobile Add Media Button inside toolbar */}
+                         <div className="flex items-center">
+                            <ToolbarButton icon={ImageIcon} label="Add Media" onClick={handleImageClick} />
+                         </div>
+                 </div>
             </div>
         )}
 
@@ -371,24 +343,17 @@ export function CustomMarkdownEditor({
                         {watermark}
                     </div>
                  )}
-                 <MDEditor
-                    value={value}
-                    onChange={(val) => onChange(val || '')}
+                 <textarea
                     className={cn(
-                        "w-full h-full border-none !shadow-none !bg-transparent",
+                        "w-full h-full resize-none border-none focus:outline-none p-6",
+                        "bg-transparent text-foreground placeholder:text-muted-foreground",
+                        "font-sans text-lg leading-relaxed whitespace-pre-wrap break-words overflow-y-auto",
+                        "!select-text !cursor-text pointer-events-auto", // FORCE SELECTION
+                        textareaClassName
                     )}
-                    visibleDragbar={false}
-                    hideToolbar={true}
-                    height="100%"
-                    preview="edit"
-                    style={{ backgroundColor: 'transparent' }}
-                    textareaProps={{
-                        placeholder: placeholder || "Start writing...",
-                        className: cn(
-                            "focus:outline-none !font-sans !text-lg !leading-relaxed p-6 h-full !bg-card !text-foreground z-10 relative !whitespace-pre-wrap break-words overflow-y-auto",
-                            textareaClassName
-                        )
-                    }}
+                    placeholder={placeholder || "Start writing..."}
+                    value={value}
+                    onChange={(e) => onChange(e.target.value)}
                  />
             </div>
 
@@ -452,20 +417,6 @@ export function CustomMarkdownEditor({
                               <ToolbarButton icon={LinkIcon} label="Link" onClick={() => insertText('[', '](url)')} />
                           </div>
                       </div>
-                      
-                      {/* Add Media - Full width on mobile for easier access */}
-                      <div className="flex sm:hidden w-full">
-                          <Button
-                              variant="outline"
-                              size="sm"
-                              className="w-full h-9 gap-2 text-primary hover:text-primary-foreground hover:bg-primary border-primary/20 bg-primary/5 transition-all shadow-sm group"
-                              onClick={handleImageClick}
-                              type="button"
-                          >
-                              <ImageIcon className="h-4 w-4 transition-transform group-hover:scale-110" />
-                              <span className="font-medium text-xs">Add Media</span>
-                          </Button>
-                      </div>
                   </div>
 
                   {/* Spacer to push ToggleButtonGroup to center */}
@@ -476,7 +427,7 @@ export function CustomMarkdownEditor({
                       options={VIEW_OPTIONS}
                       selectedValue={viewMode}
                       onValueChange={(val) => setViewMode(val as ViewMode)}
-                      className="scale-90 origin-center" 
+                      className="origin-center" 
                   />
                   
                   {/* Spacer to push right-most controls to far right */}
@@ -500,7 +451,7 @@ export function CustomMarkdownEditor({
                                   </Button>
                               </TooltipTrigger>
                               <TooltipContent side="bottom">
-                                  <p>Upload Images or Video</p>
+                                  <p>{isPro ? "Upload Images or Video" : "Upgrade to Pro to upload media"}</p>
                               </TooltipContent>
                           </Tooltip>
                        </div>
@@ -522,25 +473,18 @@ export function CustomMarkdownEditor({
                           {watermark}
                       </div>
                    )}
-                   <MDEditor
-                      value={value}
-                      onChange={(val) => onChange(val || '')}
-                      className={cn(
-                          "w-full h-full border-none !shadow-none !bg-transparent",
-                      )}
-                      visibleDragbar={false}
-                      hideToolbar={true}
-                      height="100%"
-                      preview="edit"
-                      style={{ backgroundColor: 'transparent' }}
-                      textareaProps={{
-                          placeholder: placeholder || "Start writing...",
-                          className: cn(
-                              "focus:outline-none !font-sans !text-lg !leading-relaxed p-6 h-full !bg-card !text-foreground z-10 relative !whitespace-pre-wrap break-words overflow-y-auto",
-                              textareaClassName
-                          )
-                      }}
-                   />
+                   <textarea
+                    className={cn(
+                        "w-full h-full resize-none border-none focus:outline-none p-6",
+                        "bg-transparent text-foreground placeholder:text-muted-foreground",
+                        "font-sans text-lg leading-relaxed whitespace-pre-wrap break-words overflow-y-auto",
+                        "!select-text !cursor-text pointer-events-auto", // FORCE SELECTION
+                        textareaClassName
+                    )}
+                    placeholder={placeholder || "Start writing..."}
+                    value={value}
+                    onChange={(e) => onChange(e.target.value)}
+                 />
               </div>
 
               <div className={cn(

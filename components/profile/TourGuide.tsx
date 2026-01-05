@@ -1,11 +1,11 @@
 "use client";
 
-import { Step } from "@/components/ui/tour"; // Fixed imports
+import { TourStep } from "@/components/ui/tour"; // Fixed imports
 
 const TOUR_STORAGE_KEY = "whatcha-doin-tour-completed";
 const PROFILE_TOUR_ID = "profile-tour";
 
-const steps: Step[] = [
+const steps: TourStep[] = [
   {
     id: "welcome",
     title: "Welcome to your space!",

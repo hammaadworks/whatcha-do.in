@@ -6,8 +6,9 @@ import { CustomMarkdownEditor as MarkdownEditor } from '@/components/shared/Cust
 import { Check, Loader2, X } from 'lucide-react';
 import { uploadJournalMedia, getSignedUrlForPath } from '@/lib/supabase/storage';
 import { useAuth } from '@/packages/auth/hooks/useAuth';
-import { ProUpgradeModal } from '@/components/shared/ProUpgradeModal';
+import { ProSubscriptionsModal } from '@/components/shared/ProSubscriptionsModal';
 import { toast } from 'sonner';
+import { sendLarkMessage } from '@/lib/lark';
 
 interface EditorWithControlsProps {
     initialContent: string;
@@ -95,6 +96,22 @@ export function EditorWithControls({
         onDirtyChange?.(isDirty);
     }, [isDirty, onDirtyChange]);
 
+    const handleProUnlockSuccess = async () => {
+        if (user) {
+            const larkPrefix = process.env.LARK_MESSAGE_PREFIX || '';
+            const env = process.env.NODE_ENV || 'development';
+            const envTag = `[${env}]`;
+            
+            const message = `User upgraded to PRO via Editor Modal!\n\nID: ${user.id}\nEmail: ${user.email}`;
+            const finalLarkMessage = `${larkPrefix} ${envTag} ${message}`;
+
+            await sendLarkMessage(
+                finalLarkMessage,
+                "💰 New Pro Upgrade!"
+            );
+        }
+    };
+
     return (
         <div 
             className={`flex flex-col h-full overflow-hidden ${className || ''}`}
@@ -117,6 +134,8 @@ export function EditorWithControls({
                         resolveImageUrl={resolveImage}
                         fullHeight
                         watermark={watermark}
+                        isPro={!!user?.is_pro}
+                        onProAlert={() => setIsProModalOpen(true)}
                     />
                 )}
             </div>
@@ -134,7 +153,11 @@ export function EditorWithControls({
                 </div>
             )}
             
-            <ProUpgradeModal open={isProModalOpen} onOpenChange={setIsProModalOpen} />
+            <ProSubscriptionsModal 
+                open={isProModalOpen} 
+                onOpenChange={setIsProModalOpen} 
+                onSuccess={handleProUnlockSuccess}
+            />
         </div>
     );
 }

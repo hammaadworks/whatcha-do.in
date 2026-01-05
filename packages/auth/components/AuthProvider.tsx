@@ -84,26 +84,7 @@ export function AuthProvider({ children, initialUser }: AuthProviderProps) {
     const CACHE_KEY = `${LOCAL_STORAGE_USER_PROFILE_CACHE_KEY}_${authUser.id}`;
 
     try {
-      // 1. Try to get from cache first
-      const cached = localStorage.getItem(CACHE_KEY);
-      if (cached) {
-        const parsed = JSON.parse(cached);
-        // Simple check to ensure it's the right shape/user
-        if (parsed.id === authUser.id && parsed.username) {
-          // Merge authUser to ensure we have the latest Supabase auth properties (like session/jwt if they were part of it, though User is mostly static)
-          // Ideally, we respect the cached profile fields.
-          // Note: If cached, purchased_themes might be missing if we stopped caching it.
-          return {
-            id: authUser.id,
-            email: authUser.email,
-            created_at: authUser.created_at,
-            updated_at: authUser.updated_at,
-            ...parsed
-          } as User;
-        }
-      }
-
-      // 2. Fetch from DB if not in cache
+      // 1. Fetch from DB (Always fetch fresh data for security)
       const { data, error } = await supabase
         .from("users")
         .select("username, timezone, bio, purchased_themes, is_pro, active_theme")
@@ -111,9 +92,26 @@ export function AuthProvider({ children, initialUser }: AuthProviderProps) {
         .single();
 
       if (error) {
-        console.error("Error fetching user profile:", error);
-        // Return a partial User if DB fails, though strictly it violates the type if fields are missing.
-        // We cast to User for now to prevent app crash, but components should handle missing profile data gracefully.
+        console.error("Error fetching user profile, falling back to cache:", error);
+        
+        // Fallback to cache on DB error
+        const cached = localStorage.getItem(CACHE_KEY);
+        if (cached) {
+            const parsed = JSON.parse(cached);
+            if (parsed.id === authUser.id) {
+                return {
+                    id: authUser.id,
+                    email: authUser.email,
+                    created_at: authUser.created_at,
+                    updated_at: authUser.updated_at,
+                    ...parsed,
+                    // Security: Even from cache, force is_pro false to fail closed if offline
+                    is_pro: false, 
+                    purchased_themes: []
+                } as User;
+            }
+        }
+
         return {
           id: authUser.id,
           email: authUser.email,
@@ -135,22 +133,38 @@ export function AuthProvider({ children, initialUser }: AuthProviderProps) {
         active_theme: data?.active_theme ?? THEMES[0].id // Default fallback
       };
 
-      // 3. Save to cache
+      // 2. Save to cache (for offline fallback)
+      // We ONLY cache safe, cosmetic fields. Entitlements (is_pro, purchased_themes) 
+      // are excluded so they cannot be spoofed via local storage manipulation.
       localStorage.setItem(
         CACHE_KEY,
         JSON.stringify({
           id: authUser.id,
           username: data?.username,
           timezone: data?.timezone,
-          bio: data?.bio,
-          is_pro: data?.is_pro ?? false
-          // purchased_themes and active_theme intentionally excluded to force fresh fetch/sync logic
+          bio: data?.bio
         })
       );
 
       return userWithProfile;
     } catch (error) {
       console.error("Unexpected error fetching user profile:", error);
+      // Try cache fallback here too?
+      const cached = localStorage.getItem(CACHE_KEY);
+        if (cached) {
+            const parsed = JSON.parse(cached);
+            if (parsed.id === authUser.id) {
+                return {
+                    id: authUser.id,
+                    email: authUser.email,
+                    created_at: authUser.created_at,
+                    updated_at: authUser.updated_at,
+                    ...parsed,
+                    is_pro: false,
+                    purchased_themes: []
+                } as User;
+            }
+        }
       return {
         id: authUser.id,
         email: authUser.email,

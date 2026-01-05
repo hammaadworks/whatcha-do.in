@@ -97,7 +97,7 @@ export function ScienceAndFeaturesSection() {
         <section className="py-32 px-4 md:px-8 max-w-7xl mx-auto">
             <div className="mb-20 text-center">
                 <BlurFade delay={0.2} inView>
-                    <h2 className="text-4xl md:text-6xl font-bold font-sans tracking-tight mb-6">
+                    <h2 className="text-4xl md:text-6xl font-bold font-mono tracking-tight mb-6">
                         Your identity-building toolkit.
                     </h2>
                 </BlurFade>
