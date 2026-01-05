@@ -92,7 +92,7 @@ export default function Logins() {
         <BlurFade delay={0.25} inView>
           <MagicCard
             className="w-full max-w-md overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800 shadow-2xl"
-            gradientColor="#88888822"
+            gradientColor="var(--primary)"
           >
             <div className="flex flex-col px-6 py-4 md:p-6">
               <div className="text-center mb-6">
@@ -182,7 +182,7 @@ export default function Logins() {
       <BlurFade delay={0.25} inView>
         <MagicCard
           className="w-full max-w-md overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800 shadow-2xl"
-          gradientColor="#88888822"
+          gradientColor="var(--primary)"
         >
           <div className="flex flex-col px-6 py-4 md:p-6 overflow-y-auto max-h-full">
             <div className="text-center mb-6">

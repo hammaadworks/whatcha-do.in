@@ -1,9 +1,11 @@
-import {BlurFade} from "@/components/ui/blur-fade";
+import {BlurFade} from "@/components/ui/blur-fade"; // Re-added import
 import Link from "next/link";
 import {PrimaryCtaButton} from "@/components/ui/primary-cta-button"; // Changed to PrimaryCtaButton
+import { HeroVideoTriggerButton } from "@/components/ui/HeroVideoDialog"; // New Import
 import {HeroVisuals} from "@/components/landing/HeroVisuals";
 import {RetroGrid} from "@/components/ui/retro-grid.tsx";
-
+const SEE_HOW_VID = "https://www.youtube.com/shorts/8LoehKZvbNc"
+const TUTORIAL_VID = "https://www.youtube.com/watch?v=R-0aUl0iQBg&list=PLWI_DJgO8kW8xVD0N4LyAFd6kAzJEbacx"
 export function HeroSection() {
     return (<section
             className="relative min-h-screen flex flex-col justify-center px-4 md:px-8 overflow-hidden pt-20 lg:pt-0">
@@ -24,9 +26,9 @@ export function HeroSection() {
                       className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
                 </span>
-                                I know what we are gonna do today
+                                Build Your Identity. One Day At A Time.
                                 <span
-                                    className="text-xs font-mono text-primary-foreground bg-primary rounded-full px-2 py-0.5 ml-2">Beta</span>
+                                    className="text-xs font-mono text-primary-foreground bg-primary rounded-full px-2 py-0.5 ml-2">Alpha</span>
                                 <span 
                                     className="ml-1 inline-block"
                                     style={{
@@ -40,18 +42,16 @@ export function HeroSection() {
                     </BlurFade>
 
                     <BlurFade delay={0.2} inView>
-                        <h1 className="text-6xl md:text-7xl lg:text-8xl font-bold font-mono tracking-tighter text-foreground leading-none">
-                            <span
-                                className="text-4xl md:text-5xl lg:text-6xl font-sans text-muted-foreground/80">So <span className="tracking-widest">...</span></span><br/>
-                            whatcha doin?
+                        <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold font-mono tracking-tighter text-foreground leading-none">
+                            Stop Dreaming. Start Doing.<br/>
+                            <span className="text-4xl md:text-5xl lg:text-6xl font-sans text-muted-foreground/80">So <span className="tracking-widest">...</span></span> whatcha doin?
                         </h1>
                     </BlurFade>
 
                     <BlurFade delay={0.4} inView>
                         <p className="text-xl md:text-2xl font-mono text-muted-foreground max-w-xl leading-relaxed">
-                            Become the person you always kept imagining. <br/>
-                            This app stacks up <span
-                            className="font-bold text-foreground underline decoration-primary/50 decoration-4 underline-offset-4">Identity × Discipline × Consistency</span>.
+                            Reclaim your narrative, build your empire. <br/>
+                            <span className="font-bold text-foreground underline decoration-primary/50 decoration-4 underline-offset-4">whatcha-do.in</span> is the crucible for **unshakable discipline, consistent action**, and transforming dreams into undeniable reality, even when your brain tries to ghost you.
                         </p>
                     </BlurFade>
                     <BlurFade delay={0.6} inView>
@@ -60,9 +60,16 @@ export function HeroSection() {
                                 <PrimaryCtaButton
                                     className="h-14 px-8 text-lg font-bold font-sans shadow-2xl transition-transform hover:scale-105 active:scale-95"
                                 >
-                                    Start Building Your Identity
+                                    Your Empire Awaits. Build It.
                                 </PrimaryCtaButton>
                             </Link>
+                            <HeroVideoTriggerButton
+                                videoUrl={SEE_HOW_VID}
+                                title="whatcha-do.in: Official Walkthrough"
+                                description="Get a complete overview of whatcha-do.in and how it helps you build your identity, discipline, and achieve your dreams."
+                                label="See How"
+                                className="h-14 px-8 text-lg font-bold font-sans shadow-2xl transition-transform hover:scale-105 active:scale-95 bg-transparent border border-primary text-primary hover:bg-primary/10"
+                            />
                         </div>
                     </BlurFade>
 
@@ -72,7 +79,7 @@ export function HeroSection() {
                                 {[1, 2, 3, 4].map(i => (<div key={i}
                                                              className="w-8 h-8 rounded-full border-2 border-background bg-gray-200 dark:bg-gray-700"/>))}
                             </div>
-                            <p>Joined by 1000+ ambitious builders</p>
+                            <p>Joined by many ambitious underachievers, just like you. Your glow-up starts now!</p>
                         </div>
                     </BlurFade>
                 </div>

@@ -108,7 +108,7 @@ export function HeroVisuals({ className }: { className?: string }) {
       >
         <MagicCard
           className="flex flex-col gap-6 p-6 border shadow-2xl bg-background/80 backdrop-blur-md"
-          gradientColor="#FF6B6B20"
+          gradientColor="var(--primary)"
         >
           {/* Header Mockup */}
           <div className="flex items-center justify-between border-b pb-4 border-border/50">

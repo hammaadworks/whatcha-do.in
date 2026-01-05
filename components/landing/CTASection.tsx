@@ -10,18 +10,18 @@ export function CTASection() {
             <div className="max-w-4xl mx-auto relative z-10 space-y-12">
                 <BlurFade delay={0.2} inView>
                     <h2 className="text-5xl md:text-7xl font-bold font-sans tracking-tighter leading-tight">
-                        It&apos;s <span className="text-primary">build-your-identity</span> o&apos;clock.
+                        Your Journey Awaits: <span className="text-primary">Stop Hesitating. Start Dominating.</span>
                     </h2>
                 </BlurFade>
 
                 <BlurFade delay={0.4} inView>
                     <p className="text-xl md:text-3xl font-mono text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-                        You&apos;ve imagined the best version of you long enough. <br/>
-                        Here&apos;s the simplest way to start — today, in the tiniest way.
+                        You&apos;ve spent enough time dreaming. The best version of you is waiting. <br/>
+                        Here&apos;s the simplest, most exhilarating way to start — right now, today. Don't wait.
                     </p>
                     <p className="mt-8 text-2xl md:text-3xl font-sans font-bold text-foreground">
                         Identity is built daily. <br/>
-                        Today is ready when you are.
+                        Prepare to be *amazed* by who you become.
                     </p>
                 </BlurFade>
 
@@ -32,7 +32,7 @@ export function CTASection() {
                                 <PrimaryCtaButton
                                     className="h-16 px-12 text-xl font-bold font-sans shadow-2xl hover:scale-105 transition-transform duration-300"
                                 >
-                                    Start Building Your Identity
+                                    Start Your Transformation
                                 </PrimaryCtaButton>
                             </Link>
                         </CoolMode>

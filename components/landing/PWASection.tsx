@@ -58,7 +58,7 @@ export const PWASection = () => {
             <div className="container mx-auto px-4 text-center">
                 <MagicCard
                     className="w-full max-w-4xl mx-auto p-6 md:p-10 rounded-xl border border-gray-200 dark:border-gray-800 shadow-2xl relative z-10"
-                    gradientColor="#88888822"
+                    gradientColor="var(--primary)"
                 >
                     <h2 className="text-4xl md:text-5xl font-extrabold mb-4 leading-tight">
                         Experience the Power of a PWA

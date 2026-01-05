@@ -59,7 +59,7 @@ export function AISection() {
             <div className="grid sm:grid-cols-2 gap-4">
               {aiFeatures.map((feature, i) => (
                 <BlurFade key={i} delay={0.5 + (i * 0.1)} inView>
-                  <MagicCard className="p-4 h-full border border-border/50 bg-background/50" gradientColor="#D8B4FE20">
+                  <MagicCard className="p-4 h-full border border-border/50 bg-background/50" gradientColor="var(--primary)">
                     <div className="flex items-start gap-3">
                       <div className="p-2 rounded-lg bg-primary/10 text-primary shrink-0">
                         {feature.icon}

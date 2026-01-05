@@ -8,12 +8,12 @@ export function StillUnsureSection() {
       <div className="text-center mb-20">
         <BlurFade delay={0.2} inView>
           <h2 className="text-4xl md:text-6xl font-bold font-sans tracking-tight mb-6">
-            Still wondering if it's for you?
+            <span className="text-primary">Still on the fence?</span> <br/> Good. Let's make this crystal clear.
           </h2>
         </BlurFade>
         <BlurFade delay={0.4} inView>
           <p className="text-lg md:text-xl text-muted-foreground font-mono">
-            Let's be honest about who this is really for.
+            This isn't for everyone. It's for YOU if you're ready for real change.
           </p>
         </BlurFade>
       </div>
@@ -27,16 +27,16 @@ export function StillUnsureSection() {
             </div>
             <ul className="space-y-4 font-mono text-sm md:text-base text-muted-foreground/80 flex-grow">
               <li className="flex items-start gap-2">
-                <span className="text-muted-foreground/50 mt-1">•</span> You are already perfectly consistent with every goal.
+                <span className="text-muted-foreground/50 mt-1">•</span> You're already a perfect, hyper-consistent cyborg. (Congrats? Maybe you need a hobby.)
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-muted-foreground/50 mt-1">•</span> You never procrastinate, overthink, or hesitate.
+                <span className="text-muted-foreground/50 mt-1">•</span> Procrastination? Overthinking? Hesitation? Never heard of 'em.
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-muted-foreground/50 mt-1">•</span> You have a photographic memory of your life's progress.
+                <span className="text-muted-foreground/50 mt-1">•</span> Your memory is flawless, and you naturally celebrate every tiny win.
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-muted-foreground/50 mt-1">•</span> You enjoy complex, bureaucratic project management tools.
+                <span className="text-muted-foreground/50 mt-1">•</span> You *love* complex, clunky, soul-crushing project management tools.
               </li>
             </ul>
           </div>
@@ -51,16 +51,16 @@ export function StillUnsureSection() {
             </div>
             <ul className="space-y-4 font-mono text-sm md:text-base text-foreground flex-grow">
               <li className="flex items-start gap-2">
-                <span className="text-primary mt-1">→</span> You have big ambitions but struggle with daily execution.
+                <span className="text-primary mt-1">→</span> You're exhausted by the restart cycle, ready for real discipline & consistency.
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-primary mt-1">→</span> You get overwhelmed by "all or nothing" thinking.
+                <span className="text-primary mt-1">→</span> You're an ambitious underachiever, overflowing with dreams but needing a system to actually *do the work*.
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-primary mt-1">→</span> You lose motivation the moment a streak breaks.
+                <span className="text-primary mt-1">→</span> Your brain sometimes jumps around (hello, ADHD fam!), and you need a tool that works WITH you, not against you.
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-primary mt-1">→</span> You want a tool that feels like a sidekick, not a boss.
+                <span className="text-primary mt-1">→</span> You crave an identity forged in consistent action and are ready to be *amazed* by your own transformation.
               </li>
             </ul>
           </div>

@@ -42,7 +42,7 @@ const MeSection: React.FC<MeSectionProps> = ({
                                                toggleFold
                                              }) => {
   const { resolvedTheme } = useTheme();
-  const gradientColor = resolvedTheme === "dark" ? "#262626" : "#D9D9D955";
+  const gradientColor = "var(--primary)";
 
   return (<CollapsibleSectionWrapper
     title="Me"

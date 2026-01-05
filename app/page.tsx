@@ -1,12 +1,11 @@
 import React from "react";
 import { HeroSection } from "@/components/landing/HeroSection";
 import { ProblemSection } from "@/components/landing/ProblemSection";
-import { BackstorySection } from "@/components/landing/BackstorySection";
-import { BeforeAfterSection } from "@/components/landing/BeforeAfterSection";
-import { PsychologySection } from "@/components/landing/PsychologySection";
-import { AISection } from "@/components/landing/AISection";
+import { TransformationSection } from "@/components/landing/TransformationSection"; // New import
 import { FeaturesShowcaseSection } from "@/components/landing/FeaturesShowcaseSection";
+import { ShortVideosSection } from "@/components/landing/ShortVideosSection"; // New import
 import { PWASection } from "@/components/landing/PWASection"; // Import PWASection
+import { TechStackSection } from "@/components/landing/TechStackSection"; // New import
 import { StillUnsureSection } from "@/components/landing/StillUnsureSection";
 import { CTASection } from "@/components/landing/CTASection";
 import type { Metadata } from 'next';
@@ -26,12 +25,11 @@ export default function LandingPage() {
       <div className="relative z-10 flex flex-col gap-0">
         <HeroSection />
         <ProblemSection />
-        <BackstorySection />
-        <BeforeAfterSection />
-        <PsychologySection />
-        <AISection />
+        <TransformationSection /> {/* New section */}
         <FeaturesShowcaseSection />
+        <ShortVideosSection /> {/* New section */}
         <PWASection /> {/* Render the PWASection here */}
+        <TechStackSection /> {/* New section */}
         <StillUnsureSection />
         <CTASection />
       </div>
