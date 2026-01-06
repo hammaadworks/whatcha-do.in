@@ -24,4 +24,9 @@ favicons.io [https://favicon.io/favicon-converter/] to create awesome favicons
 21. ask to model to always give you a summary of "I have successfully completed all tasks:" so you can keep track and also use it as a git commit message.
 22. always implement skeletons and iterate with examples/screenshots
 23. Ask if ambigious, do not assume
-24. 
+24. hey in the ux designs, please only design the ux the themes you can get from tweakcn this will save you cost, credits, efforts and time
+25. while making stories please mentions that you wanna do an "incremental software development where in each story accomplishes a task that can be deployable and shipped to real users." context: we have investors and alpha stakeholders in place so each story must be deployable to maintain investor trust and stakeholder relationship. failing to do it will lead to severe consequences like, us being irrelevant in the market, distrust, waste of time and potential defunding. save this in memory.
+26. build logging mechanism first and use it extensnively as it will help us catch bugs early.
+27. you can give examples while development for basic features, this will save you a lot of time.
+28. on load please ask it to read your docs/ and wiki/
+29. 
