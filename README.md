@@ -1,3 +1,21 @@
+# 🏗️ MERGER ALERT: THE EVOLUTION IS COMING
+
+> **Note:** This project is part of a strategic merger. 
+> **[whatcha_do_in](https://github.com/hammaadworks/whatcha-do.in)** + **[habit_bank](https://github.com/hammaadworks/habit_bank)** are joining forces.
+
+---
+
+### 🚀 Introducing: **hobby_habit**
+We are combining the **High-Precision Ledger Engine** of Habit Bank with the **Identity-Driven Flow** of whatcha-do.in to build the ultimate productivity ecosystem.
+
+- **💎 Obsidian Plugin:** Native, local-first habit tracking & hobby logging.
+- **🌐 Web Interface:** Public "Proof of Work" feeds and social hobby sharing.
+- **📅 Timeline:** Launching later this year, In sha Allah.
+
+**Status:** Both projects remain active for now, but all major architectural innovation is now flowing toward **[hobby_habit](https://github.com/hammaadworks/hobby_habit)**. Stay tuned.
+
+---
+
 # whatcha-do.in: Stop Dreaming. Start Doing. 🚀 – Reclaim Your Narrative. Build Your Empire.
 
 [![Build Status](https://img.shields.io/badge/Build-Passing-brightgreen)](https://github.com/hammaadworks/whatcha-do.in/actions)
